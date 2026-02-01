@@ -7,12 +7,13 @@
 
 import SwiftUI
 import SwiftData
+import UserNotifications
 
 @main
 struct puddeukApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            Alarm.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -26,6 +27,12 @@ struct puddeukApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .preferredColorScheme(.dark)
+                .onAppear {
+                    AlarmNotificationManager.shared.requestAuthorization()
+                    // 포그라운드에서도 알림 표시
+                    UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
+                }
         }
         .modelContainer(sharedModelContainer)
     }

@@ -7,60 +7,74 @@
 
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @Query(sort: \Alarm.hour) private var alarms: [Alarm]
+    @State private var showingAddAlarm = false
+    @State private var selectedAlarm: Alarm?
+    @ObservedObject private var alarmManager = AlarmManager.shared
 
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+        NavigationStack {
+            ZStack {
+                Color(red: 0.11, green: 0.11, blue: 0.13).ignoresSafeArea()
+                
+                if alarms.isEmpty {
+                    EmptyAlarmView()
+                } else {
+                    AlarmListView(alarms: alarms) { alarm in
+                        selectedAlarm = alarm
                     }
                 }
-                .onDelete(perform: deleteItems)
             }
-#if os(macOS)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-#endif
+            .navigationTitle("알람")
+            .navigationBarTitleDisplayMode(.large)
+            .preferredColorScheme(.dark)
             .toolbar {
-#if os(iOS)
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
+                    ToolbarButtons(
+                        alarms: alarms,
+                        onAddTap: { showingAddAlarm = true }
+                    )
                 }
             }
-        } detail: {
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+            .sheet(isPresented: $showingAddAlarm) {
+                AddAlarmView()
             }
+            .sheet(item: $selectedAlarm) { alarm in
+                AddAlarmView(alarm: alarm)
+            }
+            .onAppear {
+                setupAlarms()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                AlarmNotificationManager.shared.checkPendingAlarm(modelContext: modelContext)
+            }
+            .fullScreenCover(isPresented: $alarmManager.showAlarmView) {
+                if let alarm = alarmManager.activeAlarm {
+                    AlarmView(alarm: alarm)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Private Methods
+    
+    private func setupAlarms() {
+        NotificationDelegate.shared.modelContext = modelContext
+        rescheduleActiveAlarms()
+    }
+    
+    private func rescheduleActiveAlarms() {
+        for alarm in alarms where alarm.isEnabled {
+            AlarmNotificationManager.shared.scheduleAlarm(alarm)
         }
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+        .modelContainer(for: Alarm.self, inMemory: true)
 }
