@@ -12,6 +12,12 @@ struct AlarmRow: View {
                         .font(.system(size: 32, weight: .bold))
                         .foregroundColor(.white)
 
+                    if !alarm.title.isEmpty {
+                        Text(alarm.title)
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.8))
+                    }
+
                     HStack(spacing: 4) {
                         Text(alarm.repeatDays.isEmpty ? "반복 없음" : alarm.repeatDaysString)
                             .font(.caption)

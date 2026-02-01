@@ -8,7 +8,7 @@ struct AddAlarmView: View {
     @Environment(\.dismiss) private var dismiss
 
     @StateObject private var audioRecorder = AudioRecorder()
-    @State private var title: String = "알람"
+    @State private var title: String = ""
     @State private var selectedTime: Date = Date()
     @State private var repeatDays: Set<Int> = []
     @State private var audioFileName: String?
@@ -49,17 +49,20 @@ struct AddAlarmView: View {
                 ScrollView {
                     VStack(spacing: 24) {
                         timePickerSection
-                        titleSection
-                        repeatDaysSection
-                        audioSection
-                        if isEditing {
-                            deleteButton
+                        
+                        VStack(spacing: 24) {
+                            titleSection
+                            repeatDaysSection
+                            audioSection
+                            
+                            if isEditing {
+                                deleteButton
+                            }
                         }
+                        .padding(.horizontal, 16)
                     }
-                    .frame(maxWidth: .infinity)
                     .padding(.vertical)
                 }
-                .contentMargins(.horizontal, 20, for: .scrollContent)
             }
             .navigationTitle(isEditing ? "알람 편집" : "새 알람")
             .navigationBarTitleDisplayMode(.inline)
@@ -100,8 +103,8 @@ struct AddAlarmView: View {
             .labelsHidden()
             .environment(\.locale, Locale(identifier: "ko_KR"))
             .frame(height: 150)
+            .frame(maxWidth: .infinity)
     }
-
 
     private var titleSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -109,7 +112,7 @@ struct AddAlarmView: View {
                 .font(.headline)
                 .foregroundColor(.white)
 
-            TextField("알람 이름", text: $title)
+            TextField("알람 이름을 입력해주세요", text: $title)
                 .textFieldStyle(.plain)
                 .padding()
                 .background(Color.gray.opacity(0.2))
@@ -122,11 +125,11 @@ struct AddAlarmView: View {
         let dayNames = ["일", "월", "화", "수", "목", "금", "토"]
 
         return VStack(alignment: .leading, spacing: 12) {
-            Text("반복 요일")
+            Text("반복")
                 .font(.headline)
                 .foregroundColor(.white)
 
-            HStack(spacing: 12) {
+            HStack(spacing: 8) {
                 ForEach(0..<7, id: \.self) { dayIndex in
                     Button {
                         if repeatDays.contains(dayIndex) {
@@ -138,7 +141,8 @@ struct AddAlarmView: View {
                         Text(dayNames[dayIndex])
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(repeatDays.contains(dayIndex) ? .black : .white)
-                            .frame(width: 44, height: 44)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
                             .background(repeatDays.contains(dayIndex) ? Color.pink : Color.gray.opacity(0.3))
                             .cornerRadius(22)
                     }
@@ -199,6 +203,7 @@ struct AddAlarmView: View {
         } else {
             Text("녹음된 소리가 없습니다")
                 .foregroundColor(.gray)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 

@@ -14,7 +14,7 @@ final class Alarm {
 
     init(
         id: UUID = UUID(),
-        title: String = "알람",
+        title: String = "",
         hour: Int = 8,
         minute: Int = 0,
         isEnabled: Bool = true,
