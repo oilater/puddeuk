@@ -371,7 +371,7 @@ struct AddAlarmView: View {
             } catch {
                 print("❌ 알람 저장 실패: \(error)")
             }
-ㅂ
+
             AlarmNotificationManager.shared.scheduleAlarm(newAlarm)
         }
 
