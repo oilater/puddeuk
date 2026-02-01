@@ -8,9 +8,13 @@ class AudioPlayer: NSObject, ObservableObject {
 
     private var player: AVAudioPlayer?
 
+    private func getSoundsDirectory() -> URL {
+        let libraryPath = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0]
+        return libraryPath.appendingPathComponent("Sounds")
+    }
+
     func playAlarmSound(fileName: String) {
-        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let audioURL = documentsPath.appendingPathComponent(fileName)
+        let audioURL = getSoundsDirectory().appendingPathComponent(fileName)
 
         do {
             try setupAudioSession()
@@ -27,8 +31,7 @@ class AudioPlayer: NSObject, ObservableObject {
     }
 
     func playPreview(fileName: String) -> Bool {
-        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let audioURL = documentsPath.appendingPathComponent(fileName)
+        let audioURL = getSoundsDirectory().appendingPathComponent(fileName)
 
         guard FileManager.default.fileExists(atPath: audioURL.path) else {
             print("❌ 미리듣기 파일 없음: \(audioURL.path)")
@@ -77,8 +80,13 @@ class AudioPlayer: NSObject, ObservableObject {
     }
 
     private func setupAudioSession() throws {
-        try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
-        try AVAudioSession.sharedInstance().setActive(true)
+        // 백그라운드 재생 및 무음 모드에서도 소리 재생 가능하도록 설정
+        try AVAudioSession.sharedInstance().setCategory(
+            .playback,
+            mode: .default,
+            options: [.duckOthers]
+        )
+        try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
     }
 
     private func configurePlayer() {

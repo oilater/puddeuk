@@ -25,6 +25,14 @@ class AlarmNotificationManager {
             return
         }
 
+        // 백그라운드 알람 체크용 등록
+        AlarmNotificationService.shared.registerPendingAlarm(
+            hour: alarm.hour,
+            minute: alarm.minute,
+            audioFileName: alarm.audioFileName,
+            title: alarm.title.isEmpty ? "알람" : alarm.title
+        )
+
         if alarm.repeatDays.isEmpty {
             scheduleSingleAlarm(alarm)
         } else {
@@ -87,11 +95,21 @@ class AlarmNotificationManager {
 
     private func createNotificationContent(for alarm: Alarm) -> UNMutableNotificationContent {
         let content = UNMutableNotificationContent()
-        content.title = alarm.title
+        content.title = alarm.title.isEmpty ? "알람" : alarm.title
         content.body = "알람 시간입니다"
-        content.sound = .default
+
+        // 알림 사운드 끔 - AVAudioPlayer로만 재생
+        // (시스템 알림 사운드는 30초 제한이 있고, AVAudioPlayer와 충돌함)
+        content.sound = nil
+
         content.categoryIdentifier = "ALARM"
-        content.userInfo = ["alarmId": alarm.id.uuidString]
+        content.interruptionLevel = .timeSensitive
+        // userInfo에 알람 정보 저장 (didReceive에서 사용)
+        content.userInfo = [
+            "alarmId": alarm.id.uuidString,
+            "audioFileName": alarm.audioFileName ?? "",
+            "title": alarm.title.isEmpty ? "알람" : alarm.title
+        ]
         return content
     }
 
@@ -136,6 +154,9 @@ class AlarmNotificationManager {
             }
             center.removePendingNotificationRequests(withIdentifiers: identifiers)
         }
+
+        // 백그라운드 알람에서도 제거
+        AlarmNotificationService.shared.removePendingAlarm(hour: alarm.hour, minute: alarm.minute)
 
         print("알람 취소됨: \(alarm.title)")
     }
@@ -194,27 +215,28 @@ class AlarmNotificationManager {
 
     func checkPendingAlarm(modelContext: ModelContext) {
         UNUserNotificationCenter.current().getDeliveredNotifications { notifications in
-            for notification in notifications {
-                guard let alarmIdString = notification.request.content.userInfo["alarmId"] as? String,
-                      let alarmId = UUID(uuidString: alarmIdString) else {
-                    continue
-                }
-
-                let descriptor = FetchDescriptor<Alarm>(
-                    predicate: #Predicate { $0.id == alarmId }
-                )
-
-                do {
-                    let foundAlarms = try modelContext.fetch(descriptor)
-                    if let alarm = foundAlarms.first, alarm.isEnabled {
-                        DispatchQueue.main.async {
-                            AlarmManager.shared.showAlarm(alarm)
-                        }
-                        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [notification.request.identifier])
-                        break
+            // SwiftData 작업은 메인 스레드에서 실행
+            DispatchQueue.main.async {
+                for notification in notifications {
+                    guard let alarmIdString = notification.request.content.userInfo["alarmId"] as? String,
+                          let alarmId = UUID(uuidString: alarmIdString) else {
+                        continue
                     }
-                } catch {
-                    print("❌ 알람 찾기 실패: \(error)")
+
+                    let descriptor = FetchDescriptor<Alarm>(
+                        predicate: #Predicate { $0.id == alarmId }
+                    )
+
+                    do {
+                        let foundAlarms = try modelContext.fetch(descriptor)
+                        if let alarm = foundAlarms.first, alarm.isEnabled {
+                            AlarmManager.shared.showAlarm(alarm)
+                            UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [notification.request.identifier])
+                            break
+                        }
+                    } catch {
+                        print("❌ 알람 찾기 실패: \(error)")
+                    }
                 }
             }
         }

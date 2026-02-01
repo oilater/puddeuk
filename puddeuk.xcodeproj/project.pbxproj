@@ -6,13 +6,41 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXCopyFilesBuildPhase section */
+		DF5A03372F2F7E2E00B45649 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		DF5A02922F2F1FD700B45649 /* puddeuk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = puddeuk.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF5A031E2F2F7E2D00B45649 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		DF5A03202F2F7E2D00B45649 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		DF5A03112F2F77D800B45649 /* Exceptions for "puddeuk" folder in "puddeuk" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = DF5A02912F2F1FD700B45649 /* puddeuk */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		DF5A02942F2F1FD700B45649 /* puddeuk */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				DF5A03112F2F77D800B45649 /* Exceptions for "puddeuk" folder in "puddeuk" target */,
+			);
 			path = puddeuk;
 			sourceTree = "<group>";
 		};
@@ -33,6 +61,7 @@
 			isa = PBXGroup;
 			children = (
 				DF5A02942F2F1FD700B45649 /* puddeuk */,
+				DF5A031D2F2F7E2D00B45649 /* Frameworks */,
 				DF5A02932F2F1FD700B45649 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -45,6 +74,15 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		DF5A031D2F2F7E2D00B45649 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				DF5A031E2F2F7E2D00B45649 /* WidgetKit.framework */,
+				DF5A03202F2F7E2D00B45649 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -55,6 +93,7 @@
 				DF5A028E2F2F1FD700B45649 /* Sources */,
 				DF5A028F2F2F1FD700B45649 /* Frameworks */,
 				DF5A02902F2F1FD700B45649 /* Resources */,
+				DF5A03372F2F7E2E00B45649 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
@@ -254,6 +293,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = puddeuk/Info.plist;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "알람 소리를 녹음하기 위해 마이크 접근 권한이 필요합니다.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -300,6 +340,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = puddeuk/Info.plist;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "알람 소리를 녹음하기 위해 마이크 접근 권한이 필요합니다.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;

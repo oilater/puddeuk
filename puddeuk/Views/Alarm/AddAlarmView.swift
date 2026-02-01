@@ -231,6 +231,11 @@ struct AddAlarmView: View {
                 Spacer()
                 Button {
                     audioPlayer.stop()
+                    // 새로 녹음한 파일이면 삭제
+                    if let fileName = audioFileName,
+                       audioRecorder.audioURL?.lastPathComponent == fileName {
+                        audioRecorder.deleteAudioFile(fileName: fileName)
+                    }
                     audioFileName = nil
                 } label: {
                     Image(systemName: "xmark.circle.fill")
@@ -261,6 +266,10 @@ struct AddAlarmView: View {
 
                 Button {
                     audioPlayer.stop()
+                    // 기존 녹음 파일 삭제
+                    if let fileName = audioFileName {
+                        audioRecorder.deleteAudioFile(fileName: fileName)
+                    }
                     audioFileName = nil
                     _ = audioRecorder.startRecording()
                 } label: {
@@ -355,6 +364,14 @@ struct AddAlarmView: View {
             )
             modelContext.insert(newAlarm)
 
+            // 명시적 저장
+            do {
+                try modelContext.save()
+                print("✅ 알람 저장 완료")
+            } catch {
+                print("❌ 알람 저장 실패: \(error)")
+            }
+ㅂ
             AlarmNotificationManager.shared.scheduleAlarm(newAlarm)
         }
 
@@ -364,6 +381,10 @@ struct AddAlarmView: View {
     private func deleteAlarm() {
         if let alarm = alarm {
             AlarmNotificationManager.shared.cancelAlarm(alarm)
+            // 연결된 오디오 파일도 삭제
+            if let audioFileName = alarm.audioFileName {
+                audioRecorder.deleteAudioFile(fileName: audioFileName)
+            }
             modelContext.delete(alarm)
         }
         dismiss()

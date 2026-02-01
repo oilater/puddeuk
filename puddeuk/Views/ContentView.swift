@@ -19,6 +19,8 @@ struct ContentView: View {
                 } else {
                     AlarmListView(alarms: alarms) { alarm in
                         selectedAlarm = alarm
+                    } onAlarmDelete: { alarm in
+                        deleteAlarm(alarm)
                     }
                 }
             }
@@ -45,16 +47,28 @@ struct ContentView: View {
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
                 AlarmNotificationManager.shared.checkPendingAlarm(modelContext: modelContext)
             }
+            .onChange(of: alarmManager.showAlarmView) { _, show in
+                // 알람 화면 표시 전 열린 sheet 닫기
+                if show {
+                    showingAddAlarm = false
+                    selectedAlarm = nil
+                }
+            }
             .fullScreenCover(isPresented: $alarmManager.showAlarmView) {
                 if let alarm = alarmManager.activeAlarm {
                     AlarmView(alarm: alarm)
+                } else if alarmManager.notificationTitle != nil {
+                    AlarmView(
+                        alarm: nil,
+                        notificationTitle: alarmManager.notificationTitle,
+                        notificationAudioFileName: alarmManager.notificationAudioFileName
+                    )
                 }
             }
         }
     }
 
     private func setupAlarms() {
-        NotificationDelegate.shared.modelContext = modelContext
         rescheduleActiveAlarms()
     }
 
@@ -62,6 +76,15 @@ struct ContentView: View {
         for alarm in alarms where alarm.isEnabled {
             AlarmNotificationManager.shared.scheduleAlarm(alarm)
         }
+    }
+
+    private func deleteAlarm(_ alarm: Alarm) {
+        AlarmNotificationManager.shared.cancelAlarm(alarm)
+        // 연결된 오디오 파일도 삭제
+        if let audioFileName = alarm.audioFileName {
+            AudioRecorder().deleteAudioFile(fileName: audioFileName)
+        }
+        modelContext.delete(alarm)
     }
 }
 
