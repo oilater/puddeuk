@@ -1,19 +1,12 @@
-//
-//  AlarmNotificationManager.swift
-//  puddeuk
-//
-//  Created by 성현 on 2/1/26.
-//
-
 import Foundation
 import UserNotifications
 import SwiftData
 
 class AlarmNotificationManager {
     static let shared = AlarmNotificationManager()
-    
+
     private init() {}
-    
+
     func requestAuthorization() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             if granted {
@@ -25,33 +18,31 @@ class AlarmNotificationManager {
             }
         }
     }
-    
+
     func scheduleAlarm(_ alarm: Alarm) {
         guard alarm.isEnabled else {
             cancelAlarm(alarm)
             return
         }
-        
+
         if alarm.repeatDays.isEmpty {
-            // 반복 없음 - 한 번만 울림
             scheduleSingleAlarm(alarm)
         } else {
-            // 반복 요일 설정
             for day in alarm.repeatDays {
                 scheduleRepeatingAlarm(alarm, weekday: day)
             }
         }
     }
-    
+
     private func scheduleSingleAlarm(_ alarm: Alarm) {
         let content = createNotificationContent(for: alarm)
         guard let triggerDate = calculateNextAlarmDate(for: alarm) else {
             print("❌ 알람 시간 계산 실패")
             return
         }
-        
+
         logAlarmSchedule(alarm: alarm, triggerDate: triggerDate)
-        
+
         let dateComponents = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: triggerDate)
         let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
         let request = UNNotificationRequest(
@@ -59,7 +50,7 @@ class AlarmNotificationManager {
             content: content,
             trigger: trigger
         )
-        
+
         UNUserNotificationCenter.current().add(request) { [weak self] error in
             if let error = error {
                 print("❌ 알람 스케줄링 실패: \(error)")
@@ -69,14 +60,14 @@ class AlarmNotificationManager {
             }
         }
     }
-    
+
     private func scheduleRepeatingAlarm(_ alarm: Alarm, weekday: Int) {
         let content = createNotificationContent(for: alarm)
         var dateComponents = DateComponents()
-        dateComponents.weekday = weekday + 1 // 1=일요일, 2=월요일, ..., 7=토요일
+        dateComponents.weekday = weekday + 1
         dateComponents.hour = alarm.hour
         dateComponents.minute = alarm.minute
-        
+
         let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
         let identifier = "\(alarm.id.uuidString)-\(weekday)"
         let request = UNNotificationRequest(
@@ -84,7 +75,7 @@ class AlarmNotificationManager {
             content: content,
             trigger: trigger
         )
-        
+
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
                 print("❌ 반복 알람 스케줄링 실패: \(error)")
@@ -93,9 +84,7 @@ class AlarmNotificationManager {
             }
         }
     }
-    
-    // MARK: - Private Helper Methods
-    
+
     private func createNotificationContent(for alarm: Alarm) -> UNMutableNotificationContent {
         let content = UNMutableNotificationContent()
         content.title = alarm.title
@@ -105,11 +94,11 @@ class AlarmNotificationManager {
         content.userInfo = ["alarmId": alarm.id.uuidString]
         return content
     }
-    
+
     private func calculateNextAlarmDate(for alarm: Alarm) -> Date? {
         let calendar = Calendar.current
         let now = Date()
-        
+
         var components = DateComponents()
         components.year = calendar.component(.year, from: now)
         components.month = calendar.component(.month, from: now)
@@ -117,27 +106,27 @@ class AlarmNotificationManager {
         components.hour = alarm.hour
         components.minute = alarm.minute
         components.second = 0
-        
+
         var triggerDate = calendar.date(from: components)
-        
+
         if let date = triggerDate, date <= now {
             components.day = (components.day ?? 0) + 1
             triggerDate = calendar.date(from: components)
         }
-        
+
         return triggerDate
     }
-    
+
     private func logAlarmSchedule(alarm: Alarm, triggerDate: Date) {
         let timeUntilAlarm = triggerDate.timeIntervalSince(Date())
         print("⏰ 알람 예약 시간: \(triggerDate)")
         print("   현재 시간: \(Date())")
         print("   남은 시간: \(Int(timeUntilAlarm / 60))분 \(Int(timeUntilAlarm.truncatingRemainder(dividingBy: 60)))초")
     }
-    
+
     func cancelAlarm(_ alarm: Alarm) {
         let center = UNUserNotificationCenter.current()
-        
+
         if alarm.repeatDays.isEmpty {
             center.removePendingNotificationRequests(withIdentifiers: [alarm.id.uuidString])
         } else {
@@ -147,15 +136,14 @@ class AlarmNotificationManager {
             }
             center.removePendingNotificationRequests(withIdentifiers: identifiers)
         }
-        
+
         print("알람 취소됨: \(alarm.title)")
     }
-    
+
     func cancelAllAlarms() {
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
     }
-    
-    // 디버깅용: 스케줄된 알림 확인
+
     func printPendingNotifications() {
         UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
             print("📋 현재 스케줄된 알림 개수: \(requests.count)")
@@ -176,17 +164,16 @@ class AlarmNotificationManager {
             }
         }
     }
-    
-    // 테스트용: 즉시 알림 보내기 (디버깅용)
+
     func sendTestNotification(title: String = "테스트 알람", body: String = "알람 테스트입니다") {
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
         content.sound = .default
-        
+
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
         let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-        
+
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
                 print("❌ 테스트 알림 실패: \(error)")
@@ -195,8 +182,7 @@ class AlarmNotificationManager {
             }
         }
     }
-    
-    // 알림 권한 상태 확인
+
     func checkAuthorizationStatus() {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
             print("🔔 알림 권한 상태: \(settings.authorizationStatus.rawValue)")
@@ -205,8 +191,7 @@ class AlarmNotificationManager {
             print("   - 사운드 허용: \(settings.soundSetting.rawValue)")
         }
     }
-    
-    // 백그라운드에서 앱이 활성화될 때 전달된 알림 확인
+
     func checkPendingAlarm(modelContext: ModelContext) {
         UNUserNotificationCenter.current().getDeliveredNotifications { notifications in
             for notification in notifications {
@@ -214,11 +199,11 @@ class AlarmNotificationManager {
                       let alarmId = UUID(uuidString: alarmIdString) else {
                     continue
                 }
-                
+
                 let descriptor = FetchDescriptor<Alarm>(
                     predicate: #Predicate { $0.id == alarmId }
                 )
-                
+
                 do {
                     let foundAlarms = try modelContext.fetch(descriptor)
                     if let alarm = foundAlarms.first, alarm.isEnabled {
@@ -235,4 +220,3 @@ class AlarmNotificationManager {
         }
     }
 }
-

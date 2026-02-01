@@ -1,16 +1,9 @@
-//
-//  AlarmRow.swift
-//  puddeuk
-//
-//  Created by 성현 on 2/1/26.
-//
-
 import SwiftUI
 
 struct AlarmRow: View {
     let alarm: Alarm
     let onTap: () -> Void
-    
+
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 16) {
@@ -18,12 +11,12 @@ struct AlarmRow: View {
                     Text(alarm.timeString)
                         .font(.system(size: 32, weight: .bold))
                         .foregroundColor(.white)
-                    
+
                     HStack(spacing: 4) {
                         Text(alarm.repeatDays.isEmpty ? "반복 없음" : alarm.repeatDaysString)
                             .font(.caption)
                             .foregroundColor(alarm.repeatDays.isEmpty ? .gray : .pink)
-                        
+
                         if alarm.audioFileName != nil {
                             Image(systemName: "waveform")
                                 .font(.caption)
@@ -31,9 +24,9 @@ struct AlarmRow: View {
                         }
                     }
                 }
-                
+
                 Spacer()
-                
+
                 Toggle("", isOn: Binding(
                     get: { alarm.isEnabled },
                     set: { newValue in
@@ -54,4 +47,3 @@ struct AlarmRow: View {
         .buttonStyle(.plain)
     }
 }
-

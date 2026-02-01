@@ -1,10 +1,3 @@
-//
-//  Alarm.swift
-//  puddeuk
-//
-//  Created by 성현 on 2/1/26.
-//
-
 import Foundation
 import SwiftData
 
@@ -18,7 +11,7 @@ final class Alarm {
     var audioFileName: String?
     var repeatDays: [Int]
     var createdAt: Date
-    
+
     init(
         id: UUID = UUID(),
         title: String = "알람",
@@ -38,13 +31,13 @@ final class Alarm {
         self.repeatDays = repeatDays
         self.createdAt = createdAt
     }
-    
+
     var timeString: String {
         let hour12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour)
         let period = hour < 12 ? "오전" : "오후"
         return String(format: "%@ %d:%02d", period, hour12, minute)
     }
-    
+
     var repeatDaysString: String {
         if repeatDays.isEmpty {
             return "반복 없음"
@@ -56,4 +49,3 @@ final class Alarm {
         return repeatDays.sorted().map { dayNames[$0] }.joined(separator: " ")
     }
 }
-

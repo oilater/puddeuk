@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  puddeuk
-//
-//  Created by 성현 on 2/1/26.
-//
-
 import SwiftUI
 import SwiftData
 import UIKit
@@ -20,7 +13,7 @@ struct ContentView: View {
         NavigationStack {
             ZStack {
                 Color(red: 0.11, green: 0.11, blue: 0.13).ignoresSafeArea()
-                
+
                 if alarms.isEmpty {
                     EmptyAlarmView()
                 } else {
@@ -59,14 +52,12 @@ struct ContentView: View {
             }
         }
     }
-    
-    // MARK: - Private Methods
-    
+
     private func setupAlarms() {
         NotificationDelegate.shared.modelContext = modelContext
         rescheduleActiveAlarms()
     }
-    
+
     private func rescheduleActiveAlarms() {
         for alarm in alarms where alarm.isEnabled {
             AlarmNotificationManager.shared.scheduleAlarm(alarm)

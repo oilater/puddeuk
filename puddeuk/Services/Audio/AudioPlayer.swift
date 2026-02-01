@@ -1,10 +1,3 @@
-//
-//  AudioPlayer.swift
-//  puddeuk
-//
-//  Created by 성현 on 2/1/26.
-//
-
 import Foundation
 import AVFoundation
 import AudioToolbox
@@ -12,11 +5,11 @@ import Combine
 
 class AudioPlayer: ObservableObject {
     private var player: AVAudioPlayer?
-    
+
     func playAlarmSound(fileName: String) {
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let audioURL = documentsPath.appendingPathComponent(fileName)
-        
+
         do {
             try setupAudioSession()
             player = try AVAudioPlayer(contentsOf: audioURL)
@@ -28,7 +21,7 @@ class AudioPlayer: ObservableObject {
             playDefaultSound()
         }
     }
-    
+
     func playDefaultSound() {
         if let soundURL = Bundle.main.url(forResource: "default_alarm", withExtension: "mp3") {
             do {
@@ -44,29 +37,27 @@ class AudioPlayer: ObservableObject {
             playSystemSound()
         }
     }
-    
+
     func stop() {
         player?.stop()
         player = nil
         deactivateAudioSession()
     }
-    
-    // MARK: - Private Methods
-    
+
     private func setupAudioSession() throws {
         try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
         try AVAudioSession.sharedInstance().setActive(true)
     }
-    
+
     private func configurePlayer() {
-        player?.numberOfLoops = -1 // 무한 반복
+        player?.numberOfLoops = -1
         player?.volume = 1.0
     }
-    
+
     private func playSystemSound() {
-        AudioServicesPlaySystemSound(1005) // 시스템 알람 사운드 ID
+        AudioServicesPlaySystemSound(1005)
     }
-    
+
     private func deactivateAudioSession() {
         do {
             try AVAudioSession.sharedInstance().setActive(false)
@@ -75,4 +66,3 @@ class AudioPlayer: ObservableObject {
         }
     }
 }
-

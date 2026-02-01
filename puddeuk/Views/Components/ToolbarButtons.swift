@@ -1,16 +1,9 @@
-//
-//  ToolbarButtons.swift
-//  puddeuk
-//
-//  Created by 성현 on 2/1/26.
-//
-
 import SwiftUI
 
 struct ToolbarButtons: View {
     let alarms: [Alarm]
     let onAddTap: () -> Void
-    
+
     var body: some View {
         HStack {
             #if DEBUG
@@ -27,7 +20,7 @@ struct ToolbarButtons: View {
                     .foregroundColor(.orange)
             }
             #endif
-            
+
             Button {
                 onAddTap()
             } label: {
@@ -38,4 +31,3 @@ struct ToolbarButtons: View {
         }
     }
 }
-
