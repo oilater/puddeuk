@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import AVFoundation
+import UIKit
 
 struct AddAlarmView: View {
     @Environment(\.modelContext) private var modelContext
@@ -8,9 +9,7 @@ struct AddAlarmView: View {
 
     @StateObject private var audioRecorder = AudioRecorder()
     @State private var title: String = "알람"
-    @State private var selectedHour: Int = 8
-    @State private var selectedMinute: Int = 0
-    @State private var isAM: Bool = true
+    @State private var selectedTime: Date = Date()
     @State private var repeatDays: Set<Int> = []
     @State private var audioFileName: String?
     @State private var showingDeleteAlert = false
@@ -24,15 +23,23 @@ struct AddAlarmView: View {
 
         if let alarm = alarm {
             _title = State(initialValue: alarm.title)
-            _selectedHour = State(initialValue: alarm.hour == 0 ? 12 : (alarm.hour > 12 ? alarm.hour - 12 : alarm.hour))
-            _selectedMinute = State(initialValue: alarm.minute)
-            _isAM = State(initialValue: alarm.hour < 12)
+            var components = DateComponents()
+            components.hour = alarm.hour
+            components.minute = alarm.minute
+            if let date = Calendar.current.date(from: components) {
+                _selectedTime = State(initialValue: date)
+            }
             _repeatDays = State(initialValue: Set(alarm.repeatDays))
             _audioFileName = State(initialValue: alarm.audioFileName)
+        } else {
+            var components = DateComponents()
+            components.hour = 8
+            components.minute = 0
+            if let date = Calendar.current.date(from: components) {
+                _selectedTime = State(initialValue: date)
+            }
         }
     }
-
-    private let dayNames = ["일", "월", "화", "수", "목", "금", "토"]
 
     var body: some View {
         NavigationStack {
@@ -41,196 +48,18 @@ struct AddAlarmView: View {
 
                 ScrollView {
                     VStack(spacing: 24) {
-                        VStack(spacing: 16) {
-                            Text("시간 설정")
-                                .font(.headline)
-                                .foregroundColor(.white)
-
-                            HStack(spacing: 12) {
-                                Picker("오전/오후", selection: $isAM) {
-                                    Text("오전").tag(true)
-                                    Text("오후").tag(false)
-                                }
-                                .pickerStyle(.wheel)
-                                .frame(width: 70, height: 120)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color.gray.opacity(0.15))
-                                        .frame(height: 40)
-                                        .offset(y: 0)
-                                )
-
-                                Picker("시", selection: $selectedHour) {
-                                    ForEach(1...12, id: \.self) { hour in
-                                        Text("\(hour)").tag(hour)
-                                    }
-                                }
-                                .pickerStyle(.wheel)
-                                .frame(width: 70, height: 120)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color.gray.opacity(0.15))
-                                        .frame(height: 40)
-                                        .offset(y: 0)
-                                )
-
-                                Text(":")
-                                    .font(.system(size: 32, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .padding(.top, 20)
-
-                                Picker("분", selection: $selectedMinute) {
-                                    ForEach(0..<60, id: \.self) { minute in
-                                        Text(String(format: "%02d", minute)).tag(minute)
-                                    }
-                                }
-                                .pickerStyle(.wheel)
-                                .frame(width: 70, height: 120)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color.gray.opacity(0.15))
-                                        .frame(height: 40)
-                                        .offset(y: 0)
-                                )
-                            }
-                            .padding(.vertical, 8)
-                        }
-                        .padding()
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(16)
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("제목")
-                                .font(.headline)
-                                .foregroundColor(.white)
-
-                            TextField("알람 이름", text: $title)
-                                .textFieldStyle(.plain)
-                                .padding()
-                                .background(Color.gray.opacity(0.2))
-                                .cornerRadius(12)
-                                .foregroundColor(.white)
-                        }
-                        .padding(.horizontal)
-
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("반복 요일")
-                                .font(.headline)
-                                .foregroundColor(.white)
-
-                            HStack(spacing: 12) {
-                                ForEach(0..<7) { dayIndex in
-                                    Button {
-                                        if repeatDays.contains(dayIndex) {
-                                            repeatDays.remove(dayIndex)
-                                        } else {
-                                            repeatDays.insert(dayIndex)
-                                        }
-                                    } label: {
-                                        Text(dayNames[dayIndex])
-                                            .font(.system(size: 16, weight: .semibold))
-                                            .foregroundColor(repeatDays.contains(dayIndex) ? .black : .white)
-                                            .frame(width: 44, height: 44)
-                                            .background(repeatDays.contains(dayIndex) ? Color.pink : Color.gray.opacity(0.3))
-                                            .cornerRadius(22)
-                                    }
-                                }
-                            }
-                        }
-                        .padding()
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(16)
-
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("알람 소리")
-                                .font(.headline)
-                                .foregroundColor(.white)
-
-                            VStack(spacing: 16) {
-                                if audioRecorder.isRecording {
-                                    HStack {
-                                        Circle()
-                                            .fill(Color.red)
-                                            .frame(width: 12, height: 12)
-                                            .opacity(audioRecorder.isRecording ? 1 : 0)
-                                            .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: audioRecorder.isRecording)
-
-                                        Text("녹음 중... \(Int(audioRecorder.recordingTime))초")
-                                            .foregroundColor(.white)
-
-                                        Spacer()
-                                    }
-                                } else if audioFileName != nil {
-                                    HStack {
-                                        Image(systemName: "waveform")
-                                            .foregroundColor(.pink)
-
-                                        Text("녹음 완료")
-                                            .foregroundColor(.white)
-
-                                        Spacer()
-
-                                        Button {
-                                            audioFileName = nil
-                                        } label: {
-                                            Image(systemName: "xmark.circle.fill")
-                                                .foregroundColor(.gray)
-                                        }
-                                    }
-                                } else {
-                                    Text("녹음된 소리가 없습니다")
-                                        .foregroundColor(.gray)
-                                }
-
-                                Button {
-                                    if audioRecorder.isRecording {
-                                        audioRecorder.stopRecording()
-                                        if let url = audioRecorder.audioURL {
-                                            let fileName = "\(UUID().uuidString).m4a"
-                                            audioFileName = audioRecorder.copyAudioFile(from: url, to: fileName)
-                                        }
-                                    } else {
-                                        _ = audioRecorder.startRecording()
-                                    }
-                                } label: {
-                                    HStack {
-                                        Image(systemName: audioRecorder.isRecording ? "stop.circle.fill" : "mic.circle.fill")
-                                            .font(.system(size: 24))
-
-                                        Text(audioRecorder.isRecording ? "녹음 중지" : "녹음 시작")
-                                            .font(.system(size: 16, weight: .semibold))
-                                    }
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(audioRecorder.isRecording ? Color.red.opacity(0.8) : Color.pink.opacity(0.8))
-                                    .cornerRadius(12)
-                                }
-                            }
-                        }
-                        .padding()
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(16)
-
+                        timePickerSection
+                        titleSection
+                        repeatDaysSection
+                        audioSection
                         if isEditing {
-                            Button {
-                                showingDeleteAlert = true
-                            } label: {
-                                HStack {
-                                    Image(systemName: "trash")
-                                    Text("알람 삭제")
-                                }
-                                .foregroundColor(.red)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.red.opacity(0.1))
-                                .cornerRadius(12)
-                            }
-                            .padding(.horizontal)
+                            deleteButton
                         }
                     }
-                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical)
                 }
+                .contentMargins(.horizontal, 20, for: .scrollContent)
             }
             .navigationTitle(isEditing ? "알람 편집" : "새 알람")
             .navigationBarTitleDisplayMode(.inline)
@@ -265,6 +94,157 @@ struct AddAlarmView: View {
         }
     }
 
+    private var timePickerSection: some View {
+        DatePicker("", selection: $selectedTime, displayedComponents: .hourAndMinute)
+            .datePickerStyle(.wheel)
+            .labelsHidden()
+            .environment(\.locale, Locale(identifier: "ko_KR"))
+            .frame(height: 150)
+    }
+
+
+    private var titleSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("알람 이름")
+                .font(.headline)
+                .foregroundColor(.white)
+
+            TextField("알람 이름", text: $title)
+                .textFieldStyle(.plain)
+                .padding()
+                .background(Color.gray.opacity(0.2))
+                .cornerRadius(12)
+                .foregroundColor(.white)
+        }
+    }
+
+    private var repeatDaysSection: some View {
+        let dayNames = ["일", "월", "화", "수", "목", "금", "토"]
+
+        return VStack(alignment: .leading, spacing: 12) {
+            Text("반복 요일")
+                .font(.headline)
+                .foregroundColor(.white)
+
+            HStack(spacing: 12) {
+                ForEach(0..<7, id: \.self) { dayIndex in
+                    Button {
+                        if repeatDays.contains(dayIndex) {
+                            repeatDays.remove(dayIndex)
+                        } else {
+                            repeatDays.insert(dayIndex)
+                        }
+                    } label: {
+                        Text(dayNames[dayIndex])
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(repeatDays.contains(dayIndex) ? .black : .white)
+                            .frame(width: 44, height: 44)
+                            .background(repeatDays.contains(dayIndex) ? Color.pink : Color.gray.opacity(0.3))
+                            .cornerRadius(22)
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color.gray.opacity(0.1))
+        .cornerRadius(16)
+    }
+
+    private var audioSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("알람 소리")
+                .font(.headline)
+                .foregroundColor(.white)
+
+            VStack(spacing: 16) {
+                audioStatusView
+                recordButton
+            }
+        }
+        .padding()
+        .background(Color.gray.opacity(0.1))
+        .cornerRadius(16)
+    }
+
+    @ViewBuilder
+    private var audioStatusView: some View {
+        if audioRecorder.isRecording {
+            HStack {
+                Circle()
+                    .fill(Color.red)
+                    .frame(width: 12, height: 12)
+
+                Text("녹음 중... \(Int(audioRecorder.recordingTime))초")
+                    .foregroundColor(.white)
+
+                Spacer()
+            }
+        } else if audioFileName != nil {
+            HStack {
+                Image(systemName: "waveform")
+                    .foregroundColor(.pink)
+
+                Text("녹음 완료")
+                    .foregroundColor(.white)
+
+                Spacer()
+
+                Button {
+                    audioFileName = nil
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.gray)
+                }
+            }
+        } else {
+            Text("녹음된 소리가 없습니다")
+                .foregroundColor(.gray)
+        }
+    }
+
+    private var recordButton: some View {
+        Button {
+            if audioRecorder.isRecording {
+                audioRecorder.stopRecording()
+                if let url = audioRecorder.audioURL {
+                    let fileName = "\(UUID().uuidString).m4a"
+                    audioFileName = audioRecorder.copyAudioFile(from: url, to: fileName)
+                }
+            } else {
+                _ = audioRecorder.startRecording()
+            }
+        } label: {
+            HStack {
+                Image(systemName: audioRecorder.isRecording ? "stop.circle.fill" : "mic.circle.fill")
+                    .font(.system(size: 24))
+
+                Text(audioRecorder.isRecording ? "녹음 중지" : "녹음 시작")
+                    .font(.system(size: 16, weight: .semibold))
+            }
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(audioRecorder.isRecording ? Color.red.opacity(0.8) : Color.pink.opacity(0.8))
+            .cornerRadius(12)
+        }
+    }
+
+    private var deleteButton: some View {
+        Button {
+            showingDeleteAlert = true
+        } label: {
+            HStack {
+                Image(systemName: "trash")
+                Text("알람 삭제")
+            }
+            .foregroundColor(.red)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.red.opacity(0.1))
+            .cornerRadius(12)
+        }
+    }
+
     private func saveAlarm() {
         if audioRecorder.isRecording {
             audioRecorder.stopRecording()
@@ -274,19 +254,16 @@ struct AddAlarmView: View {
             }
         }
 
-        let hour24: Int
-        if isAM {
-            hour24 = selectedHour == 12 ? 0 : selectedHour
-        } else {
-            hour24 = selectedHour == 12 ? 12 : selectedHour + 12
-        }
+        let components = Calendar.current.dateComponents([.hour, .minute], from: selectedTime)
+        let hour = components.hour ?? 0
+        let minute = components.minute ?? 0
 
         if let existingAlarm = alarm {
             AlarmNotificationManager.shared.cancelAlarm(existingAlarm)
 
             existingAlarm.title = title
-            existingAlarm.hour = hour24
-            existingAlarm.minute = selectedMinute
+            existingAlarm.hour = hour
+            existingAlarm.minute = minute
             existingAlarm.repeatDays = Array(repeatDays)
             if let fileName = audioFileName {
                 existingAlarm.audioFileName = fileName
@@ -296,8 +273,8 @@ struct AddAlarmView: View {
         } else {
             let newAlarm = Alarm(
                 title: title,
-                hour: hour24,
-                minute: selectedMinute,
+                hour: hour,
+                minute: minute,
                 isEnabled: true,
                 audioFileName: audioFileName,
                 repeatDays: Array(repeatDays)
