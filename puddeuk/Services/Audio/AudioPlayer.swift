@@ -3,7 +3,9 @@ import AVFoundation
 import AudioToolbox
 import Combine
 
-class AudioPlayer: ObservableObject {
+class AudioPlayer: NSObject, ObservableObject {
+    @Published var isPlaying = false
+
     private var player: AVAudioPlayer?
 
     func playAlarmSound(fileName: String) {
@@ -13,12 +15,39 @@ class AudioPlayer: ObservableObject {
         do {
             try setupAudioSession()
             player = try AVAudioPlayer(contentsOf: audioURL)
+            player?.delegate = self
             configurePlayer()
             player?.play()
+            isPlaying = true
             print("✅ 알람 소리 재생 시작: \(fileName)")
         } catch {
             print("❌ 알람 소리 재생 실패: \(error)")
             playDefaultSound()
+        }
+    }
+
+    func playPreview(fileName: String) -> Bool {
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let audioURL = documentsPath.appendingPathComponent(fileName)
+
+        guard FileManager.default.fileExists(atPath: audioURL.path) else {
+            print("❌ 미리듣기 파일 없음: \(audioURL.path)")
+            return false
+        }
+
+        do {
+            try setupAudioSession()
+            player = try AVAudioPlayer(contentsOf: audioURL)
+            player?.delegate = self
+            player?.numberOfLoops = 0
+            player?.volume = 1.0
+            player?.play()
+            isPlaying = true
+            print("✅ 미리듣기 재생 시작: \(fileName)")
+            return true
+        } catch {
+            print("❌ 미리듣기 재생 실패: \(error)")
+            return false
         }
     }
 
@@ -27,8 +56,10 @@ class AudioPlayer: ObservableObject {
             do {
                 try setupAudioSession()
                 player = try AVAudioPlayer(contentsOf: soundURL)
+                player?.delegate = self
                 configurePlayer()
                 player?.play()
+                isPlaying = true
             } catch {
                 print("❌ 기본 소리 재생 실패: \(error)")
                 playSystemSound()
@@ -41,6 +72,7 @@ class AudioPlayer: ObservableObject {
     func stop() {
         player?.stop()
         player = nil
+        isPlaying = false
         deactivateAudioSession()
     }
 
@@ -64,5 +96,14 @@ class AudioPlayer: ObservableObject {
         } catch {
             print("오디오 세션 비활성화 실패: \(error)")
         }
+    }
+}
+
+extension AudioPlayer: AVAudioPlayerDelegate {
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        DispatchQueue.main.async {
+            self.isPlaying = false
+        }
+        deactivateAudioSession()
     }
 }

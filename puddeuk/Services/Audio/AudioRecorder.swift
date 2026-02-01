@@ -28,6 +28,8 @@ class AudioRecorder: NSObject, ObservableObject {
     }
 
     func startRecording() -> URL? {
+        setupAudioSession()
+
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let audioFilename = documentsPath.appendingPathComponent("\(UUID().uuidString).m4a")
 
