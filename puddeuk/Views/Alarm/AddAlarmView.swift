@@ -45,17 +45,18 @@ struct AddAlarmView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(red: 0.11, green: 0.11, blue: 0.13).ignoresSafeArea()
+                Color(red: 0.11, green: 0.11, blue: 0.13)
+                    .ignoresSafeArea()
 
                 ScrollView {
                     VStack(spacing: 24) {
                         timePickerSection
-                        
+
                         VStack(spacing: 24) {
                             titleSection
                             repeatDaysSection
                             audioSection
-                            
+
                             if isEditing {
                                 deleteButton
                             }
@@ -63,7 +64,12 @@ struct AddAlarmView: View {
                         .padding(.horizontal, 16)
                     }
                     .padding(.vertical)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
                 }
+                .scrollDismissesKeyboard(.immediately)
             }
             .navigationTitle(isEditing ? "알람 편집" : "새 알람")
             .navigationBarTitleDisplayMode(.inline)
@@ -103,15 +109,13 @@ struct AddAlarmView: View {
             .datePickerStyle(.wheel)
             .labelsHidden()
             .environment(\.locale, Locale(identifier: "ko_KR"))
-            .frame(height: 150)
+            .scaleEffect(1.2)
+            .frame(height: 180)
             .frame(maxWidth: .infinity)
     }
 
     private var titleSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("알람 이름")
-                .font(.headline)
-                .foregroundColor(.white)
 
             TextField("알람 이름을 입력해주세요", text: $title)
                 .textFieldStyle(.plain)
@@ -119,6 +123,15 @@ struct AddAlarmView: View {
                 .background(Color.gray.opacity(0.2))
                 .cornerRadius(12)
                 .foregroundColor(.white)
+                .padding(.top, 20)
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button("완료") {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        }
+                    }
+                }
         }
     }
 
