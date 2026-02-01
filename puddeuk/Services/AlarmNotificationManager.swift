@@ -25,14 +25,6 @@ class AlarmNotificationManager {
             return
         }
 
-        // 백그라운드 알람 체크용 등록
-        AlarmNotificationService.shared.registerPendingAlarm(
-            hour: alarm.hour,
-            minute: alarm.minute,
-            audioFileName: alarm.audioFileName,
-            title: alarm.title.isEmpty ? "알람" : alarm.title
-        )
-
         if alarm.repeatDays.isEmpty {
             scheduleSingleAlarm(alarm)
         } else {
@@ -96,21 +88,39 @@ class AlarmNotificationManager {
     private func createNotificationContent(for alarm: Alarm) -> UNMutableNotificationContent {
         let content = UNMutableNotificationContent()
         content.title = alarm.title.isEmpty ? "알람" : alarm.title
-        content.body = "알람 시간입니다"
+        content.body = "알람 시간입니다. 탭하여 끄기"
 
-        // 알림 사운드 끔 - AVAudioPlayer로만 재생
-        // (시스템 알림 사운드는 30초 제한이 있고, AVAudioPlayer와 충돌함)
-        content.sound = nil
+        if let audioFileName = alarm.audioFileName, !audioFileName.isEmpty {
+            let extendedFileName = getExtendedAudioFileName(for: audioFileName)
+            let soundsDir = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0]
+                .appendingPathComponent("Sounds")
+            let extendedURL = soundsDir.appendingPathComponent(extendedFileName)
+
+            if FileManager.default.fileExists(atPath: extendedURL.path) {
+                content.sound = UNNotificationSound(named: UNNotificationSoundName(extendedFileName))
+                print("🔊 노티피케이션 사운드: \(extendedFileName)")
+            } else {
+                content.sound = UNNotificationSound(named: UNNotificationSoundName(audioFileName))
+                print("🔊 노티피케이션 사운드 (원본): \(audioFileName)")
+            }
+        } else {
+            content.sound = .default
+        }
 
         content.categoryIdentifier = "ALARM"
         content.interruptionLevel = .timeSensitive
-        // userInfo에 알람 정보 저장 (didReceive에서 사용)
+
         content.userInfo = [
             "alarmId": alarm.id.uuidString,
             "audioFileName": alarm.audioFileName ?? "",
             "title": alarm.title.isEmpty ? "알람" : alarm.title
         ]
         return content
+    }
+
+    private func getExtendedAudioFileName(for originalFileName: String) -> String {
+        let baseName = (originalFileName as NSString).deletingPathExtension
+        return baseName + "_extended.caf"
     }
 
     private func calculateNextAlarmDate(for alarm: Alarm) -> Date? {
@@ -154,9 +164,6 @@ class AlarmNotificationManager {
             }
             center.removePendingNotificationRequests(withIdentifiers: identifiers)
         }
-
-        // 백그라운드 알람에서도 제거
-        AlarmNotificationService.shared.removePendingAlarm(hour: alarm.hour, minute: alarm.minute)
 
         print("알람 취소됨: \(alarm.title)")
     }
@@ -215,7 +222,6 @@ class AlarmNotificationManager {
 
     func checkPendingAlarm(modelContext: ModelContext) {
         UNUserNotificationCenter.current().getDeliveredNotifications { notifications in
-            // SwiftData 작업은 메인 스레드에서 실행
             DispatchQueue.main.async {
                 for notification in notifications {
                     guard let alarmIdString = notification.request.content.userInfo["alarmId"] as? String,

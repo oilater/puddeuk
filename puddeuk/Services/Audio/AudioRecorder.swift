@@ -11,8 +11,6 @@ class AudioRecorder: NSObject, ObservableObject {
     private var startTime: Date?
 
     var audioURL: URL?
-
-    /// 녹음 완료 콜백
     var onRecordingFinished: ((URL?) -> Void)?
 
     override init() {
@@ -52,15 +50,13 @@ class AudioRecorder: NSObject, ObservableObject {
         setupAudioSession()
 
         let soundsPath = getSoundsDirectory()
-        // M4A (ALAC) 형식 사용 - Apple Lossless, 무손실 압축
         let audioFilename = soundsPath.appendingPathComponent("\(UUID().uuidString).m4a")
 
-        // ALAC (Apple Lossless) 형식으로 녹음
         let settings: [String: Any] = [
-            AVFormatIDKey: Int(kAudioFormatAppleLossless),
+            AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
             AVSampleRateKey: 44100.0,
             AVNumberOfChannelsKey: 1,
-            AVEncoderBitDepthHintKey: 16
+            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
         ]
 
         do {
@@ -77,7 +73,7 @@ class AudioRecorder: NSObject, ObservableObject {
                 self.recordingTime = Date().timeIntervalSince(startTime)
             }
 
-            print("🎙️ 녹음 시작 (ALAC): \(audioFilename.lastPathComponent)")
+            print("🎙️ 녹음 시작: \(audioFilename.lastPathComponent)")
             return audioFilename
         } catch {
             print("❌ 녹음 시작 실패: \(error)")
@@ -94,7 +90,6 @@ class AudioRecorder: NSObject, ObservableObject {
         recordingTime = 0
         startTime = nil
 
-        // 녹음 세션 해제 (재생을 위해)
         do {
             try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
             print("✅ 녹음 세션 해제됨")
@@ -102,19 +97,108 @@ class AudioRecorder: NSObject, ObservableObject {
             print("⚠️ 녹음 세션 해제 실패: \(error)")
         }
 
-        // 파일 유효성 검증
-        if let url = audioURL {
-            if FileManager.default.fileExists(atPath: url.path),
-               let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
-               let size = attrs[.size] as? Int, size > 0 {
-                print("✅ 녹음 파일 생성됨: \(url.lastPathComponent), \(size) bytes")
-            } else {
-                print("❌ 녹음 파일이 생성되지 않았거나 비어있음")
-            }
+        guard let originalURL = audioURL else {
+            onRecordingFinished?(nil)
+            return
         }
 
-        // 연속 알림으로 30초마다 반복되므로 파일 확장 불필요
-        onRecordingFinished?(audioURL)
+        guard FileManager.default.fileExists(atPath: originalURL.path),
+              let attrs = try? FileManager.default.attributesOfItem(atPath: originalURL.path),
+              let size = attrs[.size] as? Int, size > 0 else {
+            print("❌ 녹음 파일이 생성되지 않았거나 비어있음")
+            onRecordingFinished?(nil)
+            return
+        }
+
+        print("✅ 녹음 파일 생성됨: \(originalURL.lastPathComponent), \(size) bytes")
+
+        createExtendedAudioFile(from: originalURL) { [weak self] extendedURL in
+            self?.onRecordingFinished?(originalURL)
+        }
+    }
+
+    private func createExtendedAudioFile(from originalURL: URL, completion: @escaping (URL?) -> Void) {
+        let extendedFileName = originalURL.deletingPathExtension().lastPathComponent + "_extended.caf"
+        let extendedURL = getSoundsDirectory().appendingPathComponent(extendedFileName)
+
+        try? FileManager.default.removeItem(at: extendedURL)
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                let originalFile = try AVAudioFile(forReading: originalURL)
+                let originalFormat = originalFile.processingFormat
+                let originalLength = originalFile.length
+                let sampleRate = originalFormat.sampleRate
+
+                let originalDuration = Double(originalLength) / sampleRate
+                print("📊 원본 오디오 길이: \(String(format: "%.1f", originalDuration))초")
+
+                if originalDuration >= 30.0 {
+                    print("✅ 이미 30초 이상이므로 확장 불필요")
+                    DispatchQueue.main.async {
+                        completion(originalURL)
+                    }
+                    return
+                }
+
+                guard let originalBuffer = AVAudioPCMBuffer(pcmFormat: originalFormat, frameCapacity: AVAudioFrameCount(originalLength)) else {
+                    throw NSError(domain: "AudioRecorder", code: 1, userInfo: [NSLocalizedDescriptionKey: "버퍼 생성 실패"])
+                }
+                try originalFile.read(into: originalBuffer)
+
+                let targetDuration: Double = 30.0
+                let repeatCount = Int(ceil(targetDuration / originalDuration))
+                let totalFrames = AVAudioFrameCount(originalLength) * AVAudioFrameCount(repeatCount)
+
+                print("🔄 반복 횟수: \(repeatCount)회 → 총 \(String(format: "%.1f", Double(repeatCount) * originalDuration))초")
+
+                guard let extendedBuffer = AVAudioPCMBuffer(pcmFormat: originalFormat, frameCapacity: totalFrames) else {
+                    throw NSError(domain: "AudioRecorder", code: 2, userInfo: [NSLocalizedDescriptionKey: "확장 버퍼 생성 실패"])
+                }
+
+                let channelCount = Int(originalFormat.channelCount)
+                for i in 0..<repeatCount {
+                    let destOffset = Int(originalLength) * i
+                    for channel in 0..<channelCount {
+                        if let srcData = originalBuffer.floatChannelData?[channel],
+                           let destData = extendedBuffer.floatChannelData?[channel] {
+                            for frame in 0..<Int(originalLength) {
+                                destData[destOffset + frame] = srcData[frame]
+                            }
+                        }
+                    }
+                }
+                extendedBuffer.frameLength = totalFrames
+
+                let outputSettings: [String: Any] = [
+                    AVFormatIDKey: Int(kAudioFormatLinearPCM),
+                    AVSampleRateKey: sampleRate,
+                    AVNumberOfChannelsKey: channelCount,
+                    AVLinearPCMBitDepthKey: 16,
+                    AVLinearPCMIsFloatKey: false,
+                    AVLinearPCMIsBigEndianKey: false
+                ]
+
+                let outputFile = try AVAudioFile(forWriting: extendedURL, settings: outputSettings)
+                try outputFile.write(from: extendedBuffer)
+
+                print("✅ 30초 확장 파일 생성: \(extendedFileName)")
+
+                DispatchQueue.main.async {
+                    completion(extendedURL)
+                }
+            } catch {
+                print("❌ 확장 파일 생성 실패: \(error)")
+                DispatchQueue.main.async {
+                    completion(nil)
+                }
+            }
+        }
+    }
+
+    func getExtendedAudioFileName(for originalFileName: String) -> String {
+        let baseName = (originalFileName as NSString).deletingPathExtension
+        return baseName + "_extended.caf"
     }
 
     func getAudioFilePath(fileName: String) -> URL {
@@ -131,6 +215,10 @@ class AudioRecorder: NSObject, ObservableObject {
         } catch {
             print("❌ 오디오 파일 삭제 실패: \(error)")
         }
+
+        let extendedFileName = getExtendedAudioFileName(for: fileName)
+        let extendedURL = getSoundsDirectory().appendingPathComponent(extendedFileName)
+        try? FileManager.default.removeItem(at: extendedURL)
     }
 }
 
