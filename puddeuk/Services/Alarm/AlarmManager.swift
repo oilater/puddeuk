@@ -8,6 +8,7 @@ class AlarmManager: ObservableObject {
 
     @Published var activeAlarm: Alarm?
     @Published var showAlarmView = false
+    @Published var showMissionCompleteView = false
 
     @Published var notificationTitle: String?
     @Published var notificationAudioFileName: String?
@@ -35,9 +36,29 @@ class AlarmManager: ObservableObject {
     func dismissAlarm() {
         DispatchQueue.main.async {
             self.showAlarmView = false
+            self.showMissionCompleteView = false
             self.activeAlarm = nil
             self.notificationTitle = nil
             self.notificationAudioFileName = nil
+        }
+    }
+
+    func showMissionComplete() {
+        DispatchQueue.main.async {
+            self.showAlarmView = false
+            self.activeAlarm = nil
+            self.notificationTitle = nil
+            self.notificationAudioFileName = nil
+            // Small delay to ensure AlarmView dismisses first
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                self.showMissionCompleteView = true
+            }
+        }
+    }
+
+    func dismissMissionComplete() {
+        DispatchQueue.main.async {
+            self.showMissionCompleteView = false
         }
     }
 }

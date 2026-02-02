@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct RecordingControlsView: View {
     @ObservedObject var audioRecorder: AudioRecorder
@@ -22,17 +23,50 @@ struct RecordingControlsView: View {
         .padding()
         .background(Color.gray.opacity(0.1))
         .cornerRadius(16)
+        .onAppear {
+            setupHapticCallbacks()
+        }
+        .onChange(of: audioRecorder.recordingState) { oldValue, newValue in
+            if newValue == .limitReached && audioRecorder.audioURL != nil {
+                audioFileName = audioRecorder.audioURL?.lastPathComponent
+            }
+        }
+    }
+
+    private func setupHapticCallbacks() {
+        audioRecorder.onWarningReached = {
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.warning)
+        }
+        audioRecorder.onLimitReached = {
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+        }
     }
 
     private var recordingView: some View {
         VStack(spacing: 12) {
-            HStack {
-                Circle()
-                    .fill(Color.teal)
-                    .frame(width: 12, height: 12)
+            HStack(spacing: 12) {
+                RecordingProgressRing(
+                    progress: audioRecorder.recordingTime / AlarmConfiguration.maxRecordingDuration,
+                    isWarning: audioRecorder.recordingState == .warning
+                )
+                .frame(width: 32, height: 32)
 
-                Text("녹음 중... \(Int(audioRecorder.recordingTime))초")
-                    .foregroundColor(.white)
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(audioRecorder.recordingState == .warning ? Color.orange : Color.teal)
+                            .frame(width: 8, height: 8)
+                        Text("녹음 중")
+                            .font(.omyuCaption)
+                            .foregroundColor(.gray)
+                    }
+
+                    Text("\(Int(audioRecorder.remainingTime))초 남음")
+                        .font(.omyuBody)
+                        .foregroundColor(audioRecorder.recordingState == .warning ? .orange : .white)
+                }
 
                 Spacer()
             }
@@ -49,7 +83,7 @@ struct RecordingControlsView: View {
                     Text("녹음 중지")
                         .font(.omyu(size: 16))
                 }
-                .foregroundColor(.white)
+                .foregroundColor(.black)
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(Color.teal.opacity(0.8))
@@ -94,7 +128,7 @@ struct RecordingControlsView: View {
                         Text(audioPlayer.isPlaying ? "정지" : "미리듣기")
                             .font(.omyu(size: 14))
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(.black)
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.teal.opacity(0.8))
@@ -127,10 +161,17 @@ struct RecordingControlsView: View {
 
     private var noRecordingView: some View {
         VStack(spacing: 12) {
-            Text("녹음된 소리가 없습니다")
-                .font(.omyuBody)
-                .foregroundColor(.gray)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("녹음된 소리가 없습니다")
+                    .font(.omyuBody)
+                    .foregroundColor(.gray)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                Text("최대 25초까지 녹음할 수 있어요")
+                    .font(.omyuCaption)
+                    .foregroundColor(.gray.opacity(0.7))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
 
             Button {
                 _ = audioRecorder.startRecording()

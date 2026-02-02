@@ -34,7 +34,7 @@ struct OnboardingPermissionPageView: View {
                 } label: {
                     Text("알림 권한 허용")
                         .font(.omyuHeadline)
-                        .foregroundColor(.white)
+                        .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 18)
                         .background(Color.teal)

@@ -32,7 +32,7 @@ struct OnboardingStartPageView: View {
             } label: {
                 Text("시작하기")
                     .font(.omyuHeadline)
-                    .foregroundColor(.white)
+                    .foregroundColor(.black)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 18)
                     .background(Color.teal)

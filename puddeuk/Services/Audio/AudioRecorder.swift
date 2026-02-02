@@ -3,16 +3,28 @@ import AVFoundation
 import Combine
 import OSLog
 
+enum RecordingState: Equatable {
+    case idle
+    case recording
+    case warning
+    case limitReached
+}
+
 class AudioRecorder: NSObject, ObservableObject {
     @Published var isRecording = false
     @Published var recordingTime: TimeInterval = 0
+    @Published var remainingTime: TimeInterval = AlarmConfiguration.maxRecordingDuration
+    @Published var recordingState: RecordingState = .idle
 
     private var audioRecorder: AVAudioRecorder?
     private var timer: Timer?
     private var startTime: Date?
+    private var hasTriggeredWarning = false
 
     var audioURL: URL?
     var onRecordingFinished: ((URL?) -> Void)?
+    var onWarningReached: (() -> Void)?
+    var onLimitReached: (() -> Void)?
 
     override init() {
         super.init()
@@ -70,10 +82,30 @@ class AudioRecorder: NSObject, ObservableObject {
             isRecording = true
             startTime = Date()
             audioURL = audioFilename
+            recordingState = .recording
+            hasTriggeredWarning = false
+            remainingTime = AlarmConfiguration.maxRecordingDuration
 
             timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
                 guard let self = self, let startTime = self.startTime else { return }
-                self.recordingTime = Date().timeIntervalSince(startTime)
+                let elapsed = Date().timeIntervalSince(startTime)
+                let maxDuration = AlarmConfiguration.maxRecordingDuration
+                let warningThreshold = AlarmConfiguration.recordingWarningThreshold
+
+                self.recordingTime = elapsed
+                self.remainingTime = max(0, maxDuration - elapsed)
+
+                if elapsed >= maxDuration {
+                    self.recordingState = .limitReached
+                    self.onLimitReached?()
+                    self.stopRecording()
+                } else if self.remainingTime <= warningThreshold && !self.hasTriggeredWarning {
+                    self.recordingState = .warning
+                    self.hasTriggeredWarning = true
+                    self.onWarningReached?()
+                } else if self.remainingTime > warningThreshold {
+                    self.recordingState = .recording
+                }
             }
 
             Logger.audio.info("녹음 시작: \(audioFilename.lastPathComponent)")
@@ -92,6 +124,9 @@ class AudioRecorder: NSObject, ObservableObject {
         isRecording = false
         recordingTime = 0
         startTime = nil
+        recordingState = .idle
+        remainingTime = AlarmConfiguration.maxRecordingDuration
+        hasTriggeredWarning = false
 
         do {
             try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)

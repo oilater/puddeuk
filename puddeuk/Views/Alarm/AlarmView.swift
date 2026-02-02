@@ -58,7 +58,7 @@ struct AlarmView: View {
                 } label: {
                     Text("끄기")
                         .font(.omyu(size: 20))
-                        .foregroundColor(.white)
+                        .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(Color.teal)
@@ -98,6 +98,6 @@ struct AlarmView: View {
         Task { @MainActor in
             LiveActivityManager.shared.endCurrentActivity()
         }
-        AlarmManager.shared.dismissAlarm()
+        AlarmManager.shared.showMissionComplete()
     }
 }

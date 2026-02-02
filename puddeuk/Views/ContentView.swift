@@ -53,6 +53,7 @@ struct ContentView: View {
                 if show {
                     showingAddAlarm = false
                     selectedAlarm = nil
+                    alarmManager.showMissionCompleteView = false
                 }
             }
             .fullScreenCover(isPresented: $alarmManager.showAlarmView) {
@@ -65,6 +66,9 @@ struct ContentView: View {
                         notificationAudioFileName: alarmManager.notificationAudioFileName
                     )
                 }
+            }
+            .fullScreenCover(isPresented: $alarmManager.showMissionCompleteView) {
+                MissionCompleteView()
             }
         }
     }
