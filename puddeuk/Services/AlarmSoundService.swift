@@ -13,7 +13,7 @@ final class AlarmSoundService {
             .appendingPathComponent("Sounds")
     }
 
-    /// 알람에 맞는 UNNotificationSound 반환
+    /// 알람에 맞는 UNNotificationSound 반환 (원본 파일 직접 사용)
     func notificationSound(for audioFileName: String?) -> UNNotificationSound {
         #if DEBUG
         print("🔊 [SoundService] audioFileName: \(audioFileName ?? "nil")")
@@ -26,24 +26,14 @@ final class AlarmSoundService {
             return .default
         }
 
-        let extendedFileName = extendedFileName(for: audioFileName)
         #if DEBUG
-        print("🔊 [SoundService] 확장 파일: \(extendedFileName)")
         print("🔊 [SoundService] 경로: \(soundsDirectory.path)")
-        print("🔊 [SoundService] 확장 파일 존재: \(fileExists(extendedFileName))")
-        print("🔊 [SoundService] 원본 파일 존재: \(fileExists(audioFileName))")
+        print("🔊 [SoundService] 파일 존재: \(fileExists(audioFileName))")
         #endif
-
-        if fileExists(extendedFileName) {
-            #if DEBUG
-            print("🔊 [SoundService] ✅ 사용: \(extendedFileName)")
-            #endif
-            return UNNotificationSound(named: UNNotificationSoundName(extendedFileName))
-        }
 
         if fileExists(audioFileName) {
             #if DEBUG
-            print("🔊 [SoundService] ⚠️ 사용: \(audioFileName) (확장 없음)")
+            print("🔊 [SoundService] ✅ 원본 사용: \(audioFileName)")
             #endif
             return UNNotificationSound(named: UNNotificationSoundName(audioFileName))
         }
