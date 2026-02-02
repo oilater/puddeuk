@@ -6,13 +6,41 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		DF5A038B2F2FBA2D00B45649 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF5A031E2F2F7E2D00B45649 /* WidgetKit.framework */; };
+		DF5A038C2F2FBA2D00B45649 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF5A03202F2F7E2D00B45649 /* SwiftUI.framework */; };
+		DF5A03A22F2FBC8F00B45649 /* AlarmWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DF5A038A2F2FBA2D00B45649 /* AlarmWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		DF5A03C22F2FC79600B45649 /* AlarmNotificationContent.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DF5A03B42F2FC79600B45649 /* AlarmNotificationContent.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		DF5A03C92F2FC88800B45649 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF5A03B52F2FC79600B45649 /* UserNotifications.framework */; };
+		DF5A03CC2F2FC88900B45649 /* UserNotificationsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF5A03B72F2FC79600B45649 /* UserNotificationsUI.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		DF5A03A82F2FBD1E00B45649 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DF5A028A2F2F1FD700B45649 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DF5A03892F2FBA2D00B45649;
+			remoteInfo = AlarmWidgetExtension;
+		};
+		DF5A03C02F2FC79600B45649 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DF5A028A2F2F1FD700B45649 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DF5A03B32F2FC79600B45649;
+			remoteInfo = AlarmNotificationContent;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
-		DF5A03372F2F7E2E00B45649 /* Embed Foundation Extensions */ = {
+		DF5A03A52F2FBC8F00B45649 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				DF5A03A22F2FBC8F00B45649 /* AlarmWidgetExtension.appex in Embed Foundation Extensions */,
+				DF5A03C22F2FC79600B45649 /* AlarmNotificationContent.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -23,6 +51,10 @@
 		DF5A02922F2F1FD700B45649 /* puddeuk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = puddeuk.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF5A031E2F2F7E2D00B45649 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		DF5A03202F2F7E2D00B45649 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		DF5A038A2F2FBA2D00B45649 /* AlarmWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AlarmWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF5A03B42F2FC79600B45649 /* AlarmNotificationContent.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AlarmNotificationContent.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF5A03B52F2FC79600B45649 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
+		DF5A03B72F2FC79600B45649 /* UserNotificationsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotificationsUI.framework; path = System/Library/Frameworks/UserNotificationsUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -33,6 +65,27 @@
 			);
 			target = DF5A02912F2F1FD700B45649 /* puddeuk */;
 		};
+		DF5A039C2F2FBA2E00B45649 /* Exceptions for "AlarmWidget" folder in "AlarmWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = DF5A03892F2FBA2D00B45649 /* AlarmWidgetExtension */;
+		};
+		DF5A039E2F2FBA7E00B45649 /* Exceptions for "puddeuk" folder in "AlarmWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Shared/AlarmActivityAttributes.swift,
+			);
+			target = DF5A03892F2FBA2D00B45649 /* AlarmWidgetExtension */;
+		};
+		DF5A03C62F2FC79600B45649 /* Exceptions for "AlarmNotificationContent" folder in "AlarmNotificationContent" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = DF5A03B32F2FC79600B45649 /* AlarmNotificationContent */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -40,8 +93,25 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				DF5A03112F2F77D800B45649 /* Exceptions for "puddeuk" folder in "puddeuk" target */,
+				DF5A039E2F2FBA7E00B45649 /* Exceptions for "puddeuk" folder in "AlarmWidgetExtension" target */,
 			);
 			path = puddeuk;
+			sourceTree = "<group>";
+		};
+		DF5A038D2F2FBA2D00B45649 /* AlarmWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				DF5A039C2F2FBA2E00B45649 /* Exceptions for "AlarmWidget" folder in "AlarmWidgetExtension" target */,
+			);
+			path = AlarmWidget;
+			sourceTree = "<group>";
+		};
+		DF5A03B92F2FC79600B45649 /* AlarmNotificationContent */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				DF5A03C62F2FC79600B45649 /* Exceptions for "AlarmNotificationContent" folder in "AlarmNotificationContent" target */,
+			);
+			path = AlarmNotificationContent;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -54,6 +124,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DF5A03872F2FBA2D00B45649 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DF5A038C2F2FBA2D00B45649 /* SwiftUI.framework in Frameworks */,
+				DF5A038B2F2FBA2D00B45649 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF5A03B12F2FC79600B45649 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DF5A03CC2F2FC88900B45649 /* UserNotificationsUI.framework in Frameworks */,
+				DF5A03C92F2FC88800B45649 /* UserNotifications.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -61,6 +149,8 @@
 			isa = PBXGroup;
 			children = (
 				DF5A02942F2F1FD700B45649 /* puddeuk */,
+				DF5A038D2F2FBA2D00B45649 /* AlarmWidget */,
+				DF5A03B92F2FC79600B45649 /* AlarmNotificationContent */,
 				DF5A031D2F2F7E2D00B45649 /* Frameworks */,
 				DF5A02932F2F1FD700B45649 /* Products */,
 			);
@@ -70,6 +160,8 @@
 			isa = PBXGroup;
 			children = (
 				DF5A02922F2F1FD700B45649 /* puddeuk.app */,
+				DF5A038A2F2FBA2D00B45649 /* AlarmWidgetExtension.appex */,
+				DF5A03B42F2FC79600B45649 /* AlarmNotificationContent.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -79,6 +171,8 @@
 			children = (
 				DF5A031E2F2F7E2D00B45649 /* WidgetKit.framework */,
 				DF5A03202F2F7E2D00B45649 /* SwiftUI.framework */,
+				DF5A03B52F2FC79600B45649 /* UserNotifications.framework */,
+				DF5A03B72F2FC79600B45649 /* UserNotificationsUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -93,11 +187,13 @@
 				DF5A028E2F2F1FD700B45649 /* Sources */,
 				DF5A028F2F2F1FD700B45649 /* Frameworks */,
 				DF5A02902F2F1FD700B45649 /* Resources */,
-				DF5A03372F2F7E2E00B45649 /* Embed Foundation Extensions */,
+				DF5A03A52F2FBC8F00B45649 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				DF5A03A92F2FBD1E00B45649 /* PBXTargetDependency */,
+				DF5A03C12F2FC79600B45649 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				DF5A02942F2F1FD700B45649 /* puddeuk */,
@@ -108,6 +204,50 @@
 			productName = puddeuk;
 			productReference = DF5A02922F2F1FD700B45649 /* puddeuk.app */;
 			productType = "com.apple.product-type.application";
+		};
+		DF5A03892F2FBA2D00B45649 /* AlarmWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DF5A03992F2FBA2E00B45649 /* Build configuration list for PBXNativeTarget "AlarmWidgetExtension" */;
+			buildPhases = (
+				DF5A03862F2FBA2D00B45649 /* Sources */,
+				DF5A03872F2FBA2D00B45649 /* Frameworks */,
+				DF5A03882F2FBA2D00B45649 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				DF5A038D2F2FBA2D00B45649 /* AlarmWidget */,
+			);
+			name = AlarmWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = AlarmWidgetExtension;
+			productReference = DF5A038A2F2FBA2D00B45649 /* AlarmWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		DF5A03B32F2FC79600B45649 /* AlarmNotificationContent */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DF5A03C32F2FC79600B45649 /* Build configuration list for PBXNativeTarget "AlarmNotificationContent" */;
+			buildPhases = (
+				DF5A03B02F2FC79600B45649 /* Sources */,
+				DF5A03B12F2FC79600B45649 /* Frameworks */,
+				DF5A03B22F2FC79600B45649 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				DF5A03B92F2FC79600B45649 /* AlarmNotificationContent */,
+			);
+			name = AlarmNotificationContent;
+			packageProductDependencies = (
+			);
+			productName = AlarmNotificationContent;
+			productReference = DF5A03B42F2FC79600B45649 /* AlarmNotificationContent.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -120,6 +260,12 @@
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					DF5A02912F2F1FD700B45649 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					DF5A03892F2FBA2D00B45649 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					DF5A03B32F2FC79600B45649 = {
 						CreatedOnToolsVersion = 26.2;
 					};
 				};
@@ -139,12 +285,28 @@
 			projectRoot = "";
 			targets = (
 				DF5A02912F2F1FD700B45649 /* puddeuk */,
+				DF5A03892F2FBA2D00B45649 /* AlarmWidgetExtension */,
+				DF5A03B32F2FC79600B45649 /* AlarmNotificationContent */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		DF5A02902F2F1FD700B45649 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF5A03882F2FBA2D00B45649 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF5A03B22F2FC79600B45649 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -161,7 +323,34 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DF5A03862F2FBA2D00B45649 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF5A03B02F2FC79600B45649 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DF5A03A92F2FBD1E00B45649 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DF5A03892F2FBA2D00B45649 /* AlarmWidgetExtension */;
+			targetProxy = DF5A03A82F2FBD1E00B45649 /* PBXContainerItemProxy */;
+		};
+		DF5A03C12F2FC79600B45649 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DF5A03B32F2FC79600B45649 /* AlarmNotificationContent */;
+			targetProxy = DF5A03C02F2FC79600B45649 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		DF5A029D2F2F1FD800B45649 /* Debug */ = {
@@ -294,6 +483,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = puddeuk/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "알람 소리를 녹음하기 위해 마이크 접근 권한이 필요합니다.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -341,6 +531,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = puddeuk/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "알람 소리를 녹음하기 위해 마이크 접근 권한이 필요합니다.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -374,6 +565,136 @@
 			};
 			name = Release;
 		};
+		DF5A039A2F2FBA2E00B45649 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = M93923L2AK;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AlarmWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = AlarmWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.seonghyeon.puddeuk.AlarmWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		DF5A039B2F2FBA2E00B45649 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = M93923L2AK;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AlarmWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = AlarmWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.seonghyeon.puddeuk.AlarmWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		DF5A03C42F2FC79600B45649 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = M93923L2AK;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AlarmNotificationContent/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = AlarmNotificationContent;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.seonghyeon.puddeuk.AlarmNotificationContent;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		DF5A03C52F2FC79600B45649 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = M93923L2AK;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AlarmNotificationContent/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = AlarmNotificationContent;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.seonghyeon.puddeuk.AlarmNotificationContent;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -391,6 +712,24 @@
 			buildConfigurations = (
 				DF5A02A02F2F1FD800B45649 /* Debug */,
 				DF5A02A12F2F1FD800B45649 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DF5A03992F2FBA2E00B45649 /* Build configuration list for PBXNativeTarget "AlarmWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DF5A039A2F2FBA2E00B45649 /* Debug */,
+				DF5A039B2F2FBA2E00B45649 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DF5A03C32F2FC79600B45649 /* Build configuration list for PBXNativeTarget "AlarmNotificationContent" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DF5A03C42F2FC79600B45649 /* Debug */,
+				DF5A03C52F2FC79600B45649 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

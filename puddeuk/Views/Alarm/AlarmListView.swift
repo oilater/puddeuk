@@ -47,9 +47,7 @@ struct AlarmListView: View {
             Color(red: 0.11, green: 0.11, blue: 0.13).ignoresSafeArea()
 
             AlarmListView(alarms: mockAlarms) { alarm in
-                print("\(alarm.title) 클릭됨")
             } onAlarmDelete: { alarm in
-                print("\(alarm.title) 삭제")
             }
         }
         .navigationTitle("알람")

@@ -103,6 +103,9 @@ struct AlarmView: View {
         audioPlayer.stop()
         AlarmNotificationService.shared.stopAlarm()
         vibrationManager.stop()
+        Task { @MainActor in
+            LiveActivityManager.shared.endCurrentActivity()
+        }
         AlarmManager.shared.dismissAlarm()
     }
 }

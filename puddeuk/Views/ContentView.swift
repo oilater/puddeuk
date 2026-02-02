@@ -45,7 +45,9 @@ struct ContentView: View {
                 setupAlarms()
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-                AlarmNotificationManager.shared.checkPendingAlarm(modelContext: modelContext)
+                Task {
+                    await AlarmNotificationManager.shared.checkPendingAlarm(modelContext: modelContext)
+                }
             }
             .onChange(of: alarmManager.showAlarmView) { _, show in
                 // 알람 화면 표시 전 열린 sheet 닫기
@@ -73,18 +75,28 @@ struct ContentView: View {
     }
 
     private func rescheduleActiveAlarms() {
-        for alarm in alarms where alarm.isEnabled {
-            AlarmNotificationManager.shared.scheduleAlarm(alarm)
+        Task {
+            for alarm in alarms where alarm.isEnabled {
+                try? await AlarmNotificationManager.shared.scheduleAlarm(alarm)
+            }
         }
     }
 
     private func deleteAlarm(_ alarm: Alarm) {
-        AlarmNotificationManager.shared.cancelAlarm(alarm)
-        // 연결된 오디오 파일도 삭제
-        if let audioFileName = alarm.audioFileName {
-            AudioRecorder().deleteAudioFile(fileName: audioFileName)
+        let audioFileToDelete = alarm.audioFileName
+
+        Task {
+            // 1. 알람 취소 (완료까지 대기)
+            await AlarmNotificationManager.shared.cancelAlarm(alarm)
+
+            // 2. 파일 삭제 및 모델 삭제 (MainActor에서)
+            await MainActor.run {
+                if let audioFileName = audioFileToDelete {
+                    AudioRecorder().deleteAudioFile(fileName: audioFileName)
+                }
+                modelContext.delete(alarm)
+            }
         }
-        modelContext.delete(alarm)
     }
 }
 

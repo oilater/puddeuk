@@ -37,10 +37,12 @@ struct AlarmRow: View {
                     get: { alarm.isEnabled },
                     set: { newValue in
                         alarm.isEnabled = newValue
-                        if newValue {
-                            AlarmNotificationManager.shared.scheduleAlarm(alarm)
-                        } else {
-                            AlarmNotificationManager.shared.cancelAlarm(alarm)
+                        Task {
+                            if newValue {
+                                try? await AlarmNotificationManager.shared.scheduleAlarm(alarm)
+                            } else {
+                                await AlarmNotificationManager.shared.cancelAlarm(alarm)
+                            }
                         }
                     }
                 ))
