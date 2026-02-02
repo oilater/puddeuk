@@ -51,11 +51,9 @@ class AudioRecorder: NSObject, ObservableObject {
         setupAudioSession()
 
         let soundsPath = getSoundsDirectory()
-        // 짧은 파일명: alarm_타임스탬프.caf (예: alarm_1738483200.caf)
         let timestamp = Int(Date().timeIntervalSince1970)
         let audioFilename = soundsPath.appendingPathComponent("alarm_\(timestamp).caf")
 
-        // CAF 포맷 (Linear PCM) - iOS 알림 사운드용
         let settings: [String: Any] = [
             AVFormatIDKey: Int(kAudioFormatLinearPCM),
             AVSampleRateKey: AlarmConfiguration.audioSampleRate,
@@ -116,14 +114,12 @@ class AudioRecorder: NSObject, ObservableObject {
         }
 
         createExtendedAudioFile(from: originalURL) { [weak self] extendedURL in
-            // 확장 파일 생성 후 전체 파일 목록 출력
             AlarmSoundService.shared.logAllSoundFiles()
             self?.onRecordingFinished?(originalURL)
         }
     }
 
     private func createExtendedAudioFile(from originalURL: URL, completion: @escaping (URL?) -> Void) {
-        // 짧은 확장 파일명: alarm_타임스탬프_ext.caf
         let baseName = originalURL.deletingPathExtension().lastPathComponent
         let extendedFileName = "\(baseName)_ext.caf"
         let extendedURL = getSoundsDirectory().appendingPathComponent(extendedFileName)
@@ -173,7 +169,6 @@ class AudioRecorder: NSObject, ObservableObject {
                 }
                 extendedBuffer.frameLength = totalFrames
 
-                // CAF 포맷 (Linear PCM) - iOS 노티피케이션 사운드에 최적화
                 let outputSettings: [String: Any] = [
                     AVFormatIDKey: Int(kAudioFormatLinearPCM),
                     AVSampleRateKey: AlarmConfiguration.audioSampleRate,

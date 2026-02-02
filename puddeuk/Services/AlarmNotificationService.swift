@@ -89,7 +89,6 @@ final class AlarmNotificationService: NSObject, ObservableObject {
         alarmPlayer?.stop()
         alarmPlayer = nil
 
-        // 체인 알림 취소
         if let alarmId = currentAlarmId {
             AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
         }
@@ -126,7 +125,6 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
 
         Logger.notification.info("알람 도착 (포그라운드): \(title)")
 
-        // 포그라운드에서는 AVAudioPlayer로 재생 + 나머지 체인 알림 취소
         if !isAlarmPlaying {
             if let fileName = audioFileName, !fileName.isEmpty {
                 startAlarmWithFileName(fileName, alarmId: alarmId)
@@ -135,7 +133,6 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
                 currentAlarmId = alarmId
             }
 
-            // 나머지 체인 알림 취소 (AVAudioPlayer가 무한 재생하므로)
             AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
 
             let timeString = getCurrentTimeString()
@@ -151,7 +148,6 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
             AlarmManager.shared.showAlarmFromNotification(title: title, audioFileName: audioFileName)
         }
 
-        // 첫 번째 알림만 배너 표시, 사운드는 항상 재생 (백업용)
         if chainIndex == 0 {
             completionHandler([.banner, .sound])
         } else {
@@ -172,12 +168,10 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
         case "SNOOZE_ACTION":
             Logger.notification.info("스누즈 액션")
             await MainActor.run {
-                // 체인 알림 취소 포함
                 AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
                 stopAlarm()
                 LiveActivityManager.shared.endCurrentActivity()
             }
-            // 스누즈 시 같은 오디오 파일로 체인 알림 예약
             try? await AlarmNotificationManager.shared.scheduleSnooze(
                 minutes: 5,
                 audioFileName: audioFileName
@@ -187,7 +181,6 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
         case "DISMISS_ACTION":
             Logger.notification.info("끄기 액션")
             await MainActor.run {
-                // 체인 알림 취소 포함
                 AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
                 stopAlarm()
                 LiveActivityManager.shared.endCurrentActivity()
@@ -201,7 +194,6 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
         Logger.notification.info("알림 탭 → 앱으로 이동: \(title)")
 
         await MainActor.run {
-            // 나머지 체인 알림 취소 (앱이 포그라운드로 왔으므로 AVAudioPlayer 사용)
             AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
 
             if let fileName = audioFileName, !fileName.isEmpty {

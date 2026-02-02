@@ -79,7 +79,6 @@ class AudioPlayer: NSObject, ObservableObject {
     }
 
     private func setupAudioSession() throws {
-        // 백그라운드 재생 및 무음 모드에서도 소리 재생 가능하도록 설정
         try AVAudioSession.sharedInstance().setCategory(
             .playback,
             mode: .default,

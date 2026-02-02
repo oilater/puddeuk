@@ -29,7 +29,6 @@ class VibrationManager: ObservableObject {
         timer = nil
     }
 
-    /// 길게 느껴지도록 연속 진동 패턴
     private func vibratePattern() {
         for i in 0..<AlarmConfiguration.vibrationRepeatCount {
             DispatchQueue.main.asyncAfter(
