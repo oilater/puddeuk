@@ -97,7 +97,7 @@ struct AddAlarmView: View {
                         saveAlarm()
                     }
                     .font(.omyuBody)
-                    .foregroundColor(.pink)
+                    .foregroundColor(.teal)
                 }
             }
             .alert("알람 삭제", isPresented: $showingDeleteAlert) {
@@ -158,10 +158,10 @@ struct AddAlarmView: View {
                 Text("알람 삭제")
                     .font(.omyuBody)
             }
-            .foregroundColor(.red)
+            .foregroundColor(.teal)
             .frame(maxWidth: .infinity)
             .padding()
-            .background(Color.red.opacity(0.1))
+            .background(Color.teal.opacity(0.1))
             .cornerRadius(12)
         }
     }

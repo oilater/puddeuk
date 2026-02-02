@@ -10,7 +10,7 @@ struct ToolbarButtons: View {
         } label: {
             Image(systemName: "plus")
                 .font(.omyu(size: 22))
-                .foregroundColor(.pink)
+                .foregroundColor(.teal)
         }
     }
 }

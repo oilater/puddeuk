@@ -19,7 +19,7 @@ struct ContactView: View {
                     VStack(spacing: 8) {
                         Image(systemName: "envelope.fill")
                             .font(.omyu(size: 50))
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(.teal)
 
                         Text("개발자에게 문의하기")
                             .font(.omyuTitle3)
@@ -84,7 +84,7 @@ struct ContactView: View {
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 54)
-                            .background(isFormValid ? Color.blue : Color.gray.opacity(0.5))
+                            .background(isFormValid ? Color.teal : Color.gray.opacity(0.5))
                             .cornerRadius(12)
                     }
                     .disabled(!isFormValid)

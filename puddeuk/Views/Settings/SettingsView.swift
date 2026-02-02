@@ -13,7 +13,7 @@ struct SettingsView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "message.fill")
-                                    .foregroundStyle(.blue)
+                                    .foregroundStyle(.teal)
                                 Text("사용후기 남기기")
                                     .font(.omyuBody)
                             }

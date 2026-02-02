@@ -5,7 +5,7 @@ struct EmptyAlarmView: View {
         VStack(spacing: 20) {
             Image(systemName: "alarm.fill")
                 .font(.omyu(size: 64))
-                .foregroundColor(.pink.opacity(0.6))
+                .foregroundColor(.teal.opacity(0.6))
 
             Text("알람이 없어요")
                 .font(.omyuTitle2)

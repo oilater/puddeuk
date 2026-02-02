@@ -28,7 +28,7 @@ struct RecordingControlsView: View {
         VStack(spacing: 12) {
             HStack {
                 Circle()
-                    .fill(Color.red)
+                    .fill(Color.teal)
                     .frame(width: 12, height: 12)
 
                 Text("녹음 중... \(Int(audioRecorder.recordingTime))초")
@@ -52,7 +52,7 @@ struct RecordingControlsView: View {
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color.red.opacity(0.8))
+                .background(Color.teal.opacity(0.8))
                 .cornerRadius(12)
             }
         }
@@ -62,7 +62,7 @@ struct RecordingControlsView: View {
         VStack(spacing: 12) {
             HStack {
                 Image(systemName: "waveform")
-                    .foregroundColor(.pink)
+                    .foregroundColor(.teal)
                 Text("녹음 완료")
                     .font(.omyuBody)
                     .foregroundColor(.white)
@@ -97,7 +97,7 @@ struct RecordingControlsView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.pink.opacity(0.8))
+                    .background(Color.teal.opacity(0.8))
                     .cornerRadius(12)
                 }
 

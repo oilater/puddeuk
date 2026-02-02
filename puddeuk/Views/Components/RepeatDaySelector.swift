@@ -25,7 +25,7 @@ struct RepeatDaySelector: View {
                             .foregroundColor(repeatDays.contains(dayIndex) ? .black : .white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 44)
-                            .background(repeatDays.contains(dayIndex) ? Color.pink : Color.gray.opacity(0.3))
+                            .background(repeatDays.contains(dayIndex) ? Color.teal : Color.gray.opacity(0.3))
                             .cornerRadius(22)
                     }
                 }

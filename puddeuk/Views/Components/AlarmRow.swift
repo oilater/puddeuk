@@ -11,12 +11,12 @@ struct AlarmRow: View {
                     HStack(spacing: 4) {
                         Text(alarm.repeatDays.isEmpty ? "반복 없음" : alarm.repeatDaysString)
                             .font(.omyu(size: 15))
-                            .foregroundColor(alarm.repeatDays.isEmpty ? .gray : .pink)
+                            .foregroundColor(alarm.repeatDays.isEmpty ? .gray : .teal)
 
                         if alarm.audioFileName != nil {
                             Image(systemName: "waveform")
                                 .font(.omyu(size: 15))
-                                .foregroundColor(.pink)
+                                .foregroundColor(.teal)
                         }
                     }
 
@@ -47,7 +47,7 @@ struct AlarmRow: View {
                         }
                     }
                 ))
-                .toggleStyle(SwitchToggleStyle(tint: .pink))
+                .toggleStyle(SwitchToggleStyle(tint: .teal))
                 .scaleEffect(0.9)
             }
             .padding()

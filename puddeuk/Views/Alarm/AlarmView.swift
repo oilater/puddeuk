@@ -39,7 +39,7 @@ struct AlarmView: View {
 
                 Image(systemName: "alarm.fill")
                     .font(.omyu(size: 80))
-                    .foregroundColor(.pink)
+                    .foregroundColor(.teal)
                     .scaleEffect(isDismissed ? 0.8 : 1.0)
                     .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: !isDismissed)
 
@@ -61,7 +61,7 @@ struct AlarmView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
-                        .background(Color.pink)
+                        .background(Color.teal)
                         .cornerRadius(16)
                 }
                 .padding(.horizontal, 40)

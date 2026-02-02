@@ -19,7 +19,7 @@ struct FeedbackView: View {
                     VStack(spacing: 8) {
                         Image(systemName: "message.fill")
                             .font(.omyu(size: 50))
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(.teal)
 
                         Text("사용후기 남기기")
                             .font(.omyuTitle3)
@@ -94,7 +94,7 @@ struct FeedbackView: View {
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 54)
-                            .background(isFormValid ? Color.blue : Color.gray.opacity(0.5))
+                            .background(isFormValid ? Color.teal : Color.gray.opacity(0.5))
                             .cornerRadius(12)
                     }
                     .disabled(!isFormValid)
