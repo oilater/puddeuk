@@ -144,7 +144,7 @@ struct RecordingControlsView: View {
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color.pink.opacity(0.8))
+                .background(Color.teal.opacity(0.8))
                 .cornerRadius(12)
             }
         }

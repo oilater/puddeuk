@@ -85,7 +85,7 @@ struct AlarmNotificationView: View {
         VStack(spacing: 20) {
             Image(systemName: "alarm.fill")
                 .font(.system(size: 50))
-                .foregroundColor(.pink)
+                .foregroundColor(.teal)
                 .rotationEffect(.degrees(isAnimating ? -10 : 10))
                 .animation(
                     Animation.easeInOut(duration: 0.15)
@@ -121,7 +121,7 @@ struct AlarmNotificationView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(Color.pink)
+                        .background(Color.teal)
                         .cornerRadius(12)
                 }
             }
