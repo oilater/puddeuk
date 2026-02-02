@@ -15,7 +15,7 @@ final class AlarmNotificationService: NSObject, ObservableObject {
     private var alarmPlayer: AVAudioPlayer?
     private var currentAlarmURL: URL?
     private var currentAudioFileName: String?
-    private var currentAlarmId: String?
+    private(set) var currentAlarmId: String?
 
     private override init() {
         super.init()
@@ -123,7 +123,11 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
         let alarmId = userInfo["alarmId"] as? String ?? ""
         let chainIndex = userInfo["chainIndex"] as? Int ?? 0
 
-        Logger.notification.info("알람 도착 (포그라운드): \(title)")
+        Logger.notification.info("알람 도착 (포그라운드): \(title), chain: \(chainIndex)")
+
+        // CRITICAL: 체인 알림이 포그라운드에 도착하면 즉시 모든 체인 취소
+        // 이 작업은 멱등성(idempotent)이므로 여러 번 호출해도 안전함
+        AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
 
         if !isAlarmPlaying {
             if let fileName = audioFileName, !fileName.isEmpty {
@@ -132,8 +136,6 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
                 isAlarmPlaying = true
                 currentAlarmId = alarmId
             }
-
-            AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
 
             let timeString = getCurrentTimeString()
             Task { @MainActor in
@@ -187,31 +189,41 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
             }
             return
 
-        default:
-            break
-        }
-
-        Logger.notification.info("알림 탭 → 앱으로 이동: \(title)")
-
-        await MainActor.run {
-            AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
-
-            if let fileName = audioFileName, !fileName.isEmpty {
-                startAlarmWithFileName(fileName, alarmId: alarmId)
-            } else {
-                isAlarmPlaying = true
-                currentAlarmId = alarmId
+        case UNNotificationDismissActionIdentifier:
+            // 사용자가 알림을 스와이프하여 닫음
+            Logger.notification.info("알림 스와이프 닫기: \(title)")
+            await MainActor.run {
+                AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
+                // 재생하지 않음 - 사용자가 알림을 닫았음
             }
+            return
 
-            let timeString = getCurrentTimeString()
-            LiveActivityManager.shared.startAlarmActivity(
-                alarmId: alarmId,
-                title: title,
-                scheduledTime: timeString,
-                audioFileName: audioFileName
-            )
+        default:
+            // 사용자가 알림을 탭하여 앱 열기 (UNNotificationDefaultActionIdentifier)
+            Logger.notification.info("알림 탭 → 앱으로 이동: \(title)")
 
-            AlarmManager.shared.showAlarmFromNotification(title: title, audioFileName: audioFileName)
+            await MainActor.run {
+                // 모든 사용자 인터랙션 시 체인 취소
+                AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
+
+                // 앱을 열었으므로 알람 재생 시작
+                if let fileName = audioFileName, !fileName.isEmpty {
+                    startAlarmWithFileName(fileName, alarmId: alarmId)
+                } else {
+                    isAlarmPlaying = true
+                    currentAlarmId = alarmId
+                }
+
+                let timeString = getCurrentTimeString()
+                LiveActivityManager.shared.startAlarmActivity(
+                    alarmId: alarmId,
+                    title: title,
+                    scheduledTime: timeString,
+                    audioFileName: audioFileName
+                )
+
+                AlarmManager.shared.showAlarmFromNotification(title: title, audioFileName: audioFileName)
+            }
         }
     }
 

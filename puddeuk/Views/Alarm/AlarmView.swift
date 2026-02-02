@@ -109,13 +109,19 @@ struct AlarmView: View {
     private func stopAlarm() {
         isDismissed = true
         audioPlayer.stop()
-        AlarmNotificationService.shared.stopAlarm()
         vibrationManager.stop()
 
-        // 체인 알람 취소
+        // 체인 알람 취소 - alarm 객체 또는 AlarmNotificationService에서 alarmId 가져오기
         if let alarm = alarm {
+            // Alarm 객체가 있는 경우
             AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarm.id.uuidString)
+        } else if let alarmId = AlarmNotificationService.shared.currentAlarmId {
+            // 노티피케이션 기반 알람: service에서 alarmId 가져오기
+            AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
         }
+
+        // Service 중지 (내부적으로도 체인 취소하지만 멱등성으로 안전함)
+        AlarmNotificationService.shared.stopAlarm()
 
         Task { @MainActor in
             LiveActivityManager.shared.endCurrentActivity()
@@ -126,13 +132,19 @@ struct AlarmView: View {
     private func snoozeAlarm(minutes: Int) {
         isDismissed = true
         audioPlayer.stop()
-        AlarmNotificationService.shared.stopAlarm()
         vibrationManager.stop()
 
-        // 체인 알람 취소
+        // 체인 알람 취소 - alarm 객체 또는 AlarmNotificationService에서 alarmId 가져오기
         if let alarm = alarm {
+            // Alarm 객체가 있는 경우
             AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarm.id.uuidString)
+        } else if let alarmId = AlarmNotificationService.shared.currentAlarmId {
+            // 노티피케이션 기반 알람: service에서 alarmId 가져오기
+            AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
         }
+
+        // Service 중지 (내부적으로도 체인 취소하지만 멱등성으로 안전함)
+        AlarmNotificationService.shared.stopAlarm()
 
         Task { @MainActor in
             LiveActivityManager.shared.endCurrentActivity()
