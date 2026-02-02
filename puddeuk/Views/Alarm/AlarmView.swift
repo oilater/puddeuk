@@ -53,16 +53,32 @@ struct AlarmView: View {
 
                 Spacer()
 
-                Button {
-                    stopAlarm()
-                } label: {
-                    Text("끄기")
-                        .font(.omyu(size: 20))
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(Color.teal)
-                        .cornerRadius(16)
+                VStack(spacing: 16) {
+                    if let alarm = alarm, let snoozeInterval = alarm.snoozeInterval {
+                        Button {
+                            snoozeAlarm(minutes: snoozeInterval)
+                        } label: {
+                            Text("\(snoozeInterval)분 후 다시 알림")
+                                .font(.omyu(size: 18))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(Color.gray.opacity(0.5))
+                                .cornerRadius(16)
+                        }
+                    }
+
+                    Button {
+                        stopAlarm()
+                    } label: {
+                        Text("끄기")
+                            .font(.omyu(size: 20))
+                            .foregroundColor(.black)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color.teal)
+                            .cornerRadius(16)
+                    }
                 }
                 .padding(.horizontal, 40)
                 .padding(.bottom, 40)
@@ -95,9 +111,39 @@ struct AlarmView: View {
         audioPlayer.stop()
         AlarmNotificationService.shared.stopAlarm()
         vibrationManager.stop()
+
+        // 체인 알람 취소
+        if let alarm = alarm {
+            AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarm.id.uuidString)
+        }
+
         Task { @MainActor in
             LiveActivityManager.shared.endCurrentActivity()
         }
         AlarmManager.shared.showMissionComplete()
+    }
+
+    private func snoozeAlarm(minutes: Int) {
+        isDismissed = true
+        audioPlayer.stop()
+        AlarmNotificationService.shared.stopAlarm()
+        vibrationManager.stop()
+
+        // 체인 알람 취소
+        if let alarm = alarm {
+            AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarm.id.uuidString)
+        }
+
+        Task { @MainActor in
+            LiveActivityManager.shared.endCurrentActivity()
+        }
+        AlarmManager.shared.dismissAlarm()
+
+        Task {
+            try? await AlarmNotificationManager.shared.scheduleSnooze(
+                minutes: minutes,
+                audioFileName: audioFileName
+            )
+        }
     }
 }

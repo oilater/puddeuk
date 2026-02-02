@@ -13,6 +13,7 @@ struct AddAlarmView: View {
     @State private var selectedTime: Date = Date()
     @State private var repeatDays: Set<Int> = []
     @State private var audioFileName: String?
+    @State private var snoozeInterval: Int? = nil
     @State private var showingDeleteAlert = false
     @State private var showingErrorAlert = false
     @State private var errorMessage = ""
@@ -34,6 +35,7 @@ struct AddAlarmView: View {
             }
             _repeatDays = State(initialValue: Set(alarm.repeatDays))
             _audioFileName = State(initialValue: alarm.audioFileName)
+            _snoozeInterval = State(initialValue: alarm.snoozeInterval)
         } else {
             var components = DateComponents()
             components.hour = 8
@@ -57,6 +59,7 @@ struct AddAlarmView: View {
                         VStack(spacing: 24) {
                             titleSection
                             RepeatDaySelector(repeatDays: $repeatDays)
+                            snoozeSection
                             RecordingControlsView(
                                 audioRecorder: audioRecorder,
                                 audioPlayer: audioPlayer,
@@ -149,6 +152,24 @@ struct AddAlarmView: View {
         }
     }
 
+    private var snoozeSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("다시 알림")
+                .font(.omyuHeadline)
+                .foregroundColor(.white)
+
+            HStack(spacing: 12) {
+                SnoozeButton(title: "사용 안 함", interval: nil, selectedInterval: $snoozeInterval)
+                SnoozeButton(title: "5분", interval: 5, selectedInterval: $snoozeInterval)
+                SnoozeButton(title: "10분", interval: 10, selectedInterval: $snoozeInterval)
+                SnoozeButton(title: "15분", interval: 15, selectedInterval: $snoozeInterval)
+            }
+        }
+        .padding()
+        .background(Color.gray.opacity(0.1))
+        .cornerRadius(16)
+    }
+
     private var deleteButton: some View {
         Button {
             showingDeleteAlert = true
@@ -180,6 +201,7 @@ struct AddAlarmView: View {
         let currentTitle = title
         let currentRepeatDays = Array(repeatDays)
         let currentAudioFileName = audioFileName
+        let currentSnoozeInterval = snoozeInterval
 
         if let existingAlarm = alarm {
             Task {
@@ -193,6 +215,7 @@ struct AddAlarmView: View {
                             existingAlarm.hour = hour
                             existingAlarm.minute = minute
                             existingAlarm.repeatDays = currentRepeatDays
+                            existingAlarm.snoozeInterval = currentSnoozeInterval
                             if let fileName = currentAudioFileName {
                                 existingAlarm.audioFileName = fileName
                             }
@@ -222,7 +245,8 @@ struct AddAlarmView: View {
                 minute: minute,
                 isEnabled: true,
                 audioFileName: currentAudioFileName,
-                repeatDays: currentRepeatDays
+                repeatDays: currentRepeatDays,
+                snoozeInterval: currentSnoozeInterval
             )
             modelContext.insert(newAlarm)
 
@@ -268,6 +292,26 @@ struct AddAlarmView: View {
         }
 
         dismiss()
+    }
+}
+
+struct SnoozeButton: View {
+    let title: String
+    let interval: Int?
+    @Binding var selectedInterval: Int?
+
+    var body: some View {
+        Button {
+            selectedInterval = interval
+        } label: {
+            Text(title)
+                .font(.omyuBody)
+                .foregroundColor(selectedInterval == interval ? .black : .white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(selectedInterval == interval ? Color.teal : Color.gray.opacity(0.3))
+                .cornerRadius(8)
+        }
     }
 }
 

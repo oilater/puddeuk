@@ -10,6 +10,7 @@ final class Alarm {
     var isEnabled: Bool
     var audioFileName: String?
     var repeatDays: [Int]
+    var snoozeInterval: Int?
     var createdAt: Date
 
     init(
@@ -20,6 +21,7 @@ final class Alarm {
         isEnabled: Bool = true,
         audioFileName: String? = nil,
         repeatDays: [Int] = [],
+        snoozeInterval: Int? = nil,
         createdAt: Date = Date()
     ) {
         self.id = id
@@ -29,6 +31,7 @@ final class Alarm {
         self.isEnabled = isEnabled
         self.audioFileName = audioFileName
         self.repeatDays = repeatDays
+        self.snoozeInterval = snoozeInterval
         self.createdAt = createdAt
     }
 
