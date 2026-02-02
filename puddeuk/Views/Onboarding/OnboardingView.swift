@@ -13,14 +13,17 @@ struct OnboardingView: View {
                     OnboardingWelcomePageView()
                         .tag(0)
 
-                    OnboardingFeaturePageView()
+                    OnboardingBackgroundAlarmPageView()
                         .tag(1)
 
-                    OnboardingPermissionPageView()
+                    OnboardingFeaturePageView()
                         .tag(2)
 
-                    OnboardingStartPageView(hasCompletedOnboarding: $hasCompletedOnboarding)
+                    OnboardingPermissionPageView()
                         .tag(3)
+
+                    OnboardingStartPageView(hasCompletedOnboarding: $hasCompletedOnboarding)
+                        .tag(4)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .always))
                 .indexViewStyle(.page(backgroundDisplayMode: .always))

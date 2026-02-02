@@ -1,11 +1,10 @@
 import SwiftUI
-import MessageUI
 
 struct FeedbackView: View {
     @State private var rating = 0
     @State private var fromEmail = ""
     @State private var feedback = ""
-    @State private var showingMailView = false
+    @State private var isLoading = false
     @State private var showingAlert = false
     @State private var alertMessage = ""
 
@@ -21,7 +20,7 @@ struct FeedbackView: View {
                             .font(.omyu(size: 50))
                             .foregroundStyle(.teal)
 
-                        Text("사용후기 남기기")
+                        Text("사용 후기 남기기")
                             .font(.omyuTitle3)
                             .foregroundStyle(.white)
 
@@ -89,33 +88,30 @@ struct FeedbackView: View {
                     Button {
                         sendFeedback()
                     } label: {
-                        Text("전송")
-                            .font(.omyuHeadline)
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 54)
-                            .background(isFormValid ? Color.teal : Color.gray.opacity(0.5))
-                            .cornerRadius(12)
+                        HStack {
+                            if isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .black))
+                                    .scaleEffect(0.8)
+                            }
+                            Text(isLoading ? "전송 중..." : "전송")
+                                .font(.omyuHeadline)
+                        }
+                        .foregroundStyle(.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 54)
+                        .background(isFormValid && !isLoading ? Color.teal : Color.gray.opacity(0.5))
+                        .cornerRadius(12)
                     }
-                    .disabled(!isFormValid)
+                    .disabled(!isFormValid || isLoading)
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
                 }
                 .padding(.bottom, 40)
             }
         }
-        .navigationTitle("사용후기")
+        .navigationTitle("사용 후기")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showingMailView) {
-            MailComposeView(
-                toEmail: "squareknot@icloud.com",
-                subject: "퍼뜩 사용후기 ⭐️\(String(repeating: "⭐️", count: rating))",
-                fromEmail: fromEmail,
-                message: feedback
-            ) { result in
-                handleMailResult(result)
-            }
-        }
         .alert("알림", isPresented: $showingAlert) {
             Button("확인", role: .cancel) { }
         } message: {
@@ -137,38 +133,64 @@ struct FeedbackView: View {
     }
 
     private func sendFeedback() {
-        if MFMailComposeViewController.canSendMail() {
-            showingMailView = true
-        } else {
-            alertMessage = "이 기기에서 메일을 보낼 수 없습니다.\n메일 앱을 설정해주세요."
-            showingAlert = true
-        }
-    }
+        isLoading = true
 
-    private func handleMailResult(_ result: Result<MFMailComposeResult, Error>) {
-        switch result {
-        case .success(let mailResult):
-            switch mailResult {
-            case .sent:
-                alertMessage = "소중한 후기 감사합니다! 💙"
-                clearForm()
-            case .saved:
-                alertMessage = "메일이 임시 보관함에 저장되었습니다."
-            case .cancelled:
-                break
-            case .failed:
-                alertMessage = "메일 전송에 실패했습니다."
-            @unknown default:
-                break
+        Task {
+            do {
+                let stars = String(repeating: "⭐️", count: rating)
+                let subject = "퍼뜩 사용 후기 \(stars)"
+
+                guard let url = URL(string: "https://formspree.io/f/xqelwgva") else {
+                    throw URLError(.badURL)
+                }
+
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+                let body: [String: Any] = [
+                    "email": fromEmail,
+                    "subject": subject,
+                    "message": """
+                    평점: \(rating)/5
+
+                    작성자 이메일: \(fromEmail)
+
+                    후기:
+                    \(feedback)
+                    """
+                ]
+
+                request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+                let (_, response) = try await URLSession.shared.data(for: request)
+
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw URLError(.badServerResponse)
+                }
+
+                if httpResponse.statusCode == 200 {
+                    await MainActor.run {
+                        isLoading = false
+                        alertMessage = "소중한 후기 감사합니다! 💙"
+                        showingAlert = true
+                        clearForm()
+                    }
+                } else {
+                    await MainActor.run {
+                        isLoading = false
+                        alertMessage = "전송에 실패했습니다.\n잠시 후 다시 시도해주세요."
+                        showingAlert = true
+                    }
+                }
+
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                    alertMessage = "전송에 실패했습니다.\n네트워크 연결을 확인해주세요."
+                    showingAlert = true
+                }
             }
-
-            if mailResult != .cancelled {
-                showingAlert = true
-            }
-
-        case .failure:
-            alertMessage = "메일 전송 중 오류가 발생했습니다."
-            showingAlert = true
         }
     }
 

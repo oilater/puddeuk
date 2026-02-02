@@ -18,7 +18,7 @@ struct OnboardingPermissionPageView: View {
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
 
-                Text("정확한 시간에 알람을 받으려면\n알림 권한이 필요합니다")
+                Text("정확한 시간에 알람을 받으려면\n알림 권한이 필요해요")
                     .font(.omyuBody)
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
@@ -40,12 +40,12 @@ struct OnboardingPermissionPageView: View {
                         .background(Color.teal)
                         .cornerRadius(16)
                 }
-                .padding(.horizontal, 40)
+                .padding(.horizontal, 60)
             } else {
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.teal)
-                    Text("권한 요청 완료")
+                    Text("권한 설정 완료")
                         .font(.omyuBody)
                         .foregroundColor(.teal)
                 }
@@ -56,7 +56,7 @@ struct OnboardingPermissionPageView: View {
             Text("다음 페이지로 →")
                 .font(.omyuSubheadline)
                 .foregroundColor(.teal.opacity(0.7))
-                .padding(.bottom, 40)
+                .padding(.bottom, 60)
         }
         .padding(.horizontal, 40)
     }

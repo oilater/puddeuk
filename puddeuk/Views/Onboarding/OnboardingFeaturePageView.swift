@@ -10,13 +10,13 @@ struct OnboardingFeaturePageView: View {
                 .foregroundColor(.teal)
 
             VStack(spacing: 16) {
-                Text("목소리로\n알람을 만드세요")
+                Text("내 목소리로\n알람을 등록해요")
                     .font(.omyu(size: 32))
                     .bold()
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
 
-                Text("사랑하는 사람의 목소리나\n좋아하는 노래로 알람을 설정하세요")
+                Text("부모님이나 연인의 목소리로도\n알람을 설정할 수 있어요")
                     .font(.omyuBody)
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)

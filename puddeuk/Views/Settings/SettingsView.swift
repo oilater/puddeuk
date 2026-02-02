@@ -9,12 +9,25 @@ struct SettingsView: View {
                 List {
                     Section {
                         NavigationLink {
+                            NotificationSettingsView()
+                        } label: {
+                            HStack {
+                                Image(systemName: "bell.fill")
+                                    .foregroundStyle(.teal)
+                                Text("알림 설정")
+                                    .font(.omyuBody)
+                            }
+                            .foregroundStyle(.white)
+                        }
+                        .listRowBackground(Color(red: 0.18, green: 0.18, blue: 0.2))
+
+                        NavigationLink {
                             FeedbackView()
                         } label: {
                             HStack {
                                 Image(systemName: "message.fill")
                                     .foregroundStyle(.teal)
-                                Text("사용후기 남기기")
+                                Text("사용 후기 남기기")
                                     .font(.omyuBody)
                             }
                             .foregroundStyle(.white)
