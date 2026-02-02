@@ -19,14 +19,12 @@ extension Font {
     static let omyuCaption = omyu(size: 12)
 }
 
-// 앱 전체에 기본 폰트 적용
 extension View {
     func applyDefaultFont() -> some View {
         self.font(.omyu(size: 17))
     }
 }
 
-// SwiftUI Text의 기본 스타일을 오뮤 폰트로 설정
 extension Text {
     init(omyu text: String) {
         self.init(text)

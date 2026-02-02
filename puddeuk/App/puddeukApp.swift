@@ -5,6 +5,7 @@ import OSLog
 
 @main
 struct puddeukApp: App {
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
@@ -14,10 +15,6 @@ struct puddeukApp: App {
 
         AlarmSoundService.shared.logAllSoundFiles()
 
-        Task {
-            await AlarmNotificationManager.shared.requestAuthorization()
-        }
-        
         setupDefaultFont()
     }
 
@@ -58,10 +55,14 @@ struct puddeukApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainTabView()
-                .onOpenURL { url in
-                    handleDeepLink(url)
-                }
+            if hasCompletedOnboarding {
+                MainTabView()
+                    .onOpenURL { url in
+                        handleDeepLink(url)
+                    }
+            } else {
+                OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+            }
         }
         .modelContainer(sharedModelContainer)
         .onChange(of: scenePhase) { oldPhase, newPhase in
