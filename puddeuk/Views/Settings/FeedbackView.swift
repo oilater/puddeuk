@@ -18,7 +18,7 @@ struct FeedbackView: View {
                     // 헤더
                     VStack(spacing: 8) {
                         Image(systemName: "message.fill")
-                            .font(.system(size: 50))
+                            .font(.omyu(size: 50))
                             .foregroundStyle(.blue)
 
                         Text("사용후기 남기기")
@@ -43,7 +43,7 @@ struct FeedbackView: View {
                                     rating = star
                                 } label: {
                                     Image(systemName: star <= rating ? "star.fill" : "star")
-                                        .font(.system(size: 32))
+                                        .font(.omyu(size: 32))
                                         .foregroundStyle(star <= rating ? .yellow : .gray)
                                 }
                             }
@@ -61,6 +61,7 @@ struct FeedbackView: View {
                                 .foregroundStyle(.gray)
 
                             TextField("답변받을 이메일 주소", text: $fromEmail)
+                                .font(.omyuBody)
                                 .textFieldStyle(CustomTextFieldStyle())
                                 .keyboardType(.emailAddress)
                                 .textInputAutocapitalization(.never)

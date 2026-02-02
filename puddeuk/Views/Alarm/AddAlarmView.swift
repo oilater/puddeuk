@@ -131,6 +131,7 @@ struct AddAlarmView: View {
         VStack(alignment: .leading, spacing: 8) {
 
             TextField("알람 이름을 입력해주세요", text: $title)
+                .font(.omyuBody)
                 .textFieldStyle(.plain)
                 .padding()
                 .background(Color.gray.opacity(0.2))

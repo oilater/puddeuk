@@ -7,9 +7,21 @@ struct AlarmRow: View {
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 4) {
+                        Text(alarm.repeatDays.isEmpty ? "반복 없음" : alarm.repeatDaysString)
+                            .font(.omyu(size: 15))
+                            .foregroundColor(alarm.repeatDays.isEmpty ? .gray : .pink)
+
+                        if alarm.audioFileName != nil {
+                            Image(systemName: "waveform")
+                                .font(.omyu(size: 15))
+                                .foregroundColor(.pink)
+                        }
+                    }
+
                     Text(alarm.timeString)
-                        .font(.omyu(size: 32))
+                        .font(.omyu(size: 38))
                         .bold()
                         .foregroundColor(.white)
 
@@ -17,18 +29,6 @@ struct AlarmRow: View {
                         Text(alarm.title)
                             .font(.omyuSubheadline)
                             .foregroundColor(.white.opacity(0.8))
-                    }
-
-                    HStack(spacing: 4) {
-                        Text(alarm.repeatDays.isEmpty ? "반복 없음" : alarm.repeatDaysString)
-                            .font(.omyuCaption)
-                            .foregroundColor(alarm.repeatDays.isEmpty ? .gray : .pink)
-
-                        if alarm.audioFileName != nil {
-                            Image(systemName: "waveform")
-                                .font(.omyuCaption)
-                                .foregroundColor(.pink)
-                        }
                     }
                 }
 
@@ -48,6 +48,7 @@ struct AlarmRow: View {
                     }
                 ))
                 .toggleStyle(SwitchToggleStyle(tint: .pink))
+                .scaleEffect(0.9)
             }
             .padding()
             .background(Color.gray.opacity(0.2))

@@ -45,7 +45,7 @@ struct RecordingControlsView: View {
             } label: {
                 HStack {
                     Image(systemName: "stop.circle.fill")
-                        .font(.system(size: 24))
+                        .font(.omyu(size: 24))
                     Text("녹음 중지")
                         .font(.omyu(size: 16))
                 }
@@ -64,6 +64,7 @@ struct RecordingControlsView: View {
                 Image(systemName: "waveform")
                     .foregroundColor(.pink)
                 Text("녹음 완료")
+                    .font(.omyuBody)
                     .foregroundColor(.white)
                 Spacer()
                 Button {
@@ -89,7 +90,7 @@ struct RecordingControlsView: View {
                 } label: {
                     HStack {
                         Image(systemName: audioPlayer.isPlaying ? "stop.fill" : "play.fill")
-                            .font(.system(size: 16))
+                            .font(.omyu(size: 16))
                         Text(audioPlayer.isPlaying ? "정지" : "미리듣기")
                             .font(.omyu(size: 14))
                     }
@@ -110,7 +111,7 @@ struct RecordingControlsView: View {
                 } label: {
                     HStack {
                         Image(systemName: "mic.fill")
-                            .font(.system(size: 16))
+                            .font(.omyu(size: 16))
                         Text("다시 녹음")
                             .font(.omyu(size: 14))
                     }
@@ -127,6 +128,7 @@ struct RecordingControlsView: View {
     private var noRecordingView: some View {
         VStack(spacing: 12) {
             Text("녹음된 소리가 없습니다")
+                .font(.omyuBody)
                 .foregroundColor(.gray)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -135,7 +137,7 @@ struct RecordingControlsView: View {
             } label: {
                 HStack {
                     Image(systemName: "mic.circle.fill")
-                        .font(.system(size: 24))
+                        .font(.omyu(size: 24))
                     Text("녹음 시작")
                         .font(.omyu(size: 16))
                 }

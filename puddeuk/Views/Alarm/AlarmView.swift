@@ -38,17 +38,17 @@ struct AlarmView: View {
                 Spacer()
 
                 Image(systemName: "alarm.fill")
-                    .font(.system(size: 80))
+                    .font(.omyu(size: 80))
                     .foregroundColor(.pink)
                     .scaleEffect(isDismissed ? 0.8 : 1.0)
                     .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: !isDismissed)
 
                 Text(displayTitle)
-                    .font(.system(size: 36, weight: .bold))
+                    .font(.omyu(size: 36))
                     .foregroundColor(.white)
 
                 Text(displayTime)
-                    .font(.system(size: 72, weight: .bold))
+                    .font(.omyu(size: 72)).bold()
                     .foregroundColor(.white)
 
                 Spacer()
@@ -57,7 +57,7 @@ struct AlarmView: View {
                     stopAlarm()
                 } label: {
                     Text("끄기")
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(.omyu(size: 20))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)

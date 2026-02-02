@@ -9,7 +9,7 @@ struct ToolbarButtons: View {
             onAddTap()
         } label: {
             Image(systemName: "plus")
-                .font(.system(size: 22, weight: .semibold))
+                .font(.omyu(size: 22))
                 .foregroundColor(.pink)
         }
     }

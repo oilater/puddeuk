@@ -18,7 +18,7 @@ struct ContactView: View {
                     // 헤더
                     VStack(spacing: 8) {
                         Image(systemName: "envelope.fill")
-                            .font(.system(size: 50))
+                            .font(.omyu(size: 50))
                             .foregroundStyle(.blue)
 
                         Text("개발자에게 문의하기")
@@ -40,6 +40,7 @@ struct ContactView: View {
                                 .foregroundStyle(.gray)
 
                             TextField("제목을 입력해주세요", text: $subject)
+                                .font(.omyuBody)
                                 .textFieldStyle(CustomTextFieldStyle())
                         }
 
@@ -50,6 +51,7 @@ struct ContactView: View {
                                 .foregroundStyle(.gray)
 
                             TextField("답변받을 이메일 주소", text: $fromEmail)
+                                .font(.omyuBody)
                                 .textFieldStyle(CustomTextFieldStyle())
                                 .keyboardType(.emailAddress)
                                 .textInputAutocapitalization(.never)
