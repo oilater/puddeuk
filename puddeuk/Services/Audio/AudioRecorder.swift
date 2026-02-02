@@ -98,9 +98,8 @@ class AudioRecorder: NSObject, ObservableObject {
 
         do {
             try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-            print("✅ 녹음 세션 해제됨")
         } catch {
-            print("⚠️ 녹음 세션 해제 실패: \(error)")
+            Logger.audio.warning("녹음 세션 해제 실패: \(error.localizedDescription)")
         }
 
         guard let originalURL = audioURL else {
@@ -111,12 +110,10 @@ class AudioRecorder: NSObject, ObservableObject {
         guard FileManager.default.fileExists(atPath: originalURL.path),
               let attrs = try? FileManager.default.attributesOfItem(atPath: originalURL.path),
               let size = attrs[.size] as? Int, size > 0 else {
-            print("❌ 녹음 파일이 생성되지 않았거나 비어있음")
+            Logger.audio.error("녹음 파일 생성 실패")
             onRecordingFinished?(nil)
             return
         }
-
-        print("✅ 녹음 파일 생성됨: \(originalURL.lastPathComponent), \(size) bytes")
 
         createExtendedAudioFile(from: originalURL) { [weak self] extendedURL in
             // 확장 파일 생성 후 전체 파일 목록 출력
@@ -131,11 +128,6 @@ class AudioRecorder: NSObject, ObservableObject {
         let extendedFileName = "\(baseName)_ext.caf"
         let extendedURL = getSoundsDirectory().appendingPathComponent(extendedFileName)
 
-        print("🔧 [ExtendAudio] 시작")
-        print("   원본: \(originalURL.lastPathComponent)")
-        print("   대상: \(extendedFileName)")
-        print("   저장 경로: \(extendedURL.path)")
-
         try? FileManager.default.removeItem(at: extendedURL)
 
         DispatchQueue.global(qos: .userInitiated).async {
@@ -146,11 +138,8 @@ class AudioRecorder: NSObject, ObservableObject {
                 let sampleRate = originalFormat.sampleRate
 
                 let originalDuration = Double(originalLength) / sampleRate
-                print("🔧 [ExtendAudio] 원본 길이: \(String(format: "%.1f", originalDuration))초")
-                print("   포맷: \(originalFormat)")
 
                 if originalDuration >= AlarmConfiguration.maxNotificationSoundDuration {
-                    print("🔧 [ExtendAudio] ⚠️ 이미 30초 이상 → 확장 건너뜀")
                     DispatchQueue.main.async {
                         completion(originalURL)
                     }
@@ -165,8 +154,6 @@ class AudioRecorder: NSObject, ObservableObject {
                 let targetDuration = AlarmConfiguration.maxNotificationSoundDuration
                 let repeatCount = Int(ceil(targetDuration / originalDuration))
                 let totalFrames = AVAudioFrameCount(originalLength) * AVAudioFrameCount(repeatCount)
-
-                print("🔧 [ExtendAudio] 반복 횟수: \(repeatCount)회 → 총 \(String(format: "%.1f", Double(repeatCount) * originalDuration))초")
 
                 guard let extendedBuffer = AVAudioPCMBuffer(pcmFormat: originalFormat, frameCapacity: totalFrames) else {
                     throw NSError(domain: "AudioRecorder", code: 2, userInfo: [NSLocalizedDescriptionKey: "확장 버퍼 생성 실패"])
@@ -199,24 +186,11 @@ class AudioRecorder: NSObject, ObservableObject {
                 let outputFile = try AVAudioFile(forWriting: extendedURL, settings: outputSettings)
                 try outputFile.write(from: extendedBuffer)
 
-                // 파일 생성 확인
-                if FileManager.default.fileExists(atPath: extendedURL.path) {
-                    if let attrs = try? FileManager.default.attributesOfItem(atPath: extendedURL.path),
-                       let size = attrs[.size] as? Int {
-                        print("🔧 [ExtendAudio] ✅ 파일 생성 완료: \(extendedFileName)")
-                        print("   크기: \(size) bytes")
-                        print("   경로: \(extendedURL.path)")
-                    }
-                } else {
-                    print("🔧 [ExtendAudio] ❌ 파일이 생성되지 않음!")
-                }
-
                 DispatchQueue.main.async {
                     completion(extendedURL)
                 }
             } catch {
-                print("🔧 [ExtendAudio] ❌ 실패: \(error)")
-                print("   원본 경로: \(originalURL.path)")
+                Logger.audio.error("오디오 확장 실패: \(error.localizedDescription)")
                 DispatchQueue.main.async {
                     completion(nil)
                 }
@@ -238,10 +212,9 @@ class AudioRecorder: NSObject, ObservableObject {
         do {
             if FileManager.default.fileExists(atPath: fileURL.path) {
                 try FileManager.default.removeItem(at: fileURL)
-                print("✅ 오디오 파일 삭제됨: \(fileName)")
             }
         } catch {
-            print("❌ 오디오 파일 삭제 실패: \(error)")
+            Logger.audio.error("오디오 파일 삭제 실패: \(error.localizedDescription)")
         }
 
         let extendedFileName = getExtendedAudioFileName(for: fileName)
@@ -253,7 +226,7 @@ class AudioRecorder: NSObject, ObservableObject {
 extension AudioRecorder: AVAudioRecorderDelegate {
     func audioRecorderDidFinishRecording(_ recorder: AVAudioRecorder, successfully flag: Bool) {
         if !flag {
-            print("녹음이 성공적으로 완료되지 않았습니다")
+            Logger.audio.warning("녹음이 정상적으로 완료되지 않음")
         }
     }
 }

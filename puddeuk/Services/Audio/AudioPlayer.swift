@@ -2,6 +2,7 @@ import Foundation
 import AVFoundation
 import AudioToolbox
 import Combine
+import OSLog
 
 class AudioPlayer: NSObject, ObservableObject {
     @Published var isPlaying = false
@@ -23,9 +24,8 @@ class AudioPlayer: NSObject, ObservableObject {
             configurePlayer()
             player?.play()
             isPlaying = true
-            print("✅ 알람 소리 재생 시작: \(fileName)")
         } catch {
-            print("❌ 알람 소리 재생 실패: \(error)")
+            Logger.audio.error("알람 소리 재생 실패: \(error.localizedDescription)")
             playDefaultSound()
         }
     }
@@ -34,7 +34,7 @@ class AudioPlayer: NSObject, ObservableObject {
         let audioURL = getSoundsDirectory().appendingPathComponent(fileName)
 
         guard FileManager.default.fileExists(atPath: audioURL.path) else {
-            print("❌ 미리듣기 파일 없음: \(audioURL.path)")
+            Logger.audio.warning("미리듣기 파일 없음")
             return false
         }
 
@@ -46,10 +46,9 @@ class AudioPlayer: NSObject, ObservableObject {
             player?.volume = 1.0
             player?.play()
             isPlaying = true
-            print("✅ 미리듣기 재생 시작: \(fileName)")
             return true
         } catch {
-            print("❌ 미리듣기 재생 실패: \(error)")
+            Logger.audio.error("미리듣기 재생 실패: \(error.localizedDescription)")
             return false
         }
     }
@@ -64,7 +63,7 @@ class AudioPlayer: NSObject, ObservableObject {
                 player?.play()
                 isPlaying = true
             } catch {
-                print("❌ 기본 소리 재생 실패: \(error)")
+                Logger.audio.error("기본 소리 재생 실패: \(error.localizedDescription)")
                 playSystemSound()
             }
         } else {
@@ -102,7 +101,7 @@ class AudioPlayer: NSObject, ObservableObject {
         do {
             try AVAudioSession.sharedInstance().setActive(false)
         } catch {
-            print("오디오 세션 비활성화 실패: \(error)")
+            Logger.audio.warning("오디오 세션 비활성화 실패: \(error.localizedDescription)")
         }
     }
 }

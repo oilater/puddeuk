@@ -42,15 +42,10 @@ final class AlarmNotificationService: NSObject, ObservableObject {
             .appendingPathComponent(fileName)
 
         guard FileManager.default.fileExists(atPath: url.path) else {
-            print("❌ 파일 없음: \(fileName)")
+            Logger.audio.warning("알람 파일 없음: \(fileName)")
             isAlarmPlaying = true
             currentAlarmId = alarmId
             return
-        }
-
-        if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
-           let size = attrs[.size] as? Int {
-            print("📁 파일: \(fileName), \(size) bytes")
         }
 
         currentAlarmURL = url
@@ -61,8 +56,6 @@ final class AlarmNotificationService: NSObject, ObservableObject {
 
     private func playAlarm() {
         guard let url = currentAlarmURL else { return }
-
-        print("🎵 재생 시도: \(url.lastPathComponent)")
 
         do {
             let session = AVAudioSession.sharedInstance()
@@ -131,9 +124,7 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
         let alarmId = userInfo["alarmId"] as? String ?? ""
         let chainIndex = userInfo["chainIndex"] as? Int ?? 0
 
-        print("🔔🔔🔔 알람 도착! (포그라운드): \(title)")
-        print("   audioFileName: \(audioFileName ?? "없음")")
-        print("   chainIndex: \(chainIndex)")
+        Logger.notification.info("알람 도착 (포그라운드): \(title)")
 
         // 포그라운드에서는 AVAudioPlayer로 재생 + 나머지 체인 알림 취소
         if !isAlarmPlaying {
@@ -179,7 +170,7 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
 
         switch response.actionIdentifier {
         case "SNOOZE_ACTION":
-            print("🔔 스누즈 액션")
+            Logger.notification.info("스누즈 액션")
             await MainActor.run {
                 // 체인 알림 취소 포함
                 AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
@@ -194,7 +185,7 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
             return
 
         case "DISMISS_ACTION":
-            print("🔔 끄기 액션")
+            Logger.notification.info("끄기 액션")
             await MainActor.run {
                 // 체인 알림 취소 포함
                 AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
@@ -207,7 +198,7 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
             break
         }
 
-        print("🔔 알림 탭 → 앱으로 이동: \(title)")
+        Logger.notification.info("알림 탭 → 앱으로 이동: \(title)")
 
         await MainActor.run {
             // 나머지 체인 알림 취소 (앱이 포그라운드로 왔으므로 AVAudioPlayer 사용)
@@ -243,7 +234,6 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
 extension AlarmNotificationService: AVAudioPlayerDelegate {
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
         if isAlarmPlaying {
-            print("⚠️ 알람 재시작")
             playAlarm()
         }
     }

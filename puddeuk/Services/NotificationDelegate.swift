@@ -1,6 +1,7 @@
 import Foundation
 import UserNotifications
 import SwiftData
+import OSLog
 
 class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     static let shared = NotificationDelegate()
@@ -8,7 +9,7 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     var modelContext: ModelContext?
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        print("🔔 알림 수신 (포그라운드): \(notification.request.content.title)")
+        Logger.notification.info("알림 수신 (포그라운드): \(notification.request.content.title)")
 
         if let alarmId = extractAlarmId(from: notification) {
             showAlarmView(alarmId: alarmId)
@@ -18,7 +19,7 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        print("🔔 알림 탭됨: \(response.notification.request.content.title)")
+        Logger.notification.info("알림 탭됨: \(response.notification.request.content.title)")
 
         if let alarmId = extractAlarmId(from: response.notification) {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -38,7 +39,7 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
 
     private func showAlarmView(alarmId: UUID) {
         guard let modelContext = modelContext else {
-            print("❌ ModelContext가 설정되지 않음")
+            Logger.alarm.error("ModelContext가 설정되지 않음")
             return
         }
 
@@ -52,7 +53,7 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
                 AlarmManager.shared.showAlarm(alarm)
             }
         } catch {
-            print("❌ 알람 찾기 실패: \(error)")
+            Logger.alarm.error("알람 찾기 실패: \(error.localizedDescription)")
         }
     }
 }
