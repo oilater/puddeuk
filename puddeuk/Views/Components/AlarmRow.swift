@@ -9,23 +9,24 @@ struct AlarmRow: View {
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(alarm.timeString)
-                        .font(.system(size: 32, weight: .bold))
+                        .font(.omyu(size: 32))
+                        .bold()
                         .foregroundColor(.white)
 
                     if !alarm.title.isEmpty {
                         Text(alarm.title)
-                            .font(.subheadline)
+                            .font(.omyuSubheadline)
                             .foregroundColor(.white.opacity(0.8))
                     }
 
                     HStack(spacing: 4) {
                         Text(alarm.repeatDays.isEmpty ? "반복 없음" : alarm.repeatDaysString)
-                            .font(.caption)
+                            .font(.omyuCaption)
                             .foregroundColor(alarm.repeatDays.isEmpty ? .gray : .pink)
 
                         if alarm.audioFileName != nil {
                             Image(systemName: "waveform")
-                                .font(.caption)
+                                .font(.omyuCaption)
                                 .foregroundColor(.pink)
                         }
                     }

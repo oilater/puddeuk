@@ -17,6 +17,25 @@ struct puddeukApp: App {
         Task {
             await AlarmNotificationManager.shared.requestAuthorization()
         }
+
+        // 앱 전체에 오뮤 다예쁨 폰트 적용
+        setupDefaultFont()
+    }
+
+    private func setupDefaultFont() {
+        if let customFont = UIFont(name: "omyu_pretty", size: 17) {
+            // Navigation Bar
+            UINavigationBar.appearance().titleTextAttributes = [.font: customFont.withSize(20)]
+            UINavigationBar.appearance().largeTitleTextAttributes = [.font: customFont.withSize(34)]
+
+            // TabBar
+            let tabBarFont = customFont.withSize(11)
+            UITabBarItem.appearance().setTitleTextAttributes([.font: tabBarFont], for: .normal)
+            UITabBarItem.appearance().setTitleTextAttributes([.font: tabBarFont], for: .selected)
+
+            // TextField Placeholder
+            UITextField.appearance().font = customFont
+        }
     }
 
     var sharedModelContainer: ModelContainer = {
@@ -40,8 +59,7 @@ struct puddeukApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .preferredColorScheme(.dark)
+            MainTabView()
                 .onOpenURL { url in
                     handleDeepLink(url)
                 }

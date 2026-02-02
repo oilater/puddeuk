@@ -88,6 +88,7 @@ struct AddAlarmView: View {
                         }
                         dismiss()
                     }
+                    .font(.omyuBody)
                     .foregroundColor(.white)
                 }
 
@@ -95,8 +96,8 @@ struct AddAlarmView: View {
                     Button("저장") {
                         saveAlarm()
                     }
+                    .font(.omyuBody)
                     .foregroundColor(.pink)
-                    .fontWeight(.semibold)
                 }
             }
             .alert("알람 삭제", isPresented: $showingDeleteAlert) {
@@ -106,6 +107,7 @@ struct AddAlarmView: View {
                 }
             } message: {
                 Text("이 알람을 삭제하시겠습니까?")
+                    .font(.omyuBody)
             }
             .alert("오류", isPresented: $showingErrorAlert) {
                 Button("확인", role: .cancel) { }
@@ -153,6 +155,7 @@ struct AddAlarmView: View {
             HStack {
                 Image(systemName: "trash")
                 Text("알람 삭제")
+                    .font(.omyuBody)
             }
             .foregroundColor(.red)
             .frame(maxWidth: .infinity)

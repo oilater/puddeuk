@@ -8,7 +8,7 @@ struct RepeatDaySelector: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("반복")
-                .font(.headline)
+                .font(.omyuHeadline)
                 .foregroundColor(.white)
 
             HStack(spacing: 8) {
@@ -21,7 +21,7 @@ struct RepeatDaySelector: View {
                         }
                     } label: {
                         Text(dayNames[dayIndex])
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.omyu(size: 16))
                             .foregroundColor(repeatDays.contains(dayIndex) ? .black : .white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 44)

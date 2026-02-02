@@ -8,7 +8,7 @@ struct RecordingControlsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("알람 소리")
-                .font(.headline)
+                .font(.omyuHeadline)
                 .foregroundColor(.white)
 
             if audioRecorder.isRecording {
@@ -47,7 +47,7 @@ struct RecordingControlsView: View {
                     Image(systemName: "stop.circle.fill")
                         .font(.system(size: 24))
                     Text("녹음 중지")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.omyu(size: 16))
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
@@ -91,7 +91,7 @@ struct RecordingControlsView: View {
                         Image(systemName: audioPlayer.isPlaying ? "stop.fill" : "play.fill")
                             .font(.system(size: 16))
                         Text(audioPlayer.isPlaying ? "정지" : "미리듣기")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(.omyu(size: 14))
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
@@ -112,7 +112,7 @@ struct RecordingControlsView: View {
                         Image(systemName: "mic.fill")
                             .font(.system(size: 16))
                         Text("다시 녹음")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(.omyu(size: 14))
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
@@ -137,7 +137,7 @@ struct RecordingControlsView: View {
                     Image(systemName: "mic.circle.fill")
                         .font(.system(size: 24))
                     Text("녹음 시작")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.omyu(size: 16))
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
