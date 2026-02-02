@@ -51,8 +51,8 @@ class AudioRecorder: NSObject, ObservableObject {
         setupAudioSession()
 
         let soundsPath = getSoundsDirectory()
-        let timestamp = Int(Date().timeIntervalSince1970)
-        let audioFilename = soundsPath.appendingPathComponent("alarm_\(timestamp).caf")
+        let shortID = UUID().uuidString.prefix(8)
+        let audioFilename = soundsPath.appendingPathComponent("\(shortID).caf")
 
         let settings: [String: Any] = [
             AVFormatIDKey: Int(kAudioFormatLinearPCM),
@@ -181,6 +181,8 @@ class AudioRecorder: NSObject, ObservableObject {
                 let outputFile = try AVAudioFile(forWriting: extendedURL, settings: outputSettings)
                 try outputFile.write(from: extendedBuffer)
 
+                Logger.audio.info("30초 확장 파일 생성 완료: \(extendedURL.lastPathComponent)")
+
                 DispatchQueue.main.async {
                     completion(extendedURL)
                 }
@@ -225,3 +227,4 @@ extension AudioRecorder: AVAudioRecorderDelegate {
         }
     }
 }
+ 

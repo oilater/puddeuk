@@ -15,20 +15,42 @@ final class AlarmSoundService {
 
     /// 알람에 맞는 UNNotificationSound 반환
     func notificationSound(for audioFileName: String?) -> UNNotificationSound {
+        #if DEBUG
+        print("🔊 [SoundService] audioFileName: \(audioFileName ?? "nil")")
+        #endif
+
         guard let audioFileName, !audioFileName.isEmpty else {
+            #if DEBUG
+            print("🔊 [SoundService] → 기본 사운드 (파일명 없음)")
+            #endif
             return .default
         }
 
         let extendedFileName = extendedFileName(for: audioFileName)
+        #if DEBUG
+        print("🔊 [SoundService] 확장 파일: \(extendedFileName)")
+        print("🔊 [SoundService] 경로: \(soundsDirectory.path)")
+        print("🔊 [SoundService] 확장 파일 존재: \(fileExists(extendedFileName))")
+        print("🔊 [SoundService] 원본 파일 존재: \(fileExists(audioFileName))")
+        #endif
 
         if fileExists(extendedFileName) {
+            #if DEBUG
+            print("🔊 [SoundService] ✅ 사용: \(extendedFileName)")
+            #endif
             return UNNotificationSound(named: UNNotificationSoundName(extendedFileName))
         }
 
         if fileExists(audioFileName) {
+            #if DEBUG
+            print("🔊 [SoundService] ⚠️ 사용: \(audioFileName) (확장 없음)")
+            #endif
             return UNNotificationSound(named: UNNotificationSoundName(audioFileName))
         }
 
+        #if DEBUG
+        print("🔊 [SoundService] ❌ 파일 없음 → 기본 사운드")
+        #endif
         return .default
     }
 

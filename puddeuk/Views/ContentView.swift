@@ -7,6 +7,7 @@ struct ContentView: View {
     @Query(sort: \Alarm.hour) private var alarms: [Alarm]
     @State private var showingAddAlarm = false
     @State private var selectedAlarm: Alarm?
+    @State private var showingDebug = false
     @ObservedObject private var alarmManager = AlarmManager.shared
 
     var body: some View {
@@ -28,6 +29,17 @@ struct ContentView: View {
             .navigationBarTitleDisplayMode(.large)
             .preferredColorScheme(.dark)
             .toolbar {
+                #if DEBUG
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        showingDebug = true
+                    } label: {
+                        Image(systemName: "ladybug.fill")
+                            .foregroundStyle(.orange)
+                    }
+                }
+                #endif
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     ToolbarButtons(
                         alarms: alarms,
@@ -40,6 +52,9 @@ struct ContentView: View {
             }
             .sheet(item: $selectedAlarm) { alarm in
                 AddAlarmView(alarm: alarm)
+            }
+            .sheet(isPresented: $showingDebug) {
+                DebugAlarmView()
             }
             .onAppear {
                 setupAlarms()
