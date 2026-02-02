@@ -65,7 +65,6 @@ struct ContentView: View {
                 }
             }
             .onChange(of: alarmManager.showAlarmView) { _, show in
-                // 알람 화면 표시 전 열린 sheet 닫기
                 if show {
                     showingAddAlarm = false
                     selectedAlarm = nil
@@ -101,10 +100,8 @@ struct ContentView: View {
         let audioFileToDelete = alarm.audioFileName
 
         Task {
-            // 1. 알람 취소 (완료까지 대기)
             await AlarmNotificationManager.shared.cancelAlarm(alarm)
 
-            // 2. 파일 삭제 및 모델 삭제 (MainActor에서)
             await MainActor.run {
                 if let audioFileName = audioFileToDelete {
                     AudioRecorder().deleteAudioFile(fileName: audioFileName)

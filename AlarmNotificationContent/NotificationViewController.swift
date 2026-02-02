@@ -1,8 +1,3 @@
-//
-//  NotificationViewController.swift
-//  AlarmNotificationContent
-//
-
 import UIKit
 import SwiftUI
 import UserNotifications
@@ -57,7 +52,6 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         formatter.locale = Locale(identifier: "ko_KR")
         alarmTime = formatter.string(from: Date())
 
-        // Update the SwiftUI view
         hostingController?.rootView = AlarmNotificationView(
             title: alarmTitle,
             time: alarmTime,
@@ -89,7 +83,6 @@ struct AlarmNotificationView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            // Alarm icon with animation
             Image(systemName: "alarm.fill")
                 .font(.system(size: 50))
                 .foregroundColor(.pink)
@@ -103,17 +96,14 @@ struct AlarmNotificationView: View {
                     isAnimating = true
                 }
 
-            // Title
             Text(title)
                 .font(.system(size: 24, weight: .bold))
                 .foregroundColor(.white)
 
-            // Time
             Text(time)
                 .font(.system(size: 36, weight: .bold))
                 .foregroundColor(.white)
 
-            // Buttons
             HStack(spacing: 16) {
                 Button(action: onSnooze) {
                     Text("5분 후")

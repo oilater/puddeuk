@@ -1,10 +1,3 @@
-//
-//  AlarmWidgetLiveActivity.swift
-//  AlarmWidget
-//
-//  Created by 성현 on 2/2/26.
-//
-
 import ActivityKit
 import WidgetKit
 import SwiftUI

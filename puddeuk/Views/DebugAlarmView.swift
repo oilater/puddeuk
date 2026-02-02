@@ -61,7 +61,6 @@ struct DebugAlarmView: View {
                 info += "       간격: \(mins)분 후\n"
             }
 
-            // 사운드 정보 추출 (reflection 사용)
             let soundInfo = String(describing: req.content.sound)
             info += "       사운드: \(soundInfo)\n"
         }

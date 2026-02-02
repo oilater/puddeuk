@@ -54,7 +54,6 @@ class AudioPlayer: NSObject, ObservableObject {
     }
 
     func playDefaultSound() {
-        // 번들 사운드 제거 - 시스템 사운드만 사용
         playSystemSound()
     }
 

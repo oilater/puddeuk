@@ -68,7 +68,6 @@ struct RecordingControlsView: View {
                 Spacer()
                 Button {
                     audioPlayer.stop()
-                    // 새로 녹음한 파일이면 삭제
                     if let fileName = audioFileName,
                        audioRecorder.audioURL?.lastPathComponent == fileName {
                         audioRecorder.deleteAudioFile(fileName: fileName)
@@ -103,7 +102,6 @@ struct RecordingControlsView: View {
 
                 Button {
                     audioPlayer.stop()
-                    // 기존 녹음 파일 삭제
                     if let fileName = audioFileName {
                         audioRecorder.deleteAudioFile(fileName: fileName)
                     }

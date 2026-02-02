@@ -12,7 +12,6 @@ struct puddeukApp: App {
         _ = AlarmNotificationService.shared
         AlarmNotificationManager.shared.registerNotificationCategories()
 
-        // 디버그: Library/Sounds 파일 목록 출력
         AlarmSoundService.shared.logAllSoundFiles()
 
         Task {
@@ -57,18 +56,15 @@ struct puddeukApp: App {
         Logger.alarm.debug("ScenePhase 변경: \(String(describing: oldPhase)) → \(String(describing: newPhase))")
 
         if newPhase == .active && oldPhase != .active {
-            // 백그라운드/비활성 → 포그라운드 전환
             checkAndResumeAlarm()
         }
     }
 
-    /// 포그라운드 전환 시 pending 알람 확인 및 재생
     private func checkAndResumeAlarm() {
         Task {
             let center = UNUserNotificationCenter.current()
             let delivered = await center.deliveredNotifications()
 
-            // 전달된 알림 중 알람이 있는지 확인
             for notification in delivered {
                 let userInfo = notification.request.content.userInfo
 
@@ -82,19 +78,15 @@ struct puddeukApp: App {
 
                 Logger.alarm.info("ScenePhase - 전달된 알람 발견: \(title)")
 
-                // 이미 재생 중이 아니면 재생 시작
                 await MainActor.run {
                     if !AlarmNotificationService.shared.isAlarmPlaying {
-                        // 체인 알림 취소 (AVAudioPlayer로 대체)
                         AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
 
-                        // AVAudioPlayer로 재생 시작
                         AlarmNotificationService.shared.startAlarmWithFileName(
                             audioFileName,
                             alarmId: alarmId
                         )
 
-                        // Live Activity 시작
                         let formatter = DateFormatter()
                         formatter.dateFormat = "a h:mm"
                         formatter.locale = Locale(identifier: "ko_KR")
@@ -107,7 +99,6 @@ struct puddeukApp: App {
                             audioFileName: audioFileName
                         )
 
-                        // 알람 UI 표시
                         AlarmManager.shared.showAlarmFromNotification(
                             title: title,
                             audioFileName: audioFileName
@@ -115,9 +106,8 @@ struct puddeukApp: App {
                     }
                 }
 
-                // 처리한 알림 제거
                 center.removeDeliveredNotifications(withIdentifiers: [notification.request.identifier])
-                break  // 첫 번째 알람만 처리
+                break
             }
         }
     }
@@ -136,7 +126,6 @@ struct puddeukApp: App {
     }
 
     private func handleSnooze() {
-        // 현재 재생 중인 오디오 파일명 저장 (stopAlarm 전에)
         let audioFileName = AlarmNotificationService.shared.getCurrentAudioFileName()
 
         AlarmNotificationService.shared.stopAlarm()
@@ -145,7 +134,6 @@ struct puddeukApp: App {
         }
         AlarmManager.shared.dismissAlarm()
         Task {
-            // 같은 오디오 파일로 스누즈 예약
             try? await AlarmNotificationManager.shared.scheduleSnooze(
                 minutes: 5,
                 audioFileName: audioFileName

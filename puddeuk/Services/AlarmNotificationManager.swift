@@ -3,8 +3,6 @@ import UserNotifications
 import SwiftData
 import OSLog
 
-// MARK: - Error Types
-
 enum AlarmNotificationError: LocalizedError {
     case authorizationDenied
     case schedulingFailed(String)
@@ -25,21 +23,16 @@ enum AlarmNotificationError: LocalizedError {
     }
 }
 
-// MARK: - AlarmNotificationManager
-
 final class AlarmNotificationManager {
     static let shared = AlarmNotificationManager()
 
     private let center = UNUserNotificationCenter.current()
     private let soundService = AlarmSoundService.shared
 
-    // MARK: - Chain Notification Constants
     private let chainCount = AlarmConfiguration.chainCount
     private let chainInterval = AlarmConfiguration.chainInterval
 
     private init() {}
-
-    // MARK: - Authorization
 
     @discardableResult
     func requestAuthorization() async -> Bool {
@@ -58,8 +51,6 @@ final class AlarmNotificationManager {
         let settings = await center.notificationSettings()
         Logger.notification.debug("알림 권한 상태: \(settings.authorizationStatus.rawValue), 알림 허용: \(settings.authorizationStatus == .authorized), 사운드: \(settings.soundSetting.rawValue)")
     }
-
-    // MARK: - Category Registration
 
     func registerNotificationCategories() {
         let snoozeAction = UNNotificationAction(
@@ -85,8 +76,6 @@ final class AlarmNotificationManager {
         Logger.notification.info("알림 카테고리 등록 완료")
     }
 
-    // MARK: - Scheduling
-
     func scheduleAlarm(_ alarm: Alarm) async throws {
         guard alarm.isEnabled else {
             await cancelAlarm(alarm)
@@ -104,10 +93,8 @@ final class AlarmNotificationManager {
         let snoozeId = UUID().uuidString
         let baseInterval = TimeInterval(minutes * 60)
 
-        // 동적 간격 계산
         let dynamicInterval = calculateChainInterval(for: audioFileName)
 
-        // 체인 알림 예약 (동적 간격으로 8개)
         for chainIndex in 0..<chainCount {
             let content = UNMutableNotificationContent()
             content.title = "스누즈 알람"
@@ -140,8 +127,6 @@ final class AlarmNotificationManager {
         Logger.alarm.info("스누즈 알람 예약됨: \(minutes)분 후 (체인 \(self.chainCount)개)")
     }
 
-    // MARK: - Cancellation
-
     func cancelAlarm(_ alarm: Alarm) async {
         let identifiers = alarmIdentifiers(for: alarm)
         center.removePendingNotificationRequests(withIdentifiers: identifiers)
@@ -152,8 +137,6 @@ final class AlarmNotificationManager {
         center.removeAllPendingNotificationRequests()
         Logger.alarm.info("모든 알람 취소됨")
     }
-
-    // MARK: - Pending Check
 
     func checkPendingAlarm(modelContext: ModelContext) async {
         let notifications = await center.deliveredNotifications()
@@ -183,8 +166,6 @@ final class AlarmNotificationManager {
         }
     }
 
-    // MARK: - Debug
-
     func logPendingNotifications() async {
         let requests = await center.pendingNotificationRequests()
         Logger.notification.debug("현재 스케줄된 알림 개수: \(requests.count)")
@@ -198,29 +179,22 @@ final class AlarmNotificationManager {
         }
     }
 
-    // MARK: - Private Methods
-
-    /// 오디오 파일 길이 계산 (파일 크기 기반 - Linear PCM)
     private func calculateAudioDuration(for audioFileName: String?) -> TimeInterval {
         guard let fileName = audioFileName,
               let fileSize = soundService.fileSize(fileName) else {
-            return 5.0  // 기본값: 5초
+            return 5.0
         }
 
-        // Linear PCM 공식: duration = fileSize / (sampleRate × bytesPerSample × channels)
-        // sampleRate = 44100, bitDepth = 16 (2 bytes), channels = 1
         let bytesPerSecond = AlarmConfiguration.audioSampleRate * Double(AlarmConfiguration.audioBitDepth / 8)
         let duration = Double(fileSize) / bytesPerSecond
 
         Logger.alarm.debug("오디오 길이 계산: \(fileName) = \(String(format: "%.1f", duration))초 (\(fileSize) bytes)")
-        return max(duration, 1.0)  // 최소 1초
+        return max(duration, 1.0)
     }
 
-    /// 동적 체인 간격 계산 (1초 텀 유지)
     private func calculateChainInterval(for audioFileName: String?) -> TimeInterval {
         let duration = calculateAudioDuration(for: audioFileName)
 
-        // 전략: 오디오 길이 + 1초 간격 (겹침 없음)
         let interval = duration + 1.0
 
         Logger.alarm.debug("체인 간격 계산: \(String(format: "%.1f", duration))초 녹음 → \(String(format: "%.1f", interval))초 간격 (1초 텀)")
@@ -236,10 +210,8 @@ final class AlarmNotificationManager {
 
         logAlarmSchedule(alarm: alarm, triggerDate: triggerDate)
 
-        // 동적 간격 계산
         let dynamicInterval = calculateChainInterval(for: alarm.audioFileName)
 
-        // 체인 알림 예약 (동적 간격으로 8개)
         for chainIndex in 0..<chainCount {
             let chainTriggerDate = triggerDate.addingTimeInterval(dynamicInterval * Double(chainIndex))
             let content = notificationContent(for: alarm, chainIndex: chainIndex)
@@ -267,11 +239,9 @@ final class AlarmNotificationManager {
     private func scheduleRepeatingAlarm(_ alarm: Alarm) async throws {
         Logger.alarm.info("반복 알람 스케줄링 시작: \(alarm.title)")
 
-        // 동적 간격 계산
         let dynamicInterval = calculateChainInterval(for: alarm.audioFileName)
 
         for day in alarm.repeatDays {
-            // 체인 알림 예약 (동적 간격으로 8개)
             for chainIndex in 0..<chainCount {
                 let content = notificationContent(for: alarm, chainIndex: chainIndex)
 
@@ -279,7 +249,6 @@ final class AlarmNotificationManager {
                 components.weekday = day + 1
                 components.hour = alarm.hour
                 components.minute = alarm.minute
-                // 체인 간격을 초 단위로 추가
                 components.second = Int(dynamicInterval) * chainIndex
 
                 let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
@@ -317,12 +286,10 @@ final class AlarmNotificationManager {
         var identifiers: [String] = []
 
         if alarm.repeatDays.isEmpty {
-            // 단일 알람: chain-0 ~ chain-7
             for chainIndex in 0..<chainCount {
                 identifiers.append("\(alarm.id.uuidString)-chain-\(chainIndex)")
             }
         } else {
-            // 반복 알람: 각 요일별로 chain-0 ~ chain-7
             for day in alarm.repeatDays {
                 for chainIndex in 0..<chainCount {
                     identifiers.append("\(alarm.id.uuidString)-\(day)-chain-\(chainIndex)")
@@ -333,16 +300,13 @@ final class AlarmNotificationManager {
         return identifiers
     }
 
-    /// 특정 알람 ID의 모든 체인 알림 취소 (외부에서 호출 가능)
     func cancelAlarmChain(alarmId: String) {
         var identifiers: [String] = []
 
-        // 단일 알람 체인
         for chainIndex in 0..<chainCount {
             identifiers.append("\(alarmId)-chain-\(chainIndex)")
         }
 
-        // 반복 알람 체인 (모든 요일)
         for day in 0..<7 {
             for chainIndex in 0..<chainCount {
                 identifiers.append("\(alarmId)-\(day)-chain-\(chainIndex)")

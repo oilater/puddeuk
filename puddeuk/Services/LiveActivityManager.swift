@@ -14,7 +14,7 @@ class LiveActivityManager {
 
     func startAlarmActivity(alarmId: String, title: String, scheduledTime: String, audioFileName: String?) {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
-            Logger.alarm.warning("Live Activities가 비활성화되어 있습니다")
+            Logger.alarm.warning("Live Activities not enabled")
             return
         }
 

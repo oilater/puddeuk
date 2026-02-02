@@ -1,18 +1,14 @@
 import SwiftUI
 
 struct AlarmView: View {
-    /// Alarm 객체 (DB에서 온 경우)
     let alarm: Alarm?
-    /// 알림에서 온 경우 제목
     var notificationTitle: String?
-    /// 알림에서 온 경우 오디오 파일명
     var notificationAudioFileName: String?
 
     @StateObject private var audioPlayer = AudioPlayer()
     @StateObject private var vibrationManager = VibrationManager()
     @State private var isDismissed = false
 
-    /// 표시할 제목
     private var displayTitle: String {
         if let alarm = alarm {
             return alarm.title.isEmpty ? "알람" : alarm.title
@@ -20,19 +16,16 @@ struct AlarmView: View {
         return notificationTitle ?? "알람"
     }
 
-    /// 표시할 시간
     private var displayTime: String {
         if let alarm = alarm {
             return alarm.timeString
         }
-        // 알림에서 온 경우 현재 시간 표시
         let formatter = DateFormatter()
         formatter.dateFormat = "a h:mm"
         formatter.locale = Locale(identifier: "ko_KR")
         return formatter.string(from: Date())
     }
 
-    /// 오디오 파일명
     private var audioFileName: String? {
         alarm?.audioFileName ?? notificationAudioFileName
     }
@@ -84,7 +77,6 @@ struct AlarmView: View {
     }
 
     private func startAlarm() {
-        // AlarmNotificationService가 이미 재생 중이면 스킵
         guard !AlarmNotificationService.shared.isAlarmPlaying else {
             vibrationManager.start()
             return

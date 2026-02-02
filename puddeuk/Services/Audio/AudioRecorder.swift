@@ -51,7 +51,6 @@ class AudioRecorder: NSObject, ObservableObject {
         setupAudioSession()
 
         let soundsPath = getSoundsDirectory()
-        // 고정 파일명 사용 (일관성 보장)
         let audioFilename = soundsPath.appendingPathComponent("alarm.caf")
 
         let settings: [String: Any] = [
@@ -113,7 +112,6 @@ class AudioRecorder: NSObject, ObservableObject {
             return
         }
 
-        // 파일 확장 제거 - 원본 파일만 사용 (빠른 처리)
         Logger.audio.info("녹음 완료: \(originalURL.lastPathComponent)")
         AlarmSoundService.shared.logAllSoundFiles()
         onRecordingFinished?(originalURL)
