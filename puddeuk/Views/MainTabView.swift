@@ -14,6 +14,7 @@ struct MainTabView: View {
                     Label("설정", systemImage: "gearshape.fill")
                 }
         }
+        .tint(.teal)
         .preferredColorScheme(.dark)
     }
 }

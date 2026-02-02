@@ -141,10 +141,10 @@ struct RecordingControlsView: View {
                     Text("녹음 시작")
                         .font(.omyu(size: 16))
                 }
-                .foregroundColor(.white)
+                .foregroundColor(.black)
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color.teal.opacity(0.8))
+                .background(Color.teal)
                 .cornerRadius(12)
             }
         }

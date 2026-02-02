@@ -17,8 +17,7 @@ struct puddeukApp: App {
         Task {
             await AlarmNotificationManager.shared.requestAuthorization()
         }
-
-        // 앱 전체에 오뮤 다예쁨 폰트 적용
+        
         setupDefaultFont()
     }
 
