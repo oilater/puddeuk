@@ -22,6 +22,19 @@ struct SettingsView: View {
                         .listRowBackground(Color(red: 0.18, green: 0.18, blue: 0.2))
 
                         NavigationLink {
+                            SleepModeGuideView()
+                        } label: {
+                            HStack {
+                                Image(systemName: "moon.zzz.fill")
+                                    .foregroundStyle(.teal)
+                                Text("수면 모드 설정 방법")
+                                    .font(.omyuBody)
+                            }
+                            .foregroundStyle(.white)
+                        }
+                        .listRowBackground(Color(red: 0.18, green: 0.18, blue: 0.2))
+
+                        NavigationLink {
                             FeedbackView()
                         } label: {
                             HStack {
