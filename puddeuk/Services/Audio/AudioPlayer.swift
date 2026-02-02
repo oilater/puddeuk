@@ -54,21 +54,8 @@ class AudioPlayer: NSObject, ObservableObject {
     }
 
     func playDefaultSound() {
-        if let soundURL = Bundle.main.url(forResource: "default_alarm", withExtension: "mp3") {
-            do {
-                try setupAudioSession()
-                player = try AVAudioPlayer(contentsOf: soundURL)
-                player?.delegate = self
-                configurePlayer()
-                player?.play()
-                isPlaying = true
-            } catch {
-                Logger.audio.error("기본 소리 재생 실패: \(error.localizedDescription)")
-                playSystemSound()
-            }
-        } else {
-            playSystemSound()
-        }
+        // 번들 사운드 제거 - 시스템 사운드만 사용
+        playSystemSound()
     }
 
     func stop() {

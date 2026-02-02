@@ -104,7 +104,10 @@ final class AlarmNotificationManager {
         let snoozeId = UUID().uuidString
         let baseInterval = TimeInterval(minutes * 60)
 
-        // 체인 알림 예약 (25초 간격으로 8개)
+        // 동적 간격 계산
+        let dynamicInterval = calculateChainInterval(for: audioFileName)
+
+        // 체인 알림 예약 (동적 간격으로 8개)
         for chainIndex in 0..<chainCount {
             let content = UNMutableNotificationContent()
             content.title = "스누즈 알람"
@@ -119,7 +122,7 @@ final class AlarmNotificationManager {
                 "chainIndex": chainIndex
             ]
 
-            let triggerInterval = baseInterval + (chainInterval * Double(chainIndex))
+            let triggerInterval = baseInterval + (dynamicInterval * Double(chainIndex))
             let trigger = UNTimeIntervalNotificationTrigger(
                 timeInterval: triggerInterval,
                 repeats: false
@@ -197,6 +200,33 @@ final class AlarmNotificationManager {
 
     // MARK: - Private Methods
 
+    /// 오디오 파일 길이 계산 (파일 크기 기반 - Linear PCM)
+    private func calculateAudioDuration(for audioFileName: String?) -> TimeInterval {
+        guard let fileName = audioFileName,
+              let fileSize = soundService.fileSize(fileName) else {
+            return 5.0  // 기본값: 5초
+        }
+
+        // Linear PCM 공식: duration = fileSize / (sampleRate × bytesPerSample × channels)
+        // sampleRate = 44100, bitDepth = 16 (2 bytes), channels = 1
+        let bytesPerSecond = AlarmConfiguration.audioSampleRate * Double(AlarmConfiguration.audioBitDepth / 8)
+        let duration = Double(fileSize) / bytesPerSecond
+
+        Logger.alarm.debug("오디오 길이 계산: \(fileName) = \(String(format: "%.1f", duration))초 (\(fileSize) bytes)")
+        return max(duration, 1.0)  // 최소 1초
+    }
+
+    /// 동적 체인 간격 계산 (1초 텀 유지)
+    private func calculateChainInterval(for audioFileName: String?) -> TimeInterval {
+        let duration = calculateAudioDuration(for: audioFileName)
+
+        // 전략: 오디오 길이 + 1초 간격 (겹침 없음)
+        let interval = duration + 1.0
+
+        Logger.alarm.debug("체인 간격 계산: \(String(format: "%.1f", duration))초 녹음 → \(String(format: "%.1f", interval))초 간격 (1초 텀)")
+        return interval
+    }
+
     private func scheduleSingleAlarm(_ alarm: Alarm) async throws {
         Logger.alarm.info("단일 알람 스케줄링 시작: \(alarm.title)")
 
@@ -206,9 +236,12 @@ final class AlarmNotificationManager {
 
         logAlarmSchedule(alarm: alarm, triggerDate: triggerDate)
 
-        // 체인 알림 예약 (25초 간격으로 8개)
+        // 동적 간격 계산
+        let dynamicInterval = calculateChainInterval(for: alarm.audioFileName)
+
+        // 체인 알림 예약 (동적 간격으로 8개)
         for chainIndex in 0..<chainCount {
-            let chainTriggerDate = triggerDate.addingTimeInterval(chainInterval * Double(chainIndex))
+            let chainTriggerDate = triggerDate.addingTimeInterval(dynamicInterval * Double(chainIndex))
             let content = notificationContent(for: alarm, chainIndex: chainIndex)
 
             let components = Calendar.current.dateComponents(
@@ -234,8 +267,11 @@ final class AlarmNotificationManager {
     private func scheduleRepeatingAlarm(_ alarm: Alarm) async throws {
         Logger.alarm.info("반복 알람 스케줄링 시작: \(alarm.title)")
 
+        // 동적 간격 계산
+        let dynamicInterval = calculateChainInterval(for: alarm.audioFileName)
+
         for day in alarm.repeatDays {
-            // 체인 알림 예약 (25초 간격으로 8개)
+            // 체인 알림 예약 (동적 간격으로 8개)
             for chainIndex in 0..<chainCount {
                 let content = notificationContent(for: alarm, chainIndex: chainIndex)
 
@@ -244,7 +280,7 @@ final class AlarmNotificationManager {
                 components.hour = alarm.hour
                 components.minute = alarm.minute
                 // 체인 간격을 초 단위로 추가
-                components.second = Int(chainInterval) * chainIndex
+                components.second = Int(dynamicInterval) * chainIndex
 
                 let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
                 let identifier = "\(alarm.id.uuidString)-\(day)-chain-\(chainIndex)"
