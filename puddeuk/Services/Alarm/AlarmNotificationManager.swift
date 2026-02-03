@@ -99,8 +99,7 @@ final class AlarmNotificationManager {
     // MARK: - 취소
 
     func cancelAlarm(_ alarm: Alarm) async {
-        let identifiers = chainCoordinator.buildChainIdentifiers(for: alarm)
-        center.removePendingNotificationRequests(withIdentifiers: identifiers)
+        chainCoordinator.cancelAlarmChain(alarmId: alarm.id.uuidString)
         Logger.alarm.info("알람 취소됨: \(alarm.title)")
     }
 

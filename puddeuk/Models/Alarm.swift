@@ -51,4 +51,53 @@ final class Alarm {
         let dayNames = ["일", "월", "화", "수", "목", "금", "토"]
         return repeatDays.sorted().map { dayNames[$0] }.joined(separator: " ")
     }
+
+    var nextFireDate: Date? {
+        guard isEnabled else { return nil }
+
+        let calendar = Calendar.current
+        let now = Date()
+
+        if repeatDays.isEmpty {
+            return nextOccurrence(from: now, calendar: calendar)
+        }
+
+        for daysAhead in 0..<8 {
+            guard let candidateDate = candidateDate(daysAhead: daysAhead, from: now, calendar: calendar) else { continue }
+
+            let weekday = calendar.component(.weekday, from: candidateDate) - 1
+
+            if repeatDays.contains(weekday) && candidateDate > now {
+                return candidateDate
+            }
+        }
+
+        return nil
+    }
+
+    private func nextOccurrence(from date: Date, calendar: Calendar) -> Date? {
+        var components = calendar.dateComponents([.year, .month, .day], from: date)
+        components.hour = hour
+        components.minute = minute
+        components.second = 0
+
+        guard var result = calendar.date(from: components) else { return nil }
+
+        if result <= date {
+            result = calendar.date(byAdding: .day, value: 1, to: result) ?? result
+        }
+
+        return result
+    }
+
+    private func candidateDate(daysAhead: Int, from date: Date, calendar: Calendar) -> Date? {
+        guard let futureDate = calendar.date(byAdding: .day, value: daysAhead, to: date) else { return nil }
+
+        var components = calendar.dateComponents([.year, .month, .day], from: futureDate)
+        components.hour = hour
+        components.minute = minute
+        components.second = 0
+
+        return calendar.date(from: components)
+    }
 }

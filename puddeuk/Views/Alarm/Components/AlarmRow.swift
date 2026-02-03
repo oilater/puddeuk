@@ -10,12 +10,12 @@ struct AlarmRow: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 4) {
                         Text(alarm.repeatDays.isEmpty ? "반복 없음" : alarm.repeatDaysString)
-                            .font(.omyu(size: 15))
+                            .font(.omyu(size: 18))
                             .foregroundColor(alarm.repeatDays.isEmpty ? .gray : .teal)
 
                         if alarm.audioFileName != nil {
                             Image(systemName: "waveform")
-                                .font(.omyu(size: 15))
+                                .font(.omyu(size: 18))
                                 .foregroundColor(.teal)
                         }
                     }
