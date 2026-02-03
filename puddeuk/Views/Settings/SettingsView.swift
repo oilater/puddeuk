@@ -89,6 +89,8 @@ struct SettingsView: View {
                     }
                 }
                 .scrollContentBackground(.hidden)
+                .padding(.top, 16)
+                .padding(.bottom, 20)
             }
             .navigationTitle("설정")
             .navigationBarTitleDisplayMode(.large)

@@ -6,7 +6,7 @@ struct DeveloperMessageView: View {
             Color(red: 0.11, green: 0.11, blue: 0.13).ignoresSafeArea()
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 32) {
                     HStack {
                         Spacer()
                         Image(systemName: "heart.circle.fill")
@@ -14,9 +14,9 @@ struct DeveloperMessageView: View {
                             .foregroundStyle(.teal)
                         Spacer()
                     }
-                    .padding(.top, 20)
+                    .padding(.top, 32)
 
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 20) {
                         Text("퍼뜩과 함께해주셔서 감사합니다!")
                             .font(.omyu(size: 22))
                             .foregroundStyle(.white)

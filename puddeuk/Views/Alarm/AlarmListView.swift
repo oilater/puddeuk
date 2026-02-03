@@ -20,6 +20,7 @@ struct AlarmListView: View {
                     } label: {
                         Label("삭제", systemImage: "trash")
                     }
+                    .tint(.red)
                 }
                 .contextMenu {
                     Button(role: .destructive) {

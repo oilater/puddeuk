@@ -22,6 +22,8 @@ struct ContentView: View {
                     } onAlarmDelete: { alarm in
                         deleteAlarm(alarm)
                     }
+                    .padding(.top, 16)
+                    .padding(.bottom, 20)
                 }
             }
             .navigationTitle("기상 도움 많이 된다")

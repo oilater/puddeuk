@@ -59,7 +59,7 @@ struct FeedbackView: View {
                                 .font(.omyuSubheadline)
                                 .foregroundStyle(.gray)
 
-                            TextField("답변받을 이메일 주소", text: $fromEmail)
+                            TextField("답변 받을 이메일 주소", text: $fromEmail)
                                 .font(.omyuBody)
                                 .textFieldStyle(CustomTextFieldStyle())
                                 .keyboardType(.emailAddress)
@@ -73,13 +73,24 @@ struct FeedbackView: View {
                                 .font(.omyuSubheadline)
                                 .foregroundStyle(.gray)
 
-                            TextEditor(text: $feedback)
-                                .frame(height: 200)
-                                .scrollContentBackground(.hidden)
-                                .padding(12)
-                                .background(Color(red: 0.18, green: 0.18, blue: 0.2))
-                                .cornerRadius(12)
-                                .foregroundStyle(.white)
+                            ZStack(alignment: .topLeading) {
+                                TextEditor(text: $feedback)
+                                    .frame(height: 200)
+                                    .scrollContentBackground(.hidden)
+                                    .padding(12)
+                                    .background(Color(red: 0.18, green: 0.18, blue: 0.2))
+                                    .cornerRadius(12)
+                                    .foregroundStyle(.white)
+
+                                if feedback.isEmpty {
+                                    Text("솔직한 후기를 남겨주세요")
+                                        .font(.omyuBody)
+                                        .foregroundStyle(.gray.opacity(0.6))
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 20)
+                                        .allowsHitTesting(false)
+                                }
+                            }
                         }
                     }
                     .padding(.horizontal, 20)
