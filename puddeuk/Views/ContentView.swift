@@ -19,7 +19,7 @@ struct ContentView: View {
                     EmptyAlarmView()
                 } else {
                     AlarmListView(
-                        alarms: alarms,
+                        alarms: sortedAlarms,
                         timeUntilNextAlarm: timeUntilNextAlarm
                     ) { alarm in
                         selectedAlarm = alarm
@@ -75,6 +75,24 @@ struct ContentView: View {
             }
             .fullScreenCover(isPresented: $alarmManager.showMissionCompleteView) {
                 MissionCompleteView()
+            }
+        }
+    }
+
+    private var sortedAlarms: [Alarm] {
+        alarms.sorted { alarm1, alarm2 in
+            let date1 = alarm1.nextFireDate
+            let date2 = alarm2.nextFireDate
+
+            switch (date1, date2) {
+            case (nil, nil):
+                return alarm1.hour < alarm2.hour
+            case (nil, _):
+                return false
+            case (_, nil):
+                return true
+            case (let d1?, let d2?):
+                return d1 < d2
             }
         }
     }

@@ -8,20 +8,19 @@ struct AlarmListView: View {
 
     var body: some View {
         List {
-            if let timeMessage = timeUntilNextAlarm {
-                Section {
-                    HStack(spacing: 10) {
-                        Image(systemName: "clock.fill")
-                            .font(.system(size: 20))
-                            .foregroundStyle(.teal)
-                        Text(timeMessage)
-                            .font(.omyu(size: 20))
-                            .foregroundStyle(.white)
-                    }
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets(top: 14, leading: 20, bottom: 14, trailing: 20))
+            Section {
+                HStack(spacing: 10) {
+                    Image(systemName: "clock.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(.teal)
+                    Text(timeUntilNextAlarm ?? " ")
+                        .font(.omyu(size: 20))
+                        .foregroundStyle(.white)
                 }
+                .opacity(timeUntilNextAlarm == nil ? 0 : 1)
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets(top: 14, leading: 20, bottom: 14, trailing: 20))
             }
 
             ForEach(alarms) { alarm in
