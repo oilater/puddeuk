@@ -87,6 +87,7 @@ struct ContentView: View {
 
     private func deleteAlarm(_ alarm: Alarm) {
         let audioFileToDelete = alarm.audioFileName
+        AnalyticsManager.shared.logAlarmDeleted()
 
         Task {
             await AlarmNotificationManager.shared.cancelAlarm(alarm)

@@ -118,6 +118,7 @@ struct AlarmView: View {
         }
 
         AlarmNotificationService.shared.stopAlarm()
+        AnalyticsManager.shared.logAlarmDismissed()
 
         Task { @MainActor in
             LiveActivityManager.shared.endCurrentActivity()
@@ -137,6 +138,7 @@ struct AlarmView: View {
         }
 
         AlarmNotificationService.shared.stopAlarm()
+        AnalyticsManager.shared.logAlarmSnoozed(minutes: minutes)
 
         Task { @MainActor in
             LiveActivityManager.shared.endCurrentActivity()

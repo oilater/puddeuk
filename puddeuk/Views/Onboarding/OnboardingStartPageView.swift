@@ -28,6 +28,7 @@ struct OnboardingStartPageView: View {
             Spacer()
 
             Button {
+                AnalyticsManager.shared.logOnboardingCompleted()
                 hasCompletedOnboarding = true
             } label: {
                 Text("시작하기")

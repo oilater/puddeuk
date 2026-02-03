@@ -38,6 +38,7 @@ struct AlarmRow: View {
                     get: { alarm.isEnabled },
                     set: { newValue in
                         alarm.isEnabled = newValue
+                        AnalyticsManager.shared.logAlarmToggled(isEnabled: newValue)
                         Task {
                             if newValue {
                                 try? await AlarmNotificationManager.shared.scheduleAlarm(alarm)

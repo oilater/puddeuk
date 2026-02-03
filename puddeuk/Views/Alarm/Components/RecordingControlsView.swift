@@ -29,6 +29,8 @@ struct RecordingControlsView: View {
         .onChange(of: audioRecorder.recordingState) { oldValue, newValue in
             if newValue == .limitReached && audioRecorder.audioURL != nil {
                 audioFileName = audioRecorder.audioURL?.lastPathComponent
+                AnalyticsManager.shared.logRecordingLimitReached()
+                AnalyticsManager.shared.logRecordingCompleted(duration: audioRecorder.recordingTime)
             }
         }
     }
@@ -72,9 +74,11 @@ struct RecordingControlsView: View {
             }
 
             Button {
+                let duration = audioRecorder.recordingTime
                 audioRecorder.stopRecording()
                 if let url = audioRecorder.audioURL {
                     audioFileName = url.lastPathComponent
+                    AnalyticsManager.shared.logRecordingCompleted(duration: duration)
                 }
             } label: {
                 HStack {
@@ -108,6 +112,7 @@ struct RecordingControlsView: View {
                         audioRecorder.deleteAudioFile(fileName: fileName)
                     }
                     audioFileName = nil
+                    AnalyticsManager.shared.logRecordingCanceled()
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundColor(.gray)
@@ -120,6 +125,7 @@ struct RecordingControlsView: View {
                         audioPlayer.stop()
                     } else if let fileName = audioFileName {
                         _ = audioPlayer.playPreview(fileName: fileName)
+                        AnalyticsManager.shared.logRecordingPlayed()
                     }
                 } label: {
                     HStack {
@@ -142,6 +148,7 @@ struct RecordingControlsView: View {
                     }
                     audioFileName = nil
                     _ = audioRecorder.startRecording()
+                    AnalyticsManager.shared.logRecordingStarted()
                 } label: {
                     HStack {
                         Image(systemName: "mic.fill")
@@ -175,6 +182,7 @@ struct RecordingControlsView: View {
 
             Button {
                 _ = audioRecorder.startRecording()
+                AnalyticsManager.shared.logRecordingStarted()
             } label: {
                 HStack {
                     Image(systemName: "mic.circle.fill")

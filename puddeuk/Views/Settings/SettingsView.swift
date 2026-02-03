@@ -9,7 +9,28 @@ struct SettingsView: View {
                 List {
                     Section {
                         NavigationLink {
+                            DeveloperMessageView()
+                                .onAppear {
+                                    AnalyticsManager.shared.logDeveloperMessageViewed()
+                                }
+                        } label: {
+                            HStack {
+                                Image(systemName: "heart.fill")
+                                    .foregroundStyle(.teal)
+                                Text("퍼뜩을 소개합니다")
+                                    .font(.omyuBody)
+                            }
+                            .foregroundStyle(.white)
+                        }
+                        .listRowBackground(Color(red: 0.18, green: 0.18, blue: 0.2))
+                    }
+
+                    Section {
+                        NavigationLink {
                             NotificationSettingsView()
+                                .onAppear {
+                                    AnalyticsManager.shared.logNotificationSettingsOpened()
+                                }
                         } label: {
                             HStack {
                                 Image(systemName: "bell.fill")
@@ -23,6 +44,9 @@ struct SettingsView: View {
 
                         NavigationLink {
                             SleepModeGuideView()
+                                .onAppear {
+                                    AnalyticsManager.shared.logSleepModeGuideOpened()
+                                }
                         } label: {
                             HStack {
                                 Image(systemName: "moon.zzz.fill")
@@ -36,6 +60,9 @@ struct SettingsView: View {
 
                         NavigationLink {
                             FeedbackView()
+                                .onAppear {
+                                    AnalyticsManager.shared.logFeedbackOpened()
+                                }
                         } label: {
                             HStack {
                                 Image(systemName: "message.fill")

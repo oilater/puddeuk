@@ -13,6 +13,7 @@
 		DF5A03C22F2FC79600B45649 /* AlarmNotificationContent.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DF5A03B42F2FC79600B45649 /* AlarmNotificationContent.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		DF5A03C92F2FC88800B45649 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF5A03B52F2FC79600B45649 /* UserNotifications.framework */; };
 		DF5A03CC2F2FC88900B45649 /* UserNotificationsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF5A03B72F2FC79600B45649 /* UserNotificationsUI.framework */; };
+		DF5A056B2F3200F000B45649 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = DF5A056A2F3200F000B45649 /* FirebaseAnalytics */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,6 +76,7 @@
 		DF5A039E2F2FBA7E00B45649 /* Exceptions for "puddeuk" folder in "AlarmWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"GoogleService-Info.plist",
 				Shared/AlarmActivityAttributes.swift,
 			);
 			target = DF5A03892F2FBA2D00B45649 /* AlarmWidgetExtension */;
@@ -86,6 +88,13 @@
 			);
 			target = DF5A03B32F2FC79600B45649 /* AlarmNotificationContent */;
 		};
+		DF5A05682F32004200B45649 /* Exceptions for "puddeuk" folder in "AlarmNotificationContent" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"GoogleService-Info.plist",
+			);
+			target = DF5A03B32F2FC79600B45649 /* AlarmNotificationContent */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -94,6 +103,7 @@
 			exceptions = (
 				DF5A03112F2F77D800B45649 /* Exceptions for "puddeuk" folder in "puddeuk" target */,
 				DF5A039E2F2FBA7E00B45649 /* Exceptions for "puddeuk" folder in "AlarmWidgetExtension" target */,
+				DF5A05682F32004200B45649 /* Exceptions for "puddeuk" folder in "AlarmNotificationContent" target */,
 			);
 			path = puddeuk;
 			sourceTree = "<group>";
@@ -121,6 +131,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DF5A056B2F3200F000B45649 /* FirebaseAnalytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -200,6 +211,7 @@
 			);
 			name = puddeuk;
 			packageProductDependencies = (
+				DF5A056A2F3200F000B45649 /* FirebaseAnalytics */,
 			);
 			productName = puddeuk;
 			productReference = DF5A02922F2F1FD700B45649 /* puddeuk.app */;
@@ -279,6 +291,9 @@
 			);
 			mainGroup = DF5A02892F2F1FD700B45649;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				DF5A05692F3200F000B45649 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DF5A02932F2F1FD700B45649 /* Products */;
 			projectDirPath = "";
@@ -735,6 +750,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		DF5A05692F3200F000B45649 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.8.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		DF5A056A2F3200F000B45649 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DF5A05692F3200F000B45649 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = DF5A028A2F2F1FD700B45649 /* Project object */;
 }

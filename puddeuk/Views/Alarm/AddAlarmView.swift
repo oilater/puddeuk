@@ -224,16 +224,19 @@ struct AddAlarmView: View {
                     } catch {
                         errorMessage = "알람 업데이트에 실패했습니다."
                         showingErrorAlert = true
+                        AnalyticsManager.shared.logAlarmSaveFailed(message: error.localizedDescription)
                     }
                 }
 
                 if updateSuccess {
+                    AnalyticsManager.shared.logAlarmUpdated(hasCustomAudio: currentAudioFileName != nil)
                     do {
                         try await AlarmNotificationManager.shared.scheduleAlarm(existingAlarm)
                     } catch {
                         await MainActor.run {
                             errorMessage = "알람 예약에 실패했습니다. 다시 시도해주세요."
                             showingErrorAlert = true
+                            AnalyticsManager.shared.logAlarmScheduleFailed(message: error.localizedDescription)
                         }
                     }
                 }
@@ -252,6 +255,11 @@ struct AddAlarmView: View {
 
             do {
                 try modelContext.save()
+                AnalyticsManager.shared.logAlarmCreated(
+                    hasCustomAudio: currentAudioFileName != nil,
+                    hasRepeat: !currentRepeatDays.isEmpty,
+                    hasSnooze: currentSnoozeInterval != nil
+                )
 
                 Task {
                     do {
@@ -260,12 +268,14 @@ struct AddAlarmView: View {
                         await MainActor.run {
                             errorMessage = "알람 예약에 실패했습니다. 다시 시도해주세요."
                             showingErrorAlert = true
+                            AnalyticsManager.shared.logAlarmScheduleFailed(message: error.localizedDescription)
                         }
                     }
                 }
             } catch {
                 errorMessage = "알람 저장에 실패했습니다."
                 showingErrorAlert = true
+                AnalyticsManager.shared.logAlarmSaveFailed(message: error.localizedDescription)
             }
         }
 

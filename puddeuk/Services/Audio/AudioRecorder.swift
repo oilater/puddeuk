@@ -112,6 +112,7 @@ class AudioRecorder: NSObject, ObservableObject {
             return audioFilename
         } catch {
             Logger.audio.error("녹음 시작 실패: \(error.localizedDescription)")
+            AnalyticsManager.shared.logRecordingStartFailed(message: error.localizedDescription)
             return nil
         }
     }
@@ -221,6 +222,7 @@ class AudioRecorder: NSObject, ObservableObject {
                 }
             } catch {
                 Logger.audio.error("오디오 확장 실패: \(error.localizedDescription)")
+                AnalyticsManager.shared.logRecordingSaveFailed(message: error.localizedDescription)
                 DispatchQueue.main.async {
                     completion(nil)
                 }

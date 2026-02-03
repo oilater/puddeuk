@@ -2,9 +2,22 @@ import SwiftUI
 import SwiftData
 import UserNotifications
 import OSLog
+import FirebaseCore
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
+    ) -> Bool {
+        FirebaseApp.configure()
+        return true
+    }
+}
 
 @main
 struct puddeukApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @Environment(\.scenePhase) private var scenePhase
 

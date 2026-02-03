@@ -26,6 +26,7 @@ class AudioPlayer: NSObject, ObservableObject {
             isPlaying = true
         } catch {
             Logger.audio.error("알람 소리 재생 실패: \(error.localizedDescription)")
+            AnalyticsManager.shared.logPlaybackFailed(message: error.localizedDescription)
             playDefaultSound()
         }
     }
@@ -49,6 +50,7 @@ class AudioPlayer: NSObject, ObservableObject {
             return true
         } catch {
             Logger.audio.error("미리듣기 재생 실패: \(error.localizedDescription)")
+            AnalyticsManager.shared.logPlaybackFailed(message: error.localizedDescription)
             return false
         }
     }
