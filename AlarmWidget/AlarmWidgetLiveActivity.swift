@@ -11,9 +11,10 @@ struct AlarmWidgetLiveActivity: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    Image(systemName: "alarm.fill")
-                        .foregroundColor(.pink)
-                        .font(.title2)
+                    Image("AppIcon")
+                        .resizable()
+                        .frame(width: 32, height: 32)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
                 DynamicIslandExpandedRegion(.trailing) {
                     Text(formatElapsedTime(context.state.elapsedSeconds))
@@ -49,14 +50,18 @@ struct AlarmWidgetLiveActivity: Widget {
                     }
                 }
             } compactLeading: {
-                Image(systemName: "alarm.fill")
-                    .foregroundColor(.pink)
+                Image("AppIcon")
+                    .resizable()
+                    .frame(width: 20, height: 20)
+                    .clipShape(RoundedRectangle(cornerRadius: 5))
             } compactTrailing: {
                 Text(formatElapsedTime(context.state.elapsedSeconds))
                     .font(.caption.monospacedDigit())
             } minimal: {
-                Image(systemName: "alarm.fill")
-                    .foregroundColor(.pink)
+                Image("AppIcon")
+                    .resizable()
+                    .frame(width: 18, height: 18)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
             }
         }
     }
@@ -74,9 +79,11 @@ struct LockScreenAlarmView: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Image(systemName: "alarm.fill")
-                        .foregroundColor(.pink)
+                HStack(spacing: 8) {
+                    Image("AppIcon")
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
                     Text(context.attributes.title)
                         .font(.headline)
                         .foregroundColor(.white)
