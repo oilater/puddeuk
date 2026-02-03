@@ -114,25 +114,30 @@ struct ContentView: View {
 
         let calendar = Calendar.current
 
-        var nowComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: currentTime)
-        nowComponents.second = 0
+        let nowHour = calendar.component(.hour, from: currentTime)
+        let nowMinute = calendar.component(.minute, from: currentTime)
 
-        var fireComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fireDate)
-        fireComponents.second = 0
+        let fireHour = calendar.component(.hour, from: fireDate)
+        let fireMinute = calendar.component(.minute, from: fireDate)
+        let fireDay = calendar.component(.day, from: fireDate)
+        let currentDay = calendar.component(.day, from: currentTime)
 
-        guard let now = calendar.date(from: nowComponents),
-              let fire = calendar.date(from: fireComponents) else { return nil }
+        let dayDiff = fireDay - currentDay
+        let totalNowMinutes = nowHour * 60 + nowMinute
+        let totalFireMinutes = fireHour * 60 + fireMinute
 
-        let components = calendar.dateComponents([.day, .hour, .minute], from: now, to: fire)
+        var diffMinutes = totalFireMinutes - totalNowMinutes + (dayDiff * 24 * 60)
 
-        guard let days = components.day,
-              let hours = components.hour,
-              let minutes = components.minute else { return nil }
+        if diffMinutes < 0 {
+            diffMinutes += 24 * 60
+        }
 
-        let totalDays = days
+        let days = diffMinutes / (24 * 60)
+        let hours = (diffMinutes % (24 * 60)) / 60
+        let minutes = diffMinutes % 60
 
-        if totalDays > 0 {
-            return "\(totalDays)일 후에 알람이 울려요"
+        if days > 0 {
+            return "\(days)일 후에 알람이 울려요"
         } else if hours > 0 {
             if minutes > 0 {
                 return "\(hours)시간 \(minutes)분 후에 알람이 울려요"
