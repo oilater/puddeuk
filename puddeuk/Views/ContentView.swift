@@ -24,7 +24,7 @@ struct ContentView: View {
                     }
                 }
             }
-            .navigationTitle("알람")
+            .navigationTitle("기상 도움 많이 된다")
             .navigationBarTitleDisplayMode(.large)
             .preferredColorScheme(.dark)
             .toolbar {

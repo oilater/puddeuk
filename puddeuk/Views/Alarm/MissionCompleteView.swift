@@ -17,12 +17,12 @@ struct MissionCompleteView: View {
                     .opacity(isAnimating ? 1.0 : 0.0)
 
                 VStack(spacing: 12) {
-                    Text("좋은 아침이에요!")
+                    Text("좋은 하루 되세요!")
                         .font(.omyu(size: 36))
                         .foregroundColor(.white)
                         .opacity(isAnimating ? 1.0 : 0.0)
 
-                    Text("알람을 끄셨어요")
+                    Text("자기 전에 생각 많이 날 거야")
                         .font(.omyu(size: 20))
                         .foregroundColor(.white.opacity(0.7))
                         .opacity(isAnimating ? 1.0 : 0.0)

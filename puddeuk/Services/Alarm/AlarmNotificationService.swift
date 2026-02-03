@@ -100,7 +100,6 @@ final class AlarmNotificationService: NSObject, ObservableObject {
         Logger.audio.info("알람 중지")
     }
 
-    /// 현재 재생 중인 오디오 파일명 반환
     func getCurrentAudioFileName() -> String? {
         return currentAudioFileName
     }
@@ -125,8 +124,6 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
 
         Logger.notification.info("알람 도착 (포그라운드): \(title), chain: \(chainIndex)")
 
-        // CRITICAL: 체인 알림이 포그라운드에 도착하면 즉시 모든 체인 취소
-        // 이 작업은 멱등성(idempotent)이므로 여러 번 호출해도 안전함
         AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
 
         if !isAlarmPlaying {
@@ -190,23 +187,18 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
             return
 
         case UNNotificationDismissActionIdentifier:
-            // 사용자가 알림을 스와이프하여 닫음
             Logger.notification.info("알림 스와이프 닫기: \(title)")
             await MainActor.run {
                 AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
-                // 재생하지 않음 - 사용자가 알림을 닫았음
             }
             return
 
         default:
-            // 사용자가 알림을 탭하여 앱 열기 (UNNotificationDefaultActionIdentifier)
             Logger.notification.info("알림 탭 → 앱으로 이동: \(title)")
 
             await MainActor.run {
-                // 모든 사용자 인터랙션 시 체인 취소
                 AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
 
-                // 앱을 열었으므로 알람 재생 시작
                 if let fileName = audioFileName, !fileName.isEmpty {
                     startAlarmWithFileName(fileName, alarmId: alarmId)
                 } else {

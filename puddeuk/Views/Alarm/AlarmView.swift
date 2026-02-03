@@ -16,6 +16,10 @@ struct AlarmView: View {
         return notificationTitle ?? "알람"
     }
 
+    private var isSnoozeAlarm: Bool {
+        notificationTitle == "스누즈 알람"
+    }
+
     private var displayTime: String {
         if let alarm = alarm {
             return alarm.timeString
@@ -54,18 +58,18 @@ struct AlarmView: View {
                 Spacer()
 
                 VStack(spacing: 16) {
-                    if let alarm = alarm, let snoozeInterval = alarm.snoozeInterval {
-                        Button {
-                            snoozeAlarm(minutes: snoozeInterval)
-                        } label: {
-                            Text("\(snoozeInterval)분 후 다시 알림")
-                                .font(.omyu(size: 18))
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 14)
-                                .background(Color.gray.opacity(0.5))
-                                .cornerRadius(16)
-                        }
+                    Button {
+                        let minutes = alarm?.snoozeInterval ?? 5
+                        snoozeAlarm(minutes: minutes)
+                    } label: {
+                        let minutes = alarm?.snoozeInterval ?? 5
+                        Text("\(minutes)분 후 다시 알림")
+                            .font(.omyu(size: 18))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(Color.gray.opacity(0.5))
+                            .cornerRadius(16)
                     }
 
                     Button {
@@ -123,7 +127,12 @@ struct AlarmView: View {
         Task { @MainActor in
             LiveActivityManager.shared.endCurrentActivity()
         }
-        AlarmManager.shared.showMissionComplete()
+
+        if !isSnoozeAlarm {
+            AlarmManager.shared.showMissionComplete()
+        } else {
+            AlarmManager.shared.dismissAlarm()
+        }
     }
 
     private func snoozeAlarm(minutes: Int) {
@@ -146,10 +155,14 @@ struct AlarmView: View {
         AlarmManager.shared.dismissAlarm()
 
         Task {
-            try? await AlarmNotificationManager.shared.scheduleSnooze(
-                minutes: minutes,
-                audioFileName: audioFileName
-            )
+            do {
+                try await AlarmNotificationManager.shared.scheduleSnooze(
+                    minutes: minutes,
+                    audioFileName: audioFileName
+                )
+            } catch {
+                AnalyticsManager.shared.logAlarmScheduleFailed(message: "Snooze: \(error.localizedDescription)")
+            }
         }
     }
 }

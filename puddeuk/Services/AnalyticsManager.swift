@@ -6,8 +6,6 @@ final class AnalyticsManager {
 
     private init() {}
 
-    // MARK: - Alarm Events
-
     func logAlarmCreated(hasCustomAudio: Bool, hasRepeat: Bool, hasSnooze: Bool) {
         Analytics.logEvent("alarm_created", parameters: [
             "has_custom_audio": hasCustomAudio,
@@ -42,8 +40,6 @@ final class AnalyticsManager {
         ])
     }
 
-    // MARK: - Recording Events
-
     func logRecordingStarted() {
         Analytics.logEvent("recording_started", parameters: nil)
     }
@@ -68,8 +64,6 @@ final class AnalyticsManager {
         Analytics.logEvent("recording_played", parameters: nil)
     }
 
-    // MARK: - Onboarding Events
-
     func logOnboardingCompleted() {
         Analytics.logEvent("onboarding_completed", parameters: nil)
     }
@@ -79,8 +73,6 @@ final class AnalyticsManager {
             "step": step
         ])
     }
-
-    // MARK: - Settings Events
 
     func logDeveloperMessageViewed() {
         Analytics.logEvent("developer_message_viewed", parameters: nil)
@@ -98,8 +90,6 @@ final class AnalyticsManager {
         Analytics.logEvent("sleep_mode_guide_opened", parameters: nil)
     }
 
-    // MARK: - App Lifecycle Events
-
     func logAppOpened() {
         Analytics.logEvent("app_opened", parameters: nil)
     }
@@ -109,8 +99,6 @@ final class AnalyticsManager {
             AnalyticsParameterScreenName: screenName
         ])
     }
-
-    // MARK: - Error Events
 
     func logError(type: ErrorType, message: String) {
         Analytics.logEvent("error_occurred", parameters: [
@@ -153,8 +141,6 @@ final class AnalyticsManager {
         Analytics.logEvent("error_notification_permission_denied", parameters: nil)
     }
 }
-
-// MARK: - Error Types
 
 enum ErrorType: String {
     case alarmSave = "alarm_save"
