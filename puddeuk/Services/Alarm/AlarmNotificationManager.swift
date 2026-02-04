@@ -27,7 +27,7 @@ enum AlarmNotificationError: LocalizedError {
 /// - 권한 관리
 /// - 알림 카테고리 등록
 /// - 스케줄링/취소 조율
-final class AlarmNotificationManager {
+final class AlarmNotificationManager: @unchecked Sendable {
     static let shared = AlarmNotificationManager()
 
     private let center = UNUserNotificationCenter.current()
@@ -56,6 +56,7 @@ final class AlarmNotificationManager {
         Logger.notification.debug("알림 권한 상태: \(settings.authorizationStatus.rawValue), 알림 허용: \(settings.authorizationStatus == .authorized), 사운드: \(settings.soundSetting.rawValue)")
     }
 
+    @MainActor
     func registerNotificationCategories() {
         let snoozeAction = UNNotificationAction(
             identifier: "SNOOZE_ACTION",

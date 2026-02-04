@@ -215,13 +215,17 @@ class AudioRecorder: NSObject, ObservableObject {
                 let outputFile = try AVAudioFile(forWriting: extendedURL, settings: outputSettings)
                 try outputFile.write(from: extendedBuffer)
 
-                Logger.audio.info("30초 확장 파일 생성 완료: \(extendedURL.lastPathComponent)")
+                Task { @MainActor in
+                    Logger.audio.info("30초 확장 파일 생성 완료: \(extendedURL.lastPathComponent)")
+                }
 
                 DispatchQueue.main.async {
                     completion(extendedURL)
                 }
             } catch {
-                Logger.audio.error("오디오 확장 실패: \(error.localizedDescription)")
+                Task { @MainActor in
+                    Logger.audio.error("오디오 확장 실패: \(error.localizedDescription)")
+                }
                 AnalyticsManager.shared.logRecordingSaveFailed(message: error.localizedDescription)
                 DispatchQueue.main.async {
                     completion(nil)

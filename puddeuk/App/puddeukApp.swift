@@ -9,7 +9,12 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
     ) -> Bool {
-        FirebaseApp.configure()
+        Task.detached(priority: .background) {
+            FirebaseApp.configure()
+            await MainActor.run {
+                Logger.alarm.info("Firebase 초기화 완료")
+            }
+        }
         return true
     }
 }
@@ -20,29 +25,42 @@ struct puddeukApp: App {
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @Environment(\.scenePhase) private var scenePhase
+    @State private var showSplash = true
 
     init() {
-        Logger.alarm.info("앱 시작")
-        _ = AlarmNotificationService.shared
-        AlarmNotificationManager.shared.registerNotificationCategories()
-
-        AlarmSoundService.shared.logAllSoundFiles()
+        Task { @MainActor in
+            Logger.alarm.info("앱 시작")
+        }
 
         setupDefaultFont()
+
+        Task.detached(priority: .userInitiated) {
+            await MainActor.run {
+                _ = AlarmNotificationService.shared
+                AlarmNotificationManager.shared.registerNotificationCategories()
+            }
+
+            #if DEBUG
+            await MainActor.run {
+                AlarmSoundService.shared.logAllSoundFiles()
+            }
+            #endif
+
+            await MainActor.run {
+                Logger.alarm.info("백그라운드 초기화 완료")
+            }
+        }
     }
 
     private func setupDefaultFont() {
         if let customFont = UIFont(name: "omyu_pretty", size: 17) {
-            // Navigation Bar
             UINavigationBar.appearance().titleTextAttributes = [.font: customFont.withSize(20)]
             UINavigationBar.appearance().largeTitleTextAttributes = [.font: customFont.withSize(34)]
 
-            // TabBar
             let tabBarFont = customFont.withSize(11)
             UITabBarItem.appearance().setTitleTextAttributes([.font: tabBarFont], for: .normal)
             UITabBarItem.appearance().setTitleTextAttributes([.font: tabBarFont], for: .selected)
 
-            // TextField Placeholder
             UITextField.appearance().font = customFont
         }
     }
@@ -68,13 +86,32 @@ struct puddeukApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if hasCompletedOnboarding {
-                MainTabView()
-                    .onOpenURL { url in
-                        handleDeepLink(url)
+            ZStack {
+                Group {
+                    if hasCompletedOnboarding {
+                        MainTabView()
+                            .onOpenURL { url in
+                                handleDeepLink(url)
+                            }
+                    } else {
+                        OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
                     }
-            } else {
-                OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+                }
+                .opacity(showSplash ? 0 : 1)
+                .animation(.easeIn(duration: 0.5), value: showSplash)
+
+                if showSplash {
+                    SplashView()
+                        .transition(.opacity)
+                        .zIndex(1)
+                }
+            }
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    withAnimation(.easeOut(duration: 0.5)) {
+                        showSplash = false
+                    }
+                }
             }
         }
         .modelContainer(sharedModelContainer)

@@ -2,7 +2,7 @@ import Foundation
 import UserNotifications
 import OSLog
 
-final class AlarmSoundService {
+final class AlarmSoundService: @unchecked Sendable {
     static let shared = AlarmSoundService()
 
     private let fileManager = FileManager.default

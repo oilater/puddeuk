@@ -19,7 +19,6 @@ final class AlarmNotificationService: NSObject, ObservableObject {
 
     private override init() {
         super.init()
-        setupAudioSession()
         setupNotificationDelegate()
     }
 
@@ -28,7 +27,7 @@ final class AlarmNotificationService: NSObject, ObservableObject {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.playback, mode: .default, options: [])
             try session.setActive(true)
-            Logger.audio.info("오디오 세션 설정 완료")
+            Logger.audio.info("오디오 세션 활성화")
         } catch {
             Logger.audio.error("오디오 세션 설정 실패: \(error.localizedDescription)")
         }

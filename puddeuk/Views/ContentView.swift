@@ -9,6 +9,8 @@ struct ContentView: View {
     @State private var selectedAlarm: Alarm?
     @ObservedObject private var alarmManager = AlarmManager.shared
     @State private var currentTime = Date()
+    @State private var displayAlarms: [Alarm] = []
+    @State private var updateTimer: Timer?
 
     var body: some View {
         NavigationStack {
@@ -19,7 +21,7 @@ struct ContentView: View {
                     EmptyAlarmView()
                 } else {
                     AlarmListView(
-                        alarms: sortedAlarms,
+                        alarms: displayAlarms,
                         timeUntilNextAlarm: timeUntilNextAlarm
                     ) { alarm in
                         selectedAlarm = alarm
@@ -49,6 +51,13 @@ struct ContentView: View {
             .onAppear {
                 setupAlarms()
                 startTimer()
+                updateDisplayAlarms()
+            }
+            .onDisappear {
+                stopTimer()
+            }
+            .onChange(of: alarms.count) { _, _ in
+                updateDisplayAlarms()
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
                 Task {
@@ -79,8 +88,8 @@ struct ContentView: View {
         }
     }
 
-    private var sortedAlarms: [Alarm] {
-        alarms.sorted { alarm1, alarm2 in
+    private func updateDisplayAlarms() {
+        displayAlarms = alarms.sorted { alarm1, alarm2 in
             let date1 = alarm1.nextFireDate
             let date2 = alarm2.nextFireDate
 
@@ -115,8 +124,8 @@ struct ContentView: View {
         let calendar = Calendar.current
         let now = Date()
 
-        var nowComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: now)
-        var fireComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fireDate)
+        let nowComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: now)
+        let fireComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fireDate)
 
         guard let nowDate = calendar.date(from: nowComponents),
               let fireDate = calendar.date(from: fireComponents) else { return nil }
@@ -147,9 +156,15 @@ struct ContentView: View {
     }
 
     private func startTimer() {
-        Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
-            currentTime = Date()
+        updateTimer?.invalidate()
+        updateTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+            self?.currentTime = Date()
         }
+    }
+
+    private func stopTimer() {
+        updateTimer?.invalidate()
+        updateTimer = nil
     }
 
     private func rescheduleActiveAlarms() {

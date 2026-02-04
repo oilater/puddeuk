@@ -2,10 +2,6 @@ import Foundation
 import UserNotifications
 import OSLog
 
-/// 알람 스케줄링 전용 클래스
-/// - 단일/반복 알람 예약
-/// - 스누즈 예약
-/// - 알림 컨텐츠 생성
 final class AlarmScheduler {
     static let shared = AlarmScheduler()
 
@@ -15,7 +11,6 @@ final class AlarmScheduler {
 
     private init() {}
 
-    /// 알람 스케줄링 (단일/반복 자동 판단)
     func scheduleAlarm(_ alarm: Alarm) async throws {
         if alarm.repeatDays.isEmpty {
             try await scheduleSingleAlarm(alarm)
@@ -24,7 +19,6 @@ final class AlarmScheduler {
         }
     }
 
-    /// 단일 알람 스케줄링
     func scheduleSingleAlarm(_ alarm: Alarm) async throws {
         Logger.alarm.info("단일 알람 스케줄링 시작: \(alarm.title)")
 
@@ -59,7 +53,6 @@ final class AlarmScheduler {
         Logger.alarm.info("알람 스케줄링 성공: \(alarm.title) - \(alarm.timeString)")
     }
 
-    /// 반복 알람 스케줄링
     func scheduleRepeatingAlarm(_ alarm: Alarm) async throws {
         Logger.alarm.info("반복 알람 스케줄링 시작: \(alarm.title)")
 
@@ -90,7 +83,6 @@ final class AlarmScheduler {
         Logger.alarm.info("반복 알람 스케줄링 성공: \(alarm.title) - \(alarm.timeString)")
     }
 
-    /// 스누즈 알람 스케줄링
     func scheduleSnooze(minutes: Int = 5, audioFileName: String? = nil) async throws {
         let snoozeId = UUID().uuidString
         let baseInterval = TimeInterval(minutes * 60)
@@ -129,11 +121,10 @@ final class AlarmScheduler {
         Logger.alarm.info("스누즈 알람 예약됨: \(minutes)분 후 (체인 \(self.chainCoordinator.chainCount)개)")
     }
 
-    /// 알림 컨텐츠 생성
     func notificationContent(for alarm: Alarm, chainIndex: Int = 0) -> UNMutableNotificationContent {
         let content = UNMutableNotificationContent()
         content.title = alarm.title.isEmpty ? "알람" : alarm.title
-        content.body = "퍼뜩 일어나세요!"
+        content.body = "알람 시간이에요. 퍼뜩 일어나세요!"
         content.sound = soundService.notificationSound(for: alarm.audioFileName)
         content.categoryIdentifier = "ALARM"  // Notification Actions 사용
         content.interruptionLevel = .timeSensitive
@@ -146,7 +137,6 @@ final class AlarmScheduler {
         return content
     }
 
-    /// 다음 알람 시간 계산
     func nextAlarmDate(for alarm: Alarm) -> Date? {
         let calendar = Calendar.current
         let now = Date()
@@ -166,8 +156,6 @@ final class AlarmScheduler {
 
         return triggerDate
     }
-
-    // MARK: - Private Helpers
 
     private func logAlarmSchedule(alarm: Alarm, triggerDate: Date) {
         let interval = triggerDate.timeIntervalSince(Date())

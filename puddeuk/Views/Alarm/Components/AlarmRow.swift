@@ -54,6 +54,8 @@ struct AlarmRow: View {
             .padding()
             .background(Color.gray.opacity(0.2))
             .cornerRadius(16)
+            .opacity(alarm.isEnabled ? 1.0 : 0.5)
+            .animation(.easeInOut(duration: 0.3), value: alarm.isEnabled)
         }
         .buttonStyle(.plain)
     }
