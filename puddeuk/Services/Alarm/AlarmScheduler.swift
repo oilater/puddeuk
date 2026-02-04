@@ -12,6 +12,34 @@ final class AlarmScheduler {
     private init() {}
 
     func scheduleAlarm(_ alarm: Alarm) async throws {
+        // Use queue manager for scheduling
+        NotificationQueueManager.shared.incrementQueueVersion()
+        try await NotificationQueueManager.shared.rebuildQueue()
+
+        // If alarm is within 48h, schedule immediately
+        if let nextFire = alarm.nextFireDate,
+           Date().distance(to: nextFire) < 48 * 3600 {
+            try await NotificationQueueManager.shared.scheduleNext64()
+        }
+
+        Logger.alarm.info("알람 스케줄링 성공 (큐 시스템): \(alarm.title)")
+    }
+
+    func cancelAlarm(_ alarm: Alarm) async {
+        // Remove from queue manager
+        await NotificationQueueManager.shared.removeAlarm(alarmId: alarm.id)
+
+        // Also remove from iOS using chain coordinator
+        chainCoordinator.cancelAlarmChain(alarmId: alarm.id.uuidString)
+
+        // Refill available slots
+        try? await NotificationQueueManager.shared.scheduleNext64()
+
+        Logger.alarm.info("알람 취소 완료: \(alarm.title)")
+    }
+
+    // Legacy methods kept for snooze and testing
+    func scheduleAlarm_Legacy(_ alarm: Alarm) async throws {
         if alarm.repeatDays.isEmpty {
             try await scheduleSingleAlarm(alarm)
         } else {

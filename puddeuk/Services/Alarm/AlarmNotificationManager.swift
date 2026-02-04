@@ -100,7 +100,8 @@ final class AlarmNotificationManager: @unchecked Sendable {
     // MARK: - 취소
 
     func cancelAlarm(_ alarm: Alarm) async {
-        chainCoordinator.cancelAlarmChain(alarmId: alarm.id.uuidString)
+        // Use queue manager for cancellation
+        await scheduler.cancelAlarm(alarm)
         Logger.alarm.info("알람 취소됨: \(alarm.title)")
     }
 

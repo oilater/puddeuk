@@ -68,6 +68,7 @@ struct puddeukApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Alarm.self,
+            QueueState.self,
         ])
         let modelConfiguration = ModelConfiguration(
             schema: schema,
@@ -112,6 +113,11 @@ struct puddeukApp: App {
                         showSplash = false
                     }
                 }
+
+                // Initialize queue manager after view appears
+                Task {
+                    await initializeQueueManager()
+                }
             }
         }
         .modelContainer(sharedModelContainer)
@@ -125,6 +131,11 @@ struct puddeukApp: App {
 
         if newPhase == .active && oldPhase != .active {
             checkAndResumeAlarm()
+
+            // Refill notification slots when app becomes active
+            Task {
+                await NotificationQueueManager.shared.checkAndRefill()
+            }
         }
     }
 
@@ -215,5 +226,14 @@ struct puddeukApp: App {
             LiveActivityManager.shared.endCurrentActivity()
         }
         AlarmManager.shared.dismissAlarm()
+    }
+
+    private func initializeQueueManager() async {
+        await MainActor.run {
+            NotificationQueueManager.shared.setModelContext(sharedModelContainer.mainContext)
+        }
+
+        await NotificationQueueManager.shared.performFullSync()
+        Logger.alarm.info("알림 큐 매니저 초기화 완료")
     }
 }

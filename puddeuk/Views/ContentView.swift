@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import UIKit
+import Combine
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
@@ -10,7 +11,8 @@ struct ContentView: View {
     @ObservedObject private var alarmManager = AlarmManager.shared
     @State private var currentTime = Date()
     @State private var displayAlarms: [Alarm] = []
-    @State private var updateTimer: Timer?
+
+    private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     var body: some View {
         NavigationStack {
@@ -50,14 +52,13 @@ struct ContentView: View {
             }
             .onAppear {
                 setupAlarms()
-                startTimer()
                 updateDisplayAlarms()
-            }
-            .onDisappear {
-                stopTimer()
             }
             .onChange(of: alarms.count) { _, _ in
                 updateDisplayAlarms()
+            }
+            .onReceive(timer) { _ in
+                currentTime = Date()
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
                 Task {
@@ -153,18 +154,6 @@ struct ContentView: View {
 
     private func setupAlarms() {
         rescheduleActiveAlarms()
-    }
-
-    private func startTimer() {
-        updateTimer?.invalidate()
-        updateTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-            self?.currentTime = Date()
-        }
-    }
-
-    private func stopTimer() {
-        updateTimer?.invalidate()
-        updateTimer = nil
     }
 
     private func rescheduleActiveAlarms() {
