@@ -7,10 +7,10 @@ protocol PriorityStrategy {
 }
 
 enum ScheduledEventPriority: Int, Comparable, Sendable {
-    case low = 0        // 7+ days: 2-chain
-    case medium = 1     // 2-7 days: 4-chain
-    case high = 2       // 24-48h: 8-chain
-    case critical = 3   // <24h: 8-chain
+    case low = 0        // 7+ days: 4-chain
+    case medium = 1     // 2-7 days: 8-chain
+    case high = 2       // 24-48h: 15-chain
+    case critical = 3   // <24h: 15-chain
 
     static func < (lhs: Self, rhs: Self) -> Bool {
         lhs.rawValue < rhs.rawValue
@@ -37,11 +37,11 @@ final class TimeBasedPriorityStrategy: PriorityStrategy, Sendable {
     func determineChainCount(for priority: ScheduledEventPriority) -> Int {
         switch priority {
         case .critical, .high:
-            return 8  // Full coverage for imminent alarms
+            return 15  // Full coverage for imminent alarms (~6min 40sec)
         case .medium:
-            return 4  // Moderate coverage
+            return 8   // Moderate coverage (~3min 32sec)
         case .low:
-            return 2  // Minimal coverage for distant alarms
+            return 4   // Minimal coverage for distant alarms (~1min 46sec)
         }
     }
 }

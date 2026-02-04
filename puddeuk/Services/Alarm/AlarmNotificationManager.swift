@@ -102,8 +102,8 @@ final class AlarmNotificationManager: @unchecked Sendable {
         Logger.alarm.info("모든 알람 취소됨")
     }
 
-    func cancelAlarmChain(alarmId: String) {
-        chainCoordinator.cancelAlarmChain(alarmId: alarmId)
+    func cancelAlarmChain(alarmId: String) async {
+        await chainCoordinator.cancelAlarmChain(alarmId: alarmId)
     }
 
 

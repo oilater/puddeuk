@@ -17,7 +17,7 @@ final class AlarmScheduler {
 
         if let nextFire = alarm.nextFireDate,
            Date().distance(to: nextFire) < 48 * 3600 {
-            try await NotificationQueueManager.shared.scheduleNext64()
+            try await NotificationQueueManager.shared.scheduleNext60()
         }
 
         Logger.alarm.info("알람 스케줄링 성공 (큐 시스템): \(alarm.title)")
@@ -26,9 +26,9 @@ final class AlarmScheduler {
     func cancelAlarm(_ alarm: Alarm) async {
         await NotificationQueueManager.shared.removeAlarm(alarmId: alarm.id)
 
-        chainCoordinator.cancelAlarmChain(alarmId: alarm.id.uuidString)
+        await chainCoordinator.cancelAlarmChain(alarmId: alarm.id.uuidString)
 
-        try? await NotificationQueueManager.shared.scheduleNext64()
+        try? await NotificationQueueManager.shared.scheduleNext60()
 
         Logger.alarm.info("알람 취소 완료: \(alarm.title)")
     }

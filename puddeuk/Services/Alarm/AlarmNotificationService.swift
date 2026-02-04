@@ -84,12 +84,12 @@ final class AlarmNotificationService: NSObject, ObservableObject {
         }
     }
 
-    func stopAlarm() {
+    func stopAlarm() async {
         alarmPlayer?.stop()
         alarmPlayer = nil
 
         if let alarmId = currentAlarmId {
-            AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
+            await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
         }
 
         currentAlarmURL = nil
@@ -123,7 +123,9 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
 
         Logger.notification.info("알람 도착 (포그라운드): \(title), chain: \(chainIndex)")
 
-        AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
+        Task {
+            await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
+        }
 
         if !isAlarmPlaying {
             if let fileName = audioFileName, !fileName.isEmpty {
@@ -165,9 +167,9 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
         switch response.actionIdentifier {
         case "SNOOZE_ACTION":
             Logger.notification.info("스누즈 액션")
+            await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
+            await stopAlarm()
             await MainActor.run {
-                AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
-                stopAlarm()
                 LiveActivityManager.shared.endCurrentActivity()
             }
             try? await AlarmNotificationManager.shared.scheduleSnooze(
@@ -178,26 +180,24 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
 
         case "DISMISS_ACTION":
             Logger.notification.info("끄기 액션")
+            await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
+            await stopAlarm()
             await MainActor.run {
-                AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
-                stopAlarm()
                 LiveActivityManager.shared.endCurrentActivity()
             }
             return
 
         case UNNotificationDismissActionIdentifier:
             Logger.notification.info("알림 스와이프 닫기: \(title)")
-            await MainActor.run {
-                AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
-            }
+            await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
             return
 
         default:
             Logger.notification.info("알림 탭 → 앱으로 이동: \(title)")
 
-            await MainActor.run {
-                AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
+            await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
 
+            await MainActor.run {
                 if let fileName = audioFileName, !fileName.isEmpty {
                     startAlarmWithFileName(fileName, alarmId: alarmId)
                 } else {

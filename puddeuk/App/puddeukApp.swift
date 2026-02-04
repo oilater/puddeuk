@@ -155,10 +155,10 @@ struct puddeukApp: App {
 
                 Logger.alarm.info("ScenePhase - 전달된 알람 발견: \(title)")
 
+                await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
+
                 await MainActor.run {
                     if !AlarmNotificationService.shared.isAlarmPlaying {
-                        AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
-
                         AlarmNotificationService.shared.startAlarmWithFileName(
                             audioFileName,
                             alarmId: alarmId
@@ -205,12 +205,14 @@ struct puddeukApp: App {
     private func handleSnooze() {
         let audioFileName = AlarmNotificationService.shared.getCurrentAudioFileName()
 
-        AlarmNotificationService.shared.stopAlarm()
-        Task { @MainActor in
-            LiveActivityManager.shared.endCurrentActivity()
-        }
-        AlarmManager.shared.dismissAlarm()
         Task {
+            await AlarmNotificationService.shared.stopAlarm()
+
+            await MainActor.run {
+                LiveActivityManager.shared.endCurrentActivity()
+                AlarmManager.shared.dismissAlarm()
+            }
+
             try? await AlarmNotificationManager.shared.scheduleSnooze(
                 minutes: 5,
                 audioFileName: audioFileName
@@ -219,11 +221,14 @@ struct puddeukApp: App {
     }
 
     private func handleDismiss() {
-        AlarmNotificationService.shared.stopAlarm()
-        Task { @MainActor in
-            LiveActivityManager.shared.endCurrentActivity()
+        Task {
+            await AlarmNotificationService.shared.stopAlarm()
+
+            await MainActor.run {
+                LiveActivityManager.shared.endCurrentActivity()
+                AlarmManager.shared.dismissAlarm()
+            }
         }
-        AlarmManager.shared.dismissAlarm()
     }
 
     private func initializeQueueManager() async {

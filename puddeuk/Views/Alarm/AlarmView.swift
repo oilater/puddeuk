@@ -115,23 +115,25 @@ struct AlarmView: View {
         audioPlayer.stop()
         vibrationManager.stop()
 
-        if let alarm = alarm {
-            AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarm.id.uuidString)
-        } else if let alarmId = AlarmNotificationService.shared.currentAlarmId {
-            AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
-        }
+        Task {
+            if let alarm = alarm {
+                await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarm.id.uuidString)
+            } else if let alarmId = AlarmNotificationService.shared.currentAlarmId {
+                await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
+            }
 
-        AlarmNotificationService.shared.stopAlarm()
-        AnalyticsManager.shared.logAlarmDismissed()
+            await AlarmNotificationService.shared.stopAlarm()
 
-        Task { @MainActor in
-            LiveActivityManager.shared.endCurrentActivity()
-        }
+            await MainActor.run {
+                AnalyticsManager.shared.logAlarmDismissed()
+                LiveActivityManager.shared.endCurrentActivity()
 
-        if !isSnoozeAlarm {
-            AlarmManager.shared.showMissionComplete()
-        } else {
-            AlarmManager.shared.dismissAlarm()
+                if !isSnoozeAlarm {
+                    AlarmManager.shared.showMissionComplete()
+                } else {
+                    AlarmManager.shared.dismissAlarm()
+                }
+            }
         }
     }
 
@@ -140,28 +142,30 @@ struct AlarmView: View {
         audioPlayer.stop()
         vibrationManager.stop()
 
-        if let alarm = alarm {
-            AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarm.id.uuidString)
-        } else if let alarmId = AlarmNotificationService.shared.currentAlarmId {
-            AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
-        }
-
-        AlarmNotificationService.shared.stopAlarm()
-        AnalyticsManager.shared.logAlarmSnoozed(minutes: minutes)
-
-        Task { @MainActor in
-            LiveActivityManager.shared.endCurrentActivity()
-        }
-        AlarmManager.shared.dismissAlarm()
-
         Task {
+            if let alarm = alarm {
+                await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarm.id.uuidString)
+            } else if let alarmId = AlarmNotificationService.shared.currentAlarmId {
+                await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
+            }
+
+            await AlarmNotificationService.shared.stopAlarm()
+
+            await MainActor.run {
+                AnalyticsManager.shared.logAlarmSnoozed(minutes: minutes)
+                LiveActivityManager.shared.endCurrentActivity()
+                AlarmManager.shared.dismissAlarm()
+            }
+
             do {
                 try await AlarmNotificationManager.shared.scheduleSnooze(
                     minutes: minutes,
                     audioFileName: audioFileName
                 )
             } catch {
-                AnalyticsManager.shared.logAlarmScheduleFailed(message: "Snooze: \(error.localizedDescription)")
+                await MainActor.run {
+                    AnalyticsManager.shared.logAlarmScheduleFailed(message: "Snooze: \(error.localizedDescription)")
+                }
             }
         }
     }

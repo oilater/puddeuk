@@ -110,7 +110,7 @@ final class NotificationQueueManager {
     }
 
     /// Select next batch of events to schedule, respecting iOS 60-notification limit
-    func selectNext64() -> [ScheduledEvent] {
+    func selectNext60() -> [ScheduledEvent] {
         var selected: [ScheduledEvent] = []
 
         // Priority order: Critical -> High -> Medium -> Low
@@ -130,13 +130,13 @@ final class NotificationQueueManager {
     }
 
     /// Schedule the next batch of events to iOS
-    func scheduleNext64() async throws {
+    func scheduleNext60() async throws {
         guard let modelContext = modelContext else {
             logger.error("ModelContext not set")
             return
         }
 
-        let eventsToSchedule = selectNext64()
+        let eventsToSchedule = selectNext60()
 
         logger.info("Scheduling \(eventsToSchedule.count) events to iOS")
 
@@ -183,7 +183,7 @@ final class NotificationQueueManager {
         try? await rebuildQueue()
 
         // Schedule next batch
-        try? await scheduleNext64()
+        try? await scheduleNext60()
     }
 
     /// Quick refill: schedule up to 10 events without full rebuild
@@ -197,7 +197,7 @@ final class NotificationQueueManager {
 
         guard availableSlots > 0 else { return }
 
-        let nextEvents = Array(selectNext64().prefix(availableSlots))
+        let nextEvents = Array(selectNext60().prefix(availableSlots))
 
         logger.info("Quick refill: scheduling \(nextEvents.count) events")
 
@@ -222,7 +222,7 @@ final class NotificationQueueManager {
 
         do {
             try await rebuildQueue()
-            try await scheduleNext64()
+            try await scheduleNext60()
             logger.info("Full sync complete")
         } catch {
             logger.error("Full sync failed: \(error.localizedDescription)")

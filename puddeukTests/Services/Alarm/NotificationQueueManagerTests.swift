@@ -84,13 +84,13 @@ final class NotificationQueueManagerTests: XCTestCase {
     }
 
 
-    func test_selectNext64_emptyQueue_returnsEmpty() {
-        let selected = sut.selectNext64()
+    func test_selectNext60_emptyQueue_returnsEmpty() {
+        let selected = sut.selectNext60()
 
         XCTAssertTrue(selected.isEmpty, "빈 큐에서는 선택할 이벤트 없음")
     }
 
-    func test_selectNext64_respectsIOSLimit() async throws {
+    func test_selectNext60_respectsIOSLimit() async throws {
         for i in 0..<100 {
             let alarm = createTestAlarm(hour: i % 24, minute: 0, isEnabled: true)
             mockModelContext.insert(alarm)
@@ -101,12 +101,12 @@ final class NotificationQueueManagerTests: XCTestCase {
 
         try await sut.rebuildQueue()
 
-        let selected = sut.selectNext64()
+        let selected = sut.selectNext60()
 
         XCTAssertLessThanOrEqual(selected.count, 60, "iOS 60개 제한 준수")
     }
 
-    func test_selectNext64_prioritizesCriticalOverLow() async throws {
+    func test_selectNext60_prioritizesCriticalOverLow() async throws {
         let criticalAlarm = createTestAlarm(hour: 9, minute: 0, isEnabled: true)
         let lowAlarm = createTestAlarm(hour: 10, minute: 0, isEnabled: true)
 
@@ -117,7 +117,7 @@ final class NotificationQueueManagerTests: XCTestCase {
         mockPriorityStrategy.mockChainCount = 8
         try await sut.rebuildQueue()
 
-        let selected = sut.selectNext64()
+        let selected = sut.selectNext60()
 
         XCTAssertGreaterThan(selected.count, 0)
     }

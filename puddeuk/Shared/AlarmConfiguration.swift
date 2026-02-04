@@ -1,7 +1,11 @@
 import Foundation
 
 enum AlarmConfiguration {
+    /// @deprecated: Use PriorityStrategy.determineChainCount() instead
+    /// Legacy chain count (no longer used in queue system)
+    /// Current system uses priority-based chain count: Critical/High=15, Medium=8, Low=4
     static let chainCount = 8
+
     static let chainInterval: TimeInterval = 26.5
 
     static let maxNotificationSoundDuration: TimeInterval = 30.0

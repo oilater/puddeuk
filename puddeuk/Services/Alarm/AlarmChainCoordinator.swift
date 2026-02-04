@@ -40,25 +40,35 @@ final class AlarmChainCoordinator {
         return interval
     }
 
-    /// 체인 알림 전체 취소
-    func cancelAlarmChain(alarmId: String) {
-        var identifiers: [String] = []
+    /// 체인 알림 전체 취소 (실제 존재하는 알림만 조회해서 안전하게 삭제)
+    func cancelAlarmChain(alarmId: String) async {
+        // 실제 pending notifications 조회
+        let pendingRequests = await center.pendingNotificationRequests()
+        let deliveredNotifications = await center.deliveredNotifications()
 
-        // 단일 알람 체인
-        for chainIndex in 0..<chainCount {
-            identifiers.append("\(alarmId)-chain-\(chainIndex)")
+        // alarmId로 시작하는 모든 알림 식별자 필터링
+        let pendingIdentifiers = pendingRequests
+            .map { $0.identifier }
+            .filter { $0.hasPrefix(alarmId) }
+
+        let deliveredIdentifiers = deliveredNotifications
+            .map { $0.request.identifier }
+            .filter { $0.hasPrefix(alarmId) }
+
+        // 실제 존재하는 알림만 삭제 (메모리 누수 방지)
+        if !pendingIdentifiers.isEmpty {
+            center.removePendingNotificationRequests(withIdentifiers: pendingIdentifiers)
+            Logger.alarm.info("체인 알림 취소됨 (pending): \(alarmId), 개수: \(pendingIdentifiers.count)")
         }
 
-        // 반복 알람 체인 (모든 요일)
-        for day in 0..<7 {
-            for chainIndex in 0..<chainCount {
-                identifiers.append("\(alarmId)-\(day)-chain-\(chainIndex)")
-            }
+        if !deliveredIdentifiers.isEmpty {
+            center.removeDeliveredNotifications(withIdentifiers: deliveredIdentifiers)
+            Logger.alarm.info("체인 알림 취소됨 (delivered): \(alarmId), 개수: \(deliveredIdentifiers.count)")
         }
 
-        center.removePendingNotificationRequests(withIdentifiers: identifiers)
-        center.removeDeliveredNotifications(withIdentifiers: identifiers)
-        Logger.alarm.info("체인 알림 취소됨: \(alarmId)")
+        if pendingIdentifiers.isEmpty && deliveredIdentifiers.isEmpty {
+            Logger.alarm.debug("취소할 체인 알림 없음: \(alarmId)")
+        }
     }
 
     /// 알람의 모든 체인 식별자 생성

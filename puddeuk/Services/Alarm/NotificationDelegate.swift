@@ -51,8 +51,8 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
         switch response.actionIdentifier {
         case "SNOOZE_ACTION":
             Logger.notification.info("스누즈 액션 실행")
-            AlarmNotificationService.shared.stopAlarm()
             Task {
+                await AlarmNotificationService.shared.stopAlarm()
                 try? await AlarmNotificationManager.shared.scheduleSnooze(
                     minutes: 5,
                     audioFileName: audioFileName
@@ -61,11 +61,13 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
 
         case "DISMISS_ACTION":
             Logger.notification.info("끄기 액션 실행")
-            AlarmNotificationService.shared.stopAlarm()
-            Task { @MainActor in
-                LiveActivityManager.shared.endCurrentActivity()
+            Task {
+                await AlarmNotificationService.shared.stopAlarm()
+                await MainActor.run {
+                    LiveActivityManager.shared.endCurrentActivity()
+                    AlarmManager.shared.dismissAlarm()
+                }
             }
-            AlarmManager.shared.dismissAlarm()
 
         case UNNotificationDefaultActionIdentifier:
             // 알림 탭 - 알람 화면 보여주기

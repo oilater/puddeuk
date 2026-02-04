@@ -70,28 +70,28 @@ final class PriorityStrategyTests: XCTestCase {
     }
 
 
-    func test_determineChainCount_critical_returns8() {
+    func test_determineChainCount_critical_returns15() {
         let chainCount = sut.determineChainCount(for: .critical)
 
-        XCTAssertEqual(chainCount, 8, "Critical 우선순위는 8개 체인")
+        XCTAssertEqual(chainCount, 15, "Critical 우선순위는 15개 체인 (~6분 40초)")
     }
 
-    func test_determineChainCount_high_returns8() {
+    func test_determineChainCount_high_returns15() {
         let chainCount = sut.determineChainCount(for: .high)
 
-        XCTAssertEqual(chainCount, 8, "High 우선순위는 8개 체인")
+        XCTAssertEqual(chainCount, 15, "High 우선순위는 15개 체인 (~6분 40초)")
     }
 
-    func test_determineChainCount_medium_returns4() {
+    func test_determineChainCount_medium_returns8() {
         let chainCount = sut.determineChainCount(for: .medium)
 
-        XCTAssertEqual(chainCount, 4, "Medium 우선순위는 4개 체인")
+        XCTAssertEqual(chainCount, 8, "Medium 우선순위는 8개 체인 (~3분 32초)")
     }
 
-    func test_determineChainCount_low_returns2() {
+    func test_determineChainCount_low_returns4() {
         let chainCount = sut.determineChainCount(for: .low)
 
-        XCTAssertEqual(chainCount, 2, "Low 우선순위는 2개 체인")
+        XCTAssertEqual(chainCount, 4, "Low 우선순위는 4개 체인 (~1분 46초)")
     }
 
 
@@ -112,7 +112,7 @@ final class PriorityStrategyTests: XCTestCase {
         let chainCount = sut.determineChainCount(for: priority)
 
         XCTAssertEqual(priority, .critical)
-        XCTAssertEqual(chainCount, 8)
+        XCTAssertEqual(chainCount, 15)
     }
 
     func test_fullWorkflow_distantToLow() {
@@ -123,6 +123,6 @@ final class PriorityStrategyTests: XCTestCase {
         let chainCount = sut.determineChainCount(for: priority)
 
         XCTAssertEqual(priority, .low)
-        XCTAssertEqual(chainCount, 2)
+        XCTAssertEqual(chainCount, 4)
     }
 }
