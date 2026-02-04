@@ -1,6 +1,5 @@
 import Foundation
 
-/// Represents a single notification in the chain
 struct ScheduledEvent: Comparable, Sendable {
     let id: String
     let alarmId: UUID

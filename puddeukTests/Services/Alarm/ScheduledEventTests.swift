@@ -3,7 +3,6 @@ import XCTest
 
 final class ScheduledEventTests: XCTestCase {
 
-
     func test_comparableByFireDate_earlierDateIsLess() {
         let earlyDate = Date()
         let lateDate = earlyDate.addingTimeInterval(3600)

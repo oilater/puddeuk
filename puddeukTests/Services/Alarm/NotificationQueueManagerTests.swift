@@ -167,8 +167,6 @@ final class NotificationQueueManagerTests: XCTestCase {
 
 
     func test_incrementQueueVersion_increasesVersion() {
-        let initialStats = sut.getQueueStats()
-
         sut.incrementQueueVersion()
 
         XCTAssertTrue(true, "incrementQueueVersion 호출 성공")
