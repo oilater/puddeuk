@@ -7,6 +7,8 @@ import OSLog
 final class QueuePersistence {
     private let logger = Logger(subsystem: "com.puddeuk.app", category: "QueuePersistence")
 
+    nonisolated init() {}
+
     func save(scheduledIdentifiers: Set<String>, version: Int, to context: ModelContext) async {
         // Delete old state
         let descriptor = FetchDescriptor<QueueState>()

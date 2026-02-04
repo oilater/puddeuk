@@ -31,6 +31,13 @@
 			remoteGlobalIDString = DF5A03B32F2FC79600B45649;
 			remoteInfo = AlarmNotificationContent;
 		};
+		DF5A06072F333F1200B45649 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DF5A028A2F2F1FD700B45649 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DF5A02912F2F1FD700B45649;
+			remoteInfo = puddeuk;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -56,6 +63,7 @@
 		DF5A03B42F2FC79600B45649 /* AlarmNotificationContent.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AlarmNotificationContent.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF5A03B52F2FC79600B45649 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		DF5A03B72F2FC79600B45649 /* UserNotificationsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotificationsUI.framework; path = System/Library/Frameworks/UserNotificationsUI.framework; sourceTree = SDKROOT; };
+		DF5A06032F333F1200B45649 /* puddeukTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = puddeukTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -126,6 +134,11 @@
 			path = AlarmNotificationContent;
 			sourceTree = "<group>";
 		};
+		DF5A06042F333F1200B45649 /* puddeukTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = puddeukTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -155,6 +168,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DF5A06002F333F1200B45649 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -164,6 +184,7 @@
 				DF5A02942F2F1FD700B45649 /* puddeuk */,
 				DF5A038D2F2FBA2D00B45649 /* AlarmWidget */,
 				DF5A03B92F2FC79600B45649 /* AlarmNotificationContent */,
+				DF5A06042F333F1200B45649 /* puddeukTests */,
 				DF5A031D2F2F7E2D00B45649 /* Frameworks */,
 				DF5A02932F2F1FD700B45649 /* Products */,
 			);
@@ -175,6 +196,7 @@
 				DF5A02922F2F1FD700B45649 /* puddeuk.app */,
 				DF5A038A2F2FBA2D00B45649 /* AlarmWidgetExtension.appex */,
 				DF5A03B42F2FC79600B45649 /* AlarmNotificationContent.appex */,
+				DF5A06032F333F1200B45649 /* puddeukTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -263,6 +285,29 @@
 			productReference = DF5A03B42F2FC79600B45649 /* AlarmNotificationContent.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		DF5A06022F333F1200B45649 /* puddeukTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DF5A06092F333F1200B45649 /* Build configuration list for PBXNativeTarget "puddeukTests" */;
+			buildPhases = (
+				DF5A05FF2F333F1200B45649 /* Sources */,
+				DF5A06002F333F1200B45649 /* Frameworks */,
+				DF5A06012F333F1200B45649 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DF5A06082F333F1200B45649 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				DF5A06042F333F1200B45649 /* puddeukTests */,
+			);
+			name = puddeukTests;
+			packageProductDependencies = (
+			);
+			productName = puddeukTests;
+			productReference = DF5A06032F333F1200B45649 /* puddeukTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -281,6 +326,10 @@
 					};
 					DF5A03B32F2FC79600B45649 = {
 						CreatedOnToolsVersion = 26.2;
+					};
+					DF5A06022F333F1200B45649 = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = DF5A02912F2F1FD700B45649;
 					};
 				};
 			};
@@ -304,6 +353,7 @@
 				DF5A02912F2F1FD700B45649 /* puddeuk */,
 				DF5A03892F2FBA2D00B45649 /* AlarmWidgetExtension */,
 				DF5A03B32F2FC79600B45649 /* AlarmNotificationContent */,
+				DF5A06022F333F1200B45649 /* puddeukTests */,
 			);
 		};
 /* End PBXProject section */
@@ -324,6 +374,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		DF5A03B22F2FC79600B45649 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF5A06012F333F1200B45649 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -354,6 +411,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DF5A05FF2F333F1200B45649 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -366,6 +430,11 @@
 			isa = PBXTargetDependency;
 			target = DF5A03B32F2FC79600B45649 /* AlarmNotificationContent */;
 			targetProxy = DF5A03C02F2FC79600B45649 /* PBXContainerItemProxy */;
+		};
+		DF5A06082F333F1200B45649 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DF5A02912F2F1FD700B45649 /* puddeuk */;
+			targetProxy = DF5A06072F333F1200B45649 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -736,6 +805,61 @@
 			};
 			name = Release;
 		};
+		DF5A060A2F333F1200B45649 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = M93923L2AK;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.seonghyeon.puddeuk.puddeukTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/puddeuk.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/puddeuk";
+			};
+			name = Debug;
+		};
+		DF5A060B2F333F1200B45649 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = M93923L2AK;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.seonghyeon.puddeuk.puddeukTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/puddeuk.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/puddeuk";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -771,6 +895,15 @@
 			buildConfigurations = (
 				DF5A03C42F2FC79600B45649 /* Debug */,
 				DF5A03C52F2FC79600B45649 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DF5A06092F333F1200B45649 /* Build configuration list for PBXNativeTarget "puddeukTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DF5A060A2F333F1200B45649 /* Debug */,
+				DF5A060B2F333F1200B45649 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

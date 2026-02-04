@@ -4,10 +4,18 @@ import FirebaseAnalytics
 final class AnalyticsManager {
     static let shared = AnalyticsManager()
 
-    private init() {}
+    private let logger: AnalyticsLogging
+
+    private convenience init() {
+        self.init(logger: FirebaseAnalyticsLogger())
+    }
+
+    init(logger: AnalyticsLogging) {
+        self.logger = logger
+    }
 
     func logAlarmCreated(hasCustomAudio: Bool, hasRepeat: Bool, hasSnooze: Bool) {
-        Analytics.logEvent("alarm_created", parameters: [
+        logger.logEvent("alarm_created", parameters: [
             "has_custom_audio": hasCustomAudio,
             "has_repeat": hasRepeat,
             "has_snooze": hasSnooze
@@ -15,130 +23,130 @@ final class AnalyticsManager {
     }
 
     func logAlarmUpdated(hasCustomAudio: Bool) {
-        Analytics.logEvent("alarm_updated", parameters: [
+        logger.logEvent("alarm_updated", parameters: [
             "has_custom_audio": hasCustomAudio
         ])
     }
 
     func logAlarmDeleted() {
-        Analytics.logEvent("alarm_deleted", parameters: nil)
+        logger.logEvent("alarm_deleted", parameters: nil)
     }
 
     func logAlarmToggled(isEnabled: Bool) {
-        Analytics.logEvent("alarm_toggled", parameters: [
+        logger.logEvent("alarm_toggled", parameters: [
             "enabled": isEnabled
         ])
     }
 
     func logAlarmDismissed() {
-        Analytics.logEvent("alarm_dismissed", parameters: nil)
+        logger.logEvent("alarm_dismissed", parameters: nil)
     }
 
     func logAlarmSnoozed(minutes: Int) {
-        Analytics.logEvent("alarm_snoozed", parameters: [
+        logger.logEvent("alarm_snoozed", parameters: [
             "snooze_minutes": minutes
         ])
     }
 
     func logRecordingStarted() {
-        Analytics.logEvent("recording_started", parameters: nil)
+        logger.logEvent("recording_started", parameters: nil)
     }
 
     func logRecordingCompleted(duration: Double) {
-        Analytics.logEvent("recording_completed", parameters: [
+        logger.logEvent("recording_completed", parameters: [
             "duration_seconds": Int(duration)
         ])
     }
 
     func logRecordingCanceled() {
-        Analytics.logEvent("recording_canceled", parameters: nil)
+        logger.logEvent("recording_canceled", parameters: nil)
     }
 
     func logRecordingLimitReached() {
-        Analytics.logEvent("recording_limit_reached", parameters: [
+        logger.logEvent("recording_limit_reached", parameters: [
             "max_duration": 25
         ])
     }
 
     func logRecordingPlayed() {
-        Analytics.logEvent("recording_played", parameters: nil)
+        logger.logEvent("recording_played", parameters: nil)
     }
 
     func logOnboardingCompleted() {
-        Analytics.logEvent("onboarding_completed", parameters: nil)
+        logger.logEvent("onboarding_completed", parameters: nil)
     }
 
     func logOnboardingStepViewed(step: Int) {
-        Analytics.logEvent("onboarding_step_viewed", parameters: [
+        logger.logEvent("onboarding_step_viewed", parameters: [
             "step": step
         ])
     }
 
     func logDeveloperMessageViewed() {
-        Analytics.logEvent("developer_message_viewed", parameters: nil)
+        logger.logEvent("developer_message_viewed", parameters: nil)
     }
 
     func logFeedbackOpened() {
-        Analytics.logEvent("feedback_opened", parameters: nil)
+        logger.logEvent("feedback_opened", parameters: nil)
     }
 
     func logNotificationSettingsOpened() {
-        Analytics.logEvent("notification_settings_opened", parameters: nil)
+        logger.logEvent("notification_settings_opened", parameters: nil)
     }
 
     func logSleepModeGuideOpened() {
-        Analytics.logEvent("sleep_mode_guide_opened", parameters: nil)
+        logger.logEvent("sleep_mode_guide_opened", parameters: nil)
     }
 
     func logAppOpened() {
-        Analytics.logEvent("app_opened", parameters: nil)
+        logger.logEvent("app_opened", parameters: nil)
     }
 
     func logScreenViewed(screenName: String) {
-        Analytics.logEvent(AnalyticsEventScreenView, parameters: [
+        logger.logEvent(AnalyticsEventScreenView, parameters: [
             AnalyticsParameterScreenName: screenName
         ])
     }
 
     func logError(type: ErrorType, message: String) {
-        Analytics.logEvent("error_occurred", parameters: [
+        logger.logEvent("error_occurred", parameters: [
             "error_type": type.rawValue,
             "error_message": message
         ])
     }
 
     func logAlarmSaveFailed(message: String) {
-        Analytics.logEvent("error_alarm_save_failed", parameters: [
+        logger.logEvent("error_alarm_save_failed", parameters: [
             "error_message": message
         ])
     }
 
     func logAlarmScheduleFailed(message: String) {
-        Analytics.logEvent("error_alarm_schedule_failed", parameters: [
+        logger.logEvent("error_alarm_schedule_failed", parameters: [
             "error_message": message
         ])
     }
 
     func logRecordingStartFailed(message: String) {
-        Analytics.logEvent("error_recording_start_failed", parameters: [
+        logger.logEvent("error_recording_start_failed", parameters: [
             "error_message": message
         ])
     }
 
     func logRecordingSaveFailed(message: String) {
-        Analytics.logEvent("error_recording_save_failed", parameters: [
+        logger.logEvent("error_recording_save_failed", parameters: [
             "error_message": message
         ])
     }
 
     func logPlaybackFailed(message: String) {
-        Analytics.logEvent("error_playback_failed", parameters: [
+        logger.logEvent("error_playback_failed", parameters: [
             "error_message": message
         ])
     }
 
     func logNotificationPermissionDenied() {
-        Analytics.logEvent("error_notification_permission_denied", parameters: nil)
+        logger.logEvent("error_notification_permission_denied", parameters: nil)
     }
 }
 

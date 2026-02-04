@@ -35,16 +35,40 @@ final class NotificationQueueManager {
 
     // MARK: - Initialization
 
-    init(
-        priorityStrategy: PriorityStrategy = TimeBasedPriorityStrategy(),
-        persistence: QueuePersistence = QueuePersistence(),
-        scheduler: NotificationScheduler = NotificationScheduler(),
-        chainCoordinator: AlarmChainCoordinator = AlarmChainCoordinator.shared
+    private init(
+        priorityStrategy: PriorityStrategy,
+        persistence: QueuePersistence,
+        scheduler: NotificationScheduler,
+        chainCoordinator: AlarmChainCoordinator
     ) {
         self.priorityStrategy = priorityStrategy
         self.persistence = persistence
         self.scheduler = scheduler
         self.chainCoordinator = chainCoordinator
+    }
+
+    convenience init() {
+        self.init(
+            priorityStrategy: TimeBasedPriorityStrategy(),
+            persistence: QueuePersistence(),
+            scheduler: NotificationScheduler(),
+            chainCoordinator: AlarmChainCoordinator.shared
+        )
+    }
+
+    // Testable initializer with dependency injection
+    static func create(
+        priorityStrategy: PriorityStrategy,
+        persistence: QueuePersistence,
+        scheduler: NotificationScheduler,
+        chainCoordinator: AlarmChainCoordinator
+    ) -> NotificationQueueManager {
+        return NotificationQueueManager(
+            priorityStrategy: priorityStrategy,
+            persistence: persistence,
+            scheduler: scheduler,
+            chainCoordinator: chainCoordinator
+        )
     }
 
     // MARK: - Public API
@@ -228,7 +252,7 @@ final class NotificationQueueManager {
 
     func incrementQueueVersion() {
         queueVersion += 1
-        logger.debug("Queue version: \(queueVersion)")
+        logger.debug("Queue version: \(self.queueVersion)")
     }
 
     // MARK: - Private Helpers
@@ -237,7 +261,7 @@ final class NotificationQueueManager {
     private func generateEvents(for alarm: Alarm) -> [ScheduledEvent] {
         guard let baseDate = alarm.nextFireDate else { return [] }
 
-        let priority = priorityStrategy.calculatePriority(for: baseDate)
+        let priority = priorityStrategy.calculatePriority(for: baseDate, from: Date())
         let chainCount = priorityStrategy.determineChainCount(for: priority)
         let interval = chainCoordinator.calculateChainInterval(for: alarm.audioFileName)
 
@@ -271,7 +295,7 @@ final class NotificationQueueManager {
             allPendingEvents[index].isScheduled = iosScheduled.contains(allPendingEvents[index].id)
         }
 
-        logger.debug("iOS sync: \(scheduledIdentifiers.count) notifications pending")
+        logger.debug("iOS sync: \(self.scheduledIdentifiers.count) notifications pending")
     }
 
     /// Persist queue state to SwiftData
@@ -300,27 +324,28 @@ final class NotificationQueueManager {
     #if DEBUG
     func dumpQueueState() {
         logger.info("=== Queue State Dump ===")
-        logger.info("Total events: \(allPendingEvents.count)")
-        logger.info("Scheduled: \(scheduledIdentifiers.count)")
-        logger.info("Queue version: \(queueVersion)")
+        logger.info("Total events: \(self.allPendingEvents.count)")
+        logger.info("Scheduled: \(self.scheduledIdentifiers.count)")
+        logger.info("Queue version: \(self.queueVersion)")
 
-        let grouped = Dictionary(grouping: allPendingEvents) { $0.priority }
+        let grouped = Dictionary(grouping: self.allPendingEvents) { $0.priority }
         for priority in [ScheduledEventPriority.critical, .high, .medium, .low] {
             let events = grouped[priority] ?? []
             let scheduledCount = events.filter { $0.isScheduled }.count
-            logger.info("\(priority): \(events.count) total, \(scheduledCount) scheduled")
+            let priorityName = String(describing: priority)
+            logger.info("\(priorityName): \(events.count) total, \(scheduledCount) scheduled")
         }
 
         logger.info("=== End Queue State ===")
     }
 
     func getQueueStats() -> (total: Int, scheduled: Int, byPriority: [ScheduledEventPriority: Int]) {
-        let byPriority = Dictionary(grouping: allPendingEvents) { $0.priority }
+        let byPriority = Dictionary(grouping: self.allPendingEvents) { $0.priority }
             .mapValues { $0.count }
 
         return (
-            total: allPendingEvents.count,
-            scheduled: scheduledIdentifiers.count,
+            total: self.allPendingEvents.count,
+            scheduled: self.scheduledIdentifiers.count,
             byPriority: byPriority
         )
     }

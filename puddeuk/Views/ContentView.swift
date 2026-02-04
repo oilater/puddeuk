@@ -119,37 +119,8 @@ struct ContentView: View {
     }
 
     private var timeUntilNextAlarm: String? {
-        guard let alarm = nextAlarm,
-              let fireDate = alarm.nextFireDate else { return nil }
-
-        let calendar = Calendar.current
-        let now = Date()
-
-        let nowComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: now)
-        let fireComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fireDate)
-
-        guard let nowDate = calendar.date(from: nowComponents),
-              let fireDate = calendar.date(from: fireComponents) else { return nil }
-
-        let components = calendar.dateComponents([.day, .hour, .minute], from: nowDate, to: fireDate)
-
-        guard let days = components.day,
-              let hours = components.hour,
-              let minutes = components.minute else { return nil }
-
-        if days > 0 {
-            return "\(days)일 후에 알람이 울려요"
-        } else if hours > 0 {
-            if minutes > 0 {
-                return "\(hours)시간 \(minutes)분 후에 알람이 울려요"
-            } else {
-                return "\(hours)시간 후에 알람이 울려요"
-            }
-        } else if minutes > 0 {
-            return "\(minutes)분 후에 알람이 울려요"
-        } else {
-            return "1분 안에 알람이 울려요"
-        }
+        guard let alarm = nextAlarm else { return nil }
+        return TimeFormatter.timeUntilAlarm(for: alarm)
     }
 
     private func setupAlarms() {

@@ -8,6 +8,8 @@ import OSLog
 final class NotificationScheduler {
     private let logger = Logger(subsystem: "com.puddeuk.app", category: "NotificationScheduler")
 
+    nonisolated init() {}
+
     /// Schedule a single notification event to iOS
     func schedule(_ event: ScheduledEvent, alarm: Alarm) async throws {
         let content = UNMutableNotificationContent()
