@@ -18,7 +18,7 @@ final class NotificationQueueManager {
     // MARK: - Constants
 
     private enum Constants {
-        static let maxIOSNotifications = 64
+        static let maxIOSNotifications = 60
         static let quickRefillLimit = 10
     }
 
