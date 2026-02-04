@@ -15,7 +15,6 @@ struct ContactView: View {
 
             ScrollView {
                 VStack(spacing: 24) {
-                    // 헤더
                     VStack(spacing: 8) {
                         Image(systemName: "envelope.fill")
                             .font(.omyu(size: 50))
@@ -31,9 +30,7 @@ struct ContactView: View {
                     }
                     .padding(.top, 40)
 
-                    // 폼
                     VStack(spacing: 16) {
-                        // 제목
                         VStack(alignment: .leading, spacing: 8) {
                             Text("제목")
                                 .font(.omyuSubheadline)
@@ -44,7 +41,6 @@ struct ContactView: View {
                                 .textFieldStyle(CustomTextFieldStyle())
                         }
 
-                        // 이메일
                         VStack(alignment: .leading, spacing: 8) {
                             Text("이메일")
                                 .font(.omyuSubheadline)
@@ -58,7 +54,6 @@ struct ContactView: View {
                                 .autocorrectionDisabled()
                         }
 
-                        // 내용
                         VStack(alignment: .leading, spacing: 8) {
                             Text("내용")
                                 .font(.omyuSubheadline)
@@ -75,7 +70,6 @@ struct ContactView: View {
                     }
                     .padding(.horizontal, 20)
 
-                    // 전송 버튼
                     Button {
                         sendMail()
                     } label: {
@@ -169,7 +163,6 @@ struct ContactView: View {
     }
 }
 
-// 커스텀 텍스트필드 스타일
 struct CustomTextFieldStyle: TextFieldStyle {
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration

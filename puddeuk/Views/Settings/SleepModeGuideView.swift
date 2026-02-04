@@ -7,7 +7,6 @@ struct SleepModeGuideView: View {
 
             ScrollView {
                 VStack(spacing: 32) {
-                    // 헤더
                     VStack(spacing: 16) {
                         Image(systemName: "moon.zzz.fill")
                             .font(.omyu(size: 80))
@@ -19,7 +18,6 @@ struct SleepModeGuideView: View {
                     }
                     .padding(.top, 40)
 
-                    // 백그라운드 알람 안내
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
@@ -40,7 +38,6 @@ struct SleepModeGuideView: View {
                     .cornerRadius(16)
                     .padding(.horizontal, 20)
 
-                    // 단계별 가이드
                     VStack(alignment: .leading, spacing: 20) {
                         Text("설정 방법")
                             .font(.omyuHeadline)
@@ -79,7 +76,6 @@ struct SleepModeGuideView: View {
                         .padding(.horizontal, 20)
                     }
 
-                    // 추가 팁
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Image(systemName: "speaker.wave.2.fill")
@@ -116,7 +112,6 @@ struct GuideStepView: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
-            // 번호 뱃지
             ZStack {
                 Circle()
                     .fill(Color.teal)

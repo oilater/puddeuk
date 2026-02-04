@@ -1,12 +1,10 @@
 import SwiftUI
 
 extension Font {
-    /// 오뮤 다예쁨 폰트
     static func omyu(size: CGFloat) -> Font {
         return .custom("omyu_pretty", size: size)
     }
 
-    // 미리 정의된 크기들
     static let omyuLargeTitle = omyu(size: 34)
     static let omyuTitle = omyu(size: 28)
     static let omyuTitle2 = omyu(size: 22)

@@ -1,10 +1,3 @@
-//
-//  QueueState.swift
-//  puddeuk
-//
-//  Created by Claude on 2026-02-04.
-//
-
 import Foundation
 import SwiftData
 

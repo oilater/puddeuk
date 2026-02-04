@@ -23,10 +23,6 @@ enum AlarmNotificationError: LocalizedError {
     }
 }
 
-/// 알림 관리 코디네이터
-/// - 권한 관리
-/// - 알림 카테고리 등록
-/// - 스케줄링/취소 조율
 final class AlarmNotificationManager: @unchecked Sendable {
     static let shared = AlarmNotificationManager()
 
@@ -36,7 +32,6 @@ final class AlarmNotificationManager: @unchecked Sendable {
 
     private init() {}
 
-    // MARK: - 권한 관리
 
     @discardableResult
     func requestAuthorization() async -> Bool {
@@ -81,7 +76,6 @@ final class AlarmNotificationManager: @unchecked Sendable {
         Logger.notification.info("알림 카테고리 등록 완료")
     }
 
-    // MARK: - 스케줄링 (Scheduler로 위임)
 
     func scheduleAlarm(_ alarm: Alarm) async throws {
         guard alarm.isEnabled else {
@@ -97,10 +91,8 @@ final class AlarmNotificationManager: @unchecked Sendable {
         try await scheduler.scheduleSnooze(minutes: minutes, audioFileName: audioFileName)
     }
 
-    // MARK: - 취소
 
     func cancelAlarm(_ alarm: Alarm) async {
-        // Use queue manager for cancellation
         await scheduler.cancelAlarm(alarm)
         Logger.alarm.info("알람 취소됨: \(alarm.title)")
     }
@@ -114,7 +106,6 @@ final class AlarmNotificationManager: @unchecked Sendable {
         chainCoordinator.cancelAlarmChain(alarmId: alarmId)
     }
 
-    // MARK: - 디버깅
 
     func checkPendingAlarm(modelContext: ModelContext) async {
         let notifications = await center.deliveredNotifications()

@@ -1,28 +1,18 @@
-//
-//  NotificationQueueManager.swift
-//  puddeuk
-//
-//  Created by Claude on 2026-02-04.
-//
-
 import Foundation
 import SwiftData
 import UserNotifications
 import OSLog
 
-/// Manages the sliding window of scheduled notifications to work within iOS's 64 notification limit
 @MainActor
 final class NotificationQueueManager {
     static let shared = NotificationQueueManager()
 
-    // MARK: - Constants
 
     private enum Constants {
         static let maxIOSNotifications = 60
         static let quickRefillLimit = 10
     }
 
-    // MARK: - Types
 
     struct ScheduledEvent: Comparable {
         let id: String
@@ -48,7 +38,6 @@ final class NotificationQueueManager {
         }
     }
 
-    // MARK: - State
 
     private var allPendingEvents: [ScheduledEvent] = []
     private var scheduledIdentifiers: Set<String> = []
@@ -56,7 +45,6 @@ final class NotificationQueueManager {
 
     private let logger = Logger(subsystem: "com.puddeuk.app", category: "NotificationQueue")
 
-    // MARK: - Dependencies
 
     private var modelContext: ModelContext?
 
@@ -64,9 +52,7 @@ final class NotificationQueueManager {
         self.modelContext = context
     }
 
-    // MARK: - Public API
 
-    /// Rebuilds the entire queue from all active alarms
     func rebuildQueue() async throws {
         guard let modelContext = modelContext else {
             logger.error("ModelContext not set")
@@ -117,7 +103,6 @@ final class NotificationQueueManager {
         await syncWithIOSScheduledNotifications()
     }
 
-    /// Selects the next 64 events based on priority
     func selectNext64() -> [ScheduledEvent] {
         var selected: [ScheduledEvent] = []
 
@@ -137,7 +122,6 @@ final class NotificationQueueManager {
         return selected
     }
 
-    /// Schedules the next 64 events to iOS
     func scheduleNext64() async throws {
         let eventsToSchedule = selectNext64()
 
@@ -160,7 +144,6 @@ final class NotificationQueueManager {
         logger.info("Scheduling complete: \(totalScheduled) total scheduled")
     }
 
-    /// Checks available slots and refills if needed
     func checkAndRefill() async {
         logger.info("Checking for refill opportunities")
 
@@ -183,7 +166,6 @@ final class NotificationQueueManager {
         try? await scheduleNext64()
     }
 
-    /// Quick refill for notification service extension (30s time limit)
     func quickRefill() async {
         await syncWithIOSScheduledNotifications()
 
@@ -204,7 +186,6 @@ final class NotificationQueueManager {
         }
     }
 
-    /// Full sync - used on app launch
     func performFullSync() async {
         logger.info("Performing full queue sync")
 
@@ -220,7 +201,6 @@ final class NotificationQueueManager {
         }
     }
 
-    /// Removes all events for a specific alarm
     func removeAlarm(alarmId: UUID) async {
         let alarmIdString = alarmId.uuidString
 
@@ -243,14 +223,12 @@ final class NotificationQueueManager {
         await persistQueueState()
     }
 
-    /// Increments queue version (triggers rebuild)
     func incrementQueueVersion() {
         queueVersion += 1
         let version = self.queueVersion
         logger.debug("Queue version: \(version)")
     }
 
-    // MARK: - Priority Calculation
 
     private func calculatePriority(for date: Date) -> ScheduledEvent.Priority {
         let hoursUntil = date.timeIntervalSince(Date()) / 3600
@@ -278,7 +256,6 @@ final class NotificationQueueManager {
         }
     }
 
-    // MARK: - iOS Sync
 
     private func syncWithIOSScheduledNotifications() async {
         let requests = await UNUserNotificationCenter.current().pendingNotificationRequests()
@@ -295,7 +272,6 @@ final class NotificationQueueManager {
         logger.debug("iOS sync: \(pendingCount) notifications pending")
     }
 
-    // MARK: - Notification Scheduling
 
     private func scheduleNotification(_ event: ScheduledEvent) async throws {
         guard let modelContext = modelContext else { return }
@@ -343,7 +319,6 @@ final class NotificationQueueManager {
         logger.debug("Scheduled: \(event.id) at \(event.fireDate)")
     }
 
-    // MARK: - State Persistence
 
     private func persistQueueState() async {
         guard let modelContext = modelContext else { return }
@@ -379,10 +354,8 @@ final class NotificationQueueManager {
         }
     }
 
-    // MARK: - Debug Helpers
 
     #if DEBUG
-    /// Dumps queue state for debugging
     func dumpQueueState() {
         let totalEvents = self.allPendingEvents.count
         let scheduledCount = self.scheduledIdentifiers.count
@@ -404,7 +377,6 @@ final class NotificationQueueManager {
         logger.info("=== End Queue State ===")
     }
 
-    /// Returns queue statistics
     func getQueueStats() -> (total: Int, scheduled: Int, byPriority: [ScheduledEvent.Priority: Int]) {
         let byPriority = Dictionary(grouping: self.allPendingEvents) { $0.priority }
             .mapValues { $0.count }

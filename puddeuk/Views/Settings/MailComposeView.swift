@@ -28,7 +28,6 @@ struct MailComposeView: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: MFMailComposeViewController, context: Context) {
-        // 업데이트 필요 없음
     }
 
     func makeCoordinator() -> Coordinator {

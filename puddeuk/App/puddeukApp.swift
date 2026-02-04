@@ -114,7 +114,6 @@ struct puddeukApp: App {
                     }
                 }
 
-                // Initialize queue manager after view appears
                 Task {
                     await initializeQueueManager()
                 }
@@ -132,7 +131,6 @@ struct puddeukApp: App {
         if newPhase == .active && oldPhase != .active {
             checkAndResumeAlarm()
 
-            // Refill notification slots when app becomes active
             Task {
                 await NotificationQueueManager.shared.checkAndRefill()
             }

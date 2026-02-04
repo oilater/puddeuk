@@ -14,7 +14,6 @@ struct FeedbackView: View {
 
             ScrollView {
                 VStack(spacing: 24) {
-                    // 헤더
                     VStack(spacing: 8) {
                         Image(systemName: "message.fill")
                             .font(.omyu(size: 50))
@@ -30,7 +29,6 @@ struct FeedbackView: View {
                     }
                     .padding(.top, 40)
 
-                    // 평점
                     VStack(alignment: .leading, spacing: 12) {
                         Text("평점")
                             .font(.omyuSubheadline)
@@ -51,9 +49,7 @@ struct FeedbackView: View {
                     }
                     .padding(.horizontal, 20)
 
-                    // 폼
                     VStack(spacing: 16) {
-                        // 이메일
                         VStack(alignment: .leading, spacing: 8) {
                             Text("이메일")
                                 .font(.omyuSubheadline)
@@ -67,7 +63,6 @@ struct FeedbackView: View {
                                 .autocorrectionDisabled()
                         }
 
-                        // 후기
                         VStack(alignment: .leading, spacing: 8) {
                             Text("후기")
                                 .font(.omyuSubheadline)
@@ -95,7 +90,6 @@ struct FeedbackView: View {
                     }
                     .padding(.horizontal, 20)
 
-                    // 전송 버튼
                     Button {
                         sendFeedback()
                     } label: {
