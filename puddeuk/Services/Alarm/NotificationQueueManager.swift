@@ -3,41 +3,27 @@ import SwiftData
 import UserNotifications
 import OSLog
 
+/// Manages the queue of notification events, ensuring iOS 60-notification limit is respected
+/// while prioritizing imminent alarms with full chain coverage.
 @MainActor
 final class NotificationQueueManager {
     static let shared = NotificationQueueManager()
 
+    // MARK: - Dependencies
+
+    private let priorityStrategy: PriorityStrategy
+    private let persistence: QueuePersistence
+    private let scheduler: NotificationScheduler
+    private let chainCoordinator: AlarmChainCoordinator
+
+    // MARK: - Constants
 
     private enum Constants {
         static let maxIOSNotifications = 60
         static let quickRefillLimit = 10
     }
 
-
-    struct ScheduledEvent: Comparable {
-        let id: String
-        let alarmId: UUID
-        let fireDate: Date
-        let chainIndex: Int
-        let priority: Priority
-        var isScheduled: Bool
-
-        static func < (lhs: Self, rhs: Self) -> Bool {
-            lhs.fireDate < rhs.fireDate
-        }
-
-        enum Priority: Int, Comparable {
-            case low = 0        // 7+ days: 2-chain
-            case medium = 1     // 2-7 days: 4-chain
-            case high = 2       // 24-48h: 8-chain
-            case critical = 3   // <24h: 8-chain
-
-            static func < (lhs: Self, rhs: Self) -> Bool {
-                lhs.rawValue < rhs.rawValue
-            }
-        }
-    }
-
+    // MARK: - State
 
     private var allPendingEvents: [ScheduledEvent] = []
     private var scheduledIdentifiers: Set<String> = []
@@ -45,14 +31,29 @@ final class NotificationQueueManager {
 
     private let logger = Logger(subsystem: "com.puddeuk.app", category: "NotificationQueue")
 
-
     private var modelContext: ModelContext?
+
+    // MARK: - Initialization
+
+    init(
+        priorityStrategy: PriorityStrategy = TimeBasedPriorityStrategy(),
+        persistence: QueuePersistence = QueuePersistence(),
+        scheduler: NotificationScheduler = NotificationScheduler(),
+        chainCoordinator: AlarmChainCoordinator = AlarmChainCoordinator.shared
+    ) {
+        self.priorityStrategy = priorityStrategy
+        self.persistence = persistence
+        self.scheduler = scheduler
+        self.chainCoordinator = chainCoordinator
+    }
+
+    // MARK: - Public API
 
     func setModelContext(_ context: ModelContext) {
         self.modelContext = context
     }
 
-
+    /// Rebuild the entire queue from enabled alarms
     func rebuildQueue() async throws {
         guard let modelContext = modelContext else {
             logger.error("ModelContext not set")
@@ -67,34 +68,15 @@ final class NotificationQueueManager {
         )
         let alarms = try modelContext.fetch(descriptor)
 
+        // Generate events for each alarm
         var events: [ScheduledEvent] = []
 
-        // Generate events for each alarm
         for alarm in alarms {
-            guard let baseDate = alarm.nextFireDate else { continue }
-
-            let priority = calculatePriority(for: baseDate)
-            let chainCount = determineChainCount(priority: priority)
-            let interval = AlarmChainCoordinator.shared.calculateChainInterval(
-                for: alarm.audioFileName
-            )
-
-            for chainIndex in 0..<chainCount {
-                let triggerDate = baseDate.addingTimeInterval(interval * Double(chainIndex))
-
-                let event = ScheduledEvent(
-                    id: "\(alarm.id.uuidString)-chain-\(chainIndex)",
-                    alarmId: alarm.id,
-                    fireDate: triggerDate,
-                    chainIndex: chainIndex,
-                    priority: priority,
-                    isScheduled: false
-                )
-                events.append(event)
-            }
+            let alarmEvents = generateEvents(for: alarm)
+            events.append(contentsOf: alarmEvents)
         }
 
-        // Sort by fire date
+        // Sort by fire date (earliest first)
         allPendingEvents = events.sorted()
 
         logger.info("Queue rebuilt: \(events.count) total events")
@@ -103,11 +85,12 @@ final class NotificationQueueManager {
         await syncWithIOSScheduledNotifications()
     }
 
+    /// Select next batch of events to schedule, respecting iOS 60-notification limit
     func selectNext64() -> [ScheduledEvent] {
         var selected: [ScheduledEvent] = []
 
         // Priority order: Critical -> High -> Medium -> Low
-        for priority in [ScheduledEvent.Priority.critical, .high, .medium, .low] {
+        for priority in [ScheduledEventPriority.critical, .high, .medium, .low] {
             let remaining = Constants.maxIOSNotifications - selected.count
             guard remaining > 0 else { break }
 
@@ -122,13 +105,25 @@ final class NotificationQueueManager {
         return selected
     }
 
+    /// Schedule the next batch of events to iOS
     func scheduleNext64() async throws {
+        guard let modelContext = modelContext else {
+            logger.error("ModelContext not set")
+            return
+        }
+
         let eventsToSchedule = selectNext64()
 
         logger.info("Scheduling \(eventsToSchedule.count) events to iOS")
 
         for event in eventsToSchedule {
-            try await scheduleNotification(event)
+            // Fetch alarm
+            guard let alarm = scheduler.fetchAlarm(with: event.alarmId, from: modelContext) else {
+                continue
+            }
+
+            // Schedule to iOS
+            try await scheduler.schedule(event, alarm: alarm)
 
             // Mark as scheduled
             if let index = allPendingEvents.firstIndex(where: { $0.id == event.id }) {
@@ -144,6 +139,7 @@ final class NotificationQueueManager {
         logger.info("Scheduling complete: \(totalScheduled) total scheduled")
     }
 
+    /// Check for available slots and refill queue if needed
     func checkAndRefill() async {
         logger.info("Checking for refill opportunities")
 
@@ -166,6 +162,7 @@ final class NotificationQueueManager {
         try? await scheduleNext64()
     }
 
+    /// Quick refill: schedule up to 10 events without full rebuild
     func quickRefill() async {
         await syncWithIOSScheduledNotifications()
 
@@ -180,12 +177,19 @@ final class NotificationQueueManager {
 
         logger.info("Quick refill: scheduling \(nextEvents.count) events")
 
+        guard let modelContext = modelContext else { return }
+
         for event in nextEvents {
-            try? await scheduleNotification(event)
+            guard let alarm = scheduler.fetchAlarm(with: event.alarmId, from: modelContext) else {
+                continue
+            }
+
+            try? await scheduler.schedule(event, alarm: alarm)
             scheduledIdentifiers.insert(event.id)
         }
     }
 
+    /// Full sync: load state, sync with iOS, rebuild, and schedule
     func performFullSync() async {
         logger.info("Performing full queue sync")
 
@@ -201,6 +205,7 @@ final class NotificationQueueManager {
         }
     }
 
+    /// Remove all notifications for a specific alarm
     func removeAlarm(alarmId: UUID) async {
         let alarmIdString = alarmId.uuidString
 
@@ -208,14 +213,12 @@ final class NotificationQueueManager {
         allPendingEvents.removeAll { $0.alarmId == alarmId }
 
         // Remove from iOS
-        let identifiersToRemove = self.scheduledIdentifiers.filter {
+        let identifiersToRemove = scheduledIdentifiers.filter {
             $0.hasPrefix(alarmIdString)
         }
 
         if !identifiersToRemove.isEmpty {
-            UNUserNotificationCenter.current()
-                .removePendingNotificationRequests(withIdentifiers: Array(identifiersToRemove))
-
+            scheduler.remove(identifiers: Array(identifiersToRemove))
             scheduledIdentifiers.subtract(identifiersToRemove)
             logger.info("Removed \(identifiersToRemove.count) events for alarm \(alarmIdString)")
         }
@@ -225,41 +228,41 @@ final class NotificationQueueManager {
 
     func incrementQueueVersion() {
         queueVersion += 1
-        let version = self.queueVersion
-        logger.debug("Queue version: \(version)")
+        logger.debug("Queue version: \(queueVersion)")
     }
 
+    // MARK: - Private Helpers
 
-    private func calculatePriority(for date: Date) -> ScheduledEvent.Priority {
-        let hoursUntil = date.timeIntervalSince(Date()) / 3600
+    /// Generate all chain events for a single alarm
+    private func generateEvents(for alarm: Alarm) -> [ScheduledEvent] {
+        guard let baseDate = alarm.nextFireDate else { return [] }
 
-        switch hoursUntil {
-        case ..<24:
-            return .critical  // <24h: 8-chain
-        case 24..<48:
-            return .high      // 24-48h: 8-chain
-        case 48..<168:
-            return .medium    // 2-7 days: 4-chain
-        default:
-            return .low       // 7+ days: 2-chain
+        let priority = priorityStrategy.calculatePriority(for: baseDate)
+        let chainCount = priorityStrategy.determineChainCount(for: priority)
+        let interval = chainCoordinator.calculateChainInterval(for: alarm.audioFileName)
+
+        var events: [ScheduledEvent] = []
+
+        for chainIndex in 0..<chainCount {
+            let triggerDate = baseDate.addingTimeInterval(interval * Double(chainIndex))
+
+            let event = ScheduledEvent(
+                id: "\(alarm.id.uuidString)-chain-\(chainIndex)",
+                alarmId: alarm.id,
+                fireDate: triggerDate,
+                chainIndex: chainIndex,
+                priority: priority,
+                isScheduled: false
+            )
+            events.append(event)
         }
+
+        return events
     }
 
-    private func determineChainCount(priority: ScheduledEvent.Priority) -> Int {
-        switch priority {
-        case .critical, .high:
-            return 8
-        case .medium:
-            return 4
-        case .low:
-            return 2
-        }
-    }
-
-
+    /// Sync local state with iOS pending notifications
     private func syncWithIOSScheduledNotifications() async {
-        let requests = await UNUserNotificationCenter.current().pendingNotificationRequests()
-        let iosScheduled = Set(requests.map { $0.identifier })
+        let iosScheduled = await scheduler.getPendingIdentifiers()
 
         scheduledIdentifiers = iosScheduled
 
@@ -268,122 +271,56 @@ final class NotificationQueueManager {
             allPendingEvents[index].isScheduled = iosScheduled.contains(allPendingEvents[index].id)
         }
 
-        let pendingCount = self.scheduledIdentifiers.count
-        logger.debug("iOS sync: \(pendingCount) notifications pending")
+        logger.debug("iOS sync: \(scheduledIdentifiers.count) notifications pending")
     }
 
-
-    private func scheduleNotification(_ event: ScheduledEvent) async throws {
-        guard let modelContext = modelContext else { return }
-
-        // Fetch alarm - use descriptor without predicate to avoid macro issues
-        let descriptor = FetchDescriptor<Alarm>()
-        guard let alarms = try? modelContext.fetch(descriptor),
-              let alarm = alarms.first(where: { $0.id == event.alarmId }) else {
-            logger.error("Alarm not found: \(event.alarmId)")
-            return
-        }
-
-        // Create notification content
-        let content = UNMutableNotificationContent()
-        content.title = alarm.title
-        content.body = "알람 시간이에요. 퍼뜩 일어나세요! ☀️"
-        content.categoryIdentifier = "ALARM"
-        content.interruptionLevel = .timeSensitive
-
-        // Add custom sound if available
-        if let audioFileName = alarm.audioFileName {
-            let soundName = UNNotificationSoundName(audioFileName)
-            content.sound = UNNotificationSound(named: soundName)
-        } else {
-            content.sound = .defaultCritical
-        }
-
-        // User info
-        content.userInfo = [
-            "alarmId": event.alarmId.uuidString,
-            "chainIndex": event.chainIndex,
-            "isChainNotification": true
-        ]
-
-        // Schedule
-        let components = Calendar.current.dateComponents(
-            [.year, .month, .day, .hour, .minute, .second],
-            from: event.fireDate
-        )
-        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
-        let request = UNNotificationRequest(identifier: event.id, content: content, trigger: trigger)
-
-        try await UNUserNotificationCenter.current().add(request)
-
-        logger.debug("Scheduled: \(event.id) at \(event.fireDate)")
-    }
-
-
+    /// Persist queue state to SwiftData
     private func persistQueueState() async {
         guard let modelContext = modelContext else { return }
 
-        // Delete old state
-        let descriptor = FetchDescriptor<QueueState>()
-        if let oldStates = try? modelContext.fetch(descriptor) {
-            oldStates.forEach { modelContext.delete($0) }
-        }
-
-        // Save new state
-        let state = QueueState()
-        state.scheduledIdentifiers = Array(scheduledIdentifiers)
-        state.lastSyncTimestamp = Date()
-        state.queueVersion = queueVersion
-
-        modelContext.insert(state)
-        try? modelContext.save()
-
-        logger.debug("Queue state persisted")
+        await persistence.save(
+            scheduledIdentifiers: scheduledIdentifiers,
+            version: queueVersion,
+            to: modelContext
+        )
     }
 
+    /// Load queue state from SwiftData
     private func loadQueueState() async {
         guard let modelContext = modelContext else { return }
 
-        let descriptor = FetchDescriptor<QueueState>()
-        if let state = try? modelContext.fetch(descriptor).first {
-            scheduledIdentifiers = Set(state.scheduledIdentifiers)
-            queueVersion = state.queueVersion
-            let scheduledCount = self.scheduledIdentifiers.count
-            let version = self.queueVersion
-            logger.info("Queue state loaded: \(scheduledCount) scheduled, version \(version)")
+        if let loaded = await persistence.load(from: modelContext) {
+            scheduledIdentifiers = loaded.scheduledIdentifiers
+            queueVersion = loaded.version
         }
     }
 
+    // MARK: - Debug Helpers
 
     #if DEBUG
     func dumpQueueState() {
-        let totalEvents = self.allPendingEvents.count
-        let scheduledCount = self.scheduledIdentifiers.count
-        let version = self.queueVersion
-
         logger.info("=== Queue State Dump ===")
-        logger.info("Total events: \(totalEvents)")
-        logger.info("Scheduled: \(scheduledCount)")
-        logger.info("Queue version: \(version)")
+        logger.info("Total events: \(allPendingEvents.count)")
+        logger.info("Scheduled: \(scheduledIdentifiers.count)")
+        logger.info("Queue version: \(queueVersion)")
 
-        let grouped = Dictionary(grouping: self.allPendingEvents) { $0.priority }
-        for priority in [ScheduledEvent.Priority.critical, .high, .medium, .low] {
+        let grouped = Dictionary(grouping: allPendingEvents) { $0.priority }
+        for priority in [ScheduledEventPriority.critical, .high, .medium, .low] {
             let events = grouped[priority] ?? []
             let scheduledCount = events.filter { $0.isScheduled }.count
-            let priorityName = String(describing: priority)
-            logger.info("\(priorityName): \(events.count) total, \(scheduledCount) scheduled")
+            logger.info("\(priority): \(events.count) total, \(scheduledCount) scheduled")
         }
 
         logger.info("=== End Queue State ===")
     }
 
-    func getQueueStats() -> (total: Int, scheduled: Int, byPriority: [ScheduledEvent.Priority: Int]) {
-        let byPriority = Dictionary(grouping: self.allPendingEvents) { $0.priority }
+    func getQueueStats() -> (total: Int, scheduled: Int, byPriority: [ScheduledEventPriority: Int]) {
+        let byPriority = Dictionary(grouping: allPendingEvents) { $0.priority }
             .mapValues { $0.count }
 
         return (
-            total: self.allPendingEvents.count,
-            scheduled: self.scheduledIdentifiers.count,
+            total: allPendingEvents.count,
+            scheduled: scheduledIdentifiers.count,
             byPriority: byPriority
         )
     }
