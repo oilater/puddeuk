@@ -6,16 +6,19 @@ import UserNotificationsUI
 class NotificationViewController: UIViewController, UNNotificationContentExtension {
 
     private var hostingController: UIHostingController<AlarmNotificationView>?
-    private var alarmTitle: String = "알람"
-    private var alarmTime: String = ""
+    private var alarmTitle: String = "일어나자"
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(red: 0.11, green: 0.11, blue: 0.13, alpha: 1.0)
 
+        // 적절한 크기 설정
+        let width = view.bounds.width
+        let height = width * 1.5  // 높이 = 너비 * 1.5
+        preferredContentSize = CGSize(width: width, height: height)
+
         let contentView = AlarmNotificationView(
             title: alarmTitle,
-            time: alarmTime,
             onSnooze: { [weak self] in
                 self?.handleSnooze()
             },
@@ -47,14 +50,8 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         let content = notification.request.content
         alarmTitle = content.userInfo["title"] as? String ?? content.title
 
-        let formatter = DateFormatter()
-        formatter.dateFormat = "a h:mm"
-        formatter.locale = Locale(identifier: "ko_KR")
-        alarmTime = formatter.string(from: Date())
-
         hostingController?.rootView = AlarmNotificationView(
             title: alarmTitle,
-            time: alarmTime,
             onSnooze: { [weak self] in
                 self?.handleSnooze()
             },
@@ -75,7 +72,6 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
 
 struct AlarmNotificationView: View {
     let title: String
-    let time: String
     let onSnooze: () -> Void
     let onDismiss: () -> Void
 
@@ -84,7 +80,7 @@ struct AlarmNotificationView: View {
     var body: some View {
         VStack(spacing: 20) {
             Image(systemName: "alarm.fill")
-                .font(.system(size: 50))
+                .font(.system(size: 60))
                 .foregroundColor(.teal)
                 .rotationEffect(.degrees(isAnimating ? -10 : 10))
                 .animation(
@@ -95,13 +91,10 @@ struct AlarmNotificationView: View {
                 .onAppear {
                     isAnimating = true
                 }
+                .padding(.top, 20)
 
             Text(title)
-                .font(.system(size: 24, weight: .bold))
-                .foregroundColor(.white)
-
-            Text(time)
-                .font(.system(size: 36, weight: .bold))
+                .font(.system(size: 28, weight: .bold))
                 .foregroundColor(.white)
 
             HStack(spacing: 16) {

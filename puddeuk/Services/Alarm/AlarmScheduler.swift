@@ -100,9 +100,9 @@ final class AlarmScheduler {
         for chainIndex in 0..<chainCoordinator.chainCount {
             let content = UNMutableNotificationContent()
             content.title = "스누즈 알람"
-            content.body = chainIndex == 0 ? "알람 시간입니다" : ""
+            content.body = "알람 시간입니다"
             content.sound = soundService.notificationSound(for: audioFileName)
-            content.categoryIdentifier = "ALARM"
+            content.categoryIdentifier = "ALARM"  // Notification Actions 사용
             content.interruptionLevel = .timeSensitive
             content.userInfo = [
                 "alarmId": "snooze-\(snoozeId)",
@@ -133,9 +133,9 @@ final class AlarmScheduler {
     func notificationContent(for alarm: Alarm, chainIndex: Int = 0) -> UNMutableNotificationContent {
         let content = UNMutableNotificationContent()
         content.title = alarm.title.isEmpty ? "알람" : alarm.title
-        content.body = chainIndex == 0 ? "알람 시간입니다. 탭하여 끄기" : ""
+        content.body = "퍼뜩 일어나세요!"
         content.sound = soundService.notificationSound(for: alarm.audioFileName)
-        content.categoryIdentifier = "ALARM"
+        content.categoryIdentifier = "ALARM"  // Notification Actions 사용
         content.interruptionLevel = .timeSensitive
         content.userInfo = [
             "alarmId": alarm.id.uuidString,

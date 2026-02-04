@@ -13,8 +13,11 @@ class LiveActivityManager {
     private init() {}
 
     func startAlarmActivity(alarmId: String, title: String, scheduledTime: String, audioFileName: String?) {
-        guard ActivityAuthorizationInfo().areActivitiesEnabled else {
-            Logger.alarm.warning("Live Activities not enabled")
+        let authInfo = ActivityAuthorizationInfo()
+        Logger.alarm.info("🔴 Live Activity 시작 시도 - enabled: \(authInfo.areActivitiesEnabled)")
+
+        guard authInfo.areActivitiesEnabled else {
+            Logger.alarm.warning("🔴 Live Activities NOT ENABLED!")
             return
         }
 
@@ -35,16 +38,17 @@ class LiveActivityManager {
         let content = ActivityContent(state: initialState, staleDate: nil)
 
         do {
-            currentActivity = try Activity.request(
+            let activity = try Activity.request(
                 attributes: attributes,
                 content: content,
                 pushType: nil
             )
+            currentActivity = activity
             startTime = Date()
             startUpdateTimer()
-            Logger.alarm.info("Live Activity 시작")
+            Logger.alarm.info("✅ Live Activity 시작 성공 - ID: \(activity.id)")
         } catch {
-            Logger.alarm.error("Live Activity 시작 실패: \(error.localizedDescription)")
+            Logger.alarm.error("❌ Live Activity 시작 실패: \(error.localizedDescription)")
         }
     }
 

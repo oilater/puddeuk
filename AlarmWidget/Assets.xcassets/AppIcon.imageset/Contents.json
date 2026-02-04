@@ -1,10 +1,8 @@
 {
-  "colors" : [
+  "images" : [
     {
+      "filename" : "72.png",
       "idiom" : "iphone"
-    },
-    {
-      "idiom" : "ipad"
     }
   ],
   "info" : {

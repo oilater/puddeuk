@@ -1,5 +1,6 @@
 import Foundation
 import UserNotifications
+import OSLog
 
 final class AlarmSoundService {
     static let shared = AlarmSoundService()
@@ -13,32 +14,14 @@ final class AlarmSoundService {
     }
 
     func notificationSound(for audioFileName: String?) -> UNNotificationSound {
-        #if DEBUG
-        print("🔊 [SoundService] audioFileName: \(audioFileName ?? "nil")")
-        #endif
-
         guard let audioFileName, !audioFileName.isEmpty else {
-            #if DEBUG
-            print("🔊 [SoundService] → 기본 사운드 (파일명 없음)")
-            #endif
             return .default
         }
 
-        #if DEBUG
-        print("🔊 [SoundService] 경로: \(soundsDirectory.path)")
-        print("🔊 [SoundService] 파일 존재: \(fileExists(audioFileName))")
-        #endif
-
         if fileExists(audioFileName) {
-            #if DEBUG
-            print("🔊 [SoundService] ✅ 원본 사용: \(audioFileName)")
-            #endif
             return UNNotificationSound(named: UNNotificationSoundName(audioFileName))
         }
 
-        #if DEBUG
-        print("🔊 [SoundService] ❌ 파일 없음 → 기본 사운드")
-        #endif
         return .default
     }
 
@@ -65,9 +48,9 @@ final class AlarmSoundService {
         #if DEBUG
         do {
             let files = try fileManager.contentsOfDirectory(atPath: soundsDirectory.path)
-            print("📂 Library/Sounds: \(files.count)개 파일")
+            Logger.alarm.debug("Library/Sounds: \(files.count)개 파일")
         } catch {
-            print("❌ 디렉토리 읽기 실패")
+            Logger.alarm.error("디렉토리 읽기 실패")
         }
         #endif
     }
