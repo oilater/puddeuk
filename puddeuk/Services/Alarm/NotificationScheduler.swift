@@ -26,9 +26,10 @@ final class NotificationScheduler {
             content.sound = .defaultCritical
         }
 
-        // User info for chain tracking
         content.userInfo = [
             "alarmId": event.alarmId.uuidString,
+            "audioFileName": alarm.audioFileName ?? "",
+            "title": alarm.title.isEmpty ? "알람" : alarm.title,
             "chainIndex": event.chainIndex,
             "isChainNotification": true
         ]
