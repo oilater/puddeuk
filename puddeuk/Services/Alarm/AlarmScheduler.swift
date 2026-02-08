@@ -27,10 +27,24 @@ final class AlarmScheduler {
         await NotificationQueueManager.shared.removeAlarm(alarmId: alarm.id)
 
         await chainCoordinator.cancelAlarmChain(alarmId: alarm.id.uuidString)
+        await cancelAllSnoozeAlarms()
 
         try? await NotificationQueueManager.shared.scheduleNext60()
 
         Logger.alarm.info("알람 취소 완료: \(alarm.title)")
+    }
+
+    func cancelAllSnoozeAlarms() async {
+        let pending = await center.pendingNotificationRequests()
+        let snoozeIdentifiers = pending
+            .map { $0.identifier }
+            .filter { $0.hasPrefix("snooze-") }
+
+        guard !snoozeIdentifiers.isEmpty else { return }
+
+        center.removePendingNotificationRequests(withIdentifiers: snoozeIdentifiers)
+
+        Logger.alarm.info("스누즈 알람 취소됨: \(snoozeIdentifiers.count)개")
     }
 
     func scheduleAlarm_Legacy(_ alarm: Alarm) async throws {
