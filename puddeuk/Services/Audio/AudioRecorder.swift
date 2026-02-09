@@ -63,7 +63,7 @@ class AudioRecorder: NSObject, ObservableObject {
         setupAudioSession()
 
         let soundsPath = getSoundsDirectory()
-        let uniqueName = "alarm_\(UUID().uuidString.prefix(8)).caf"
+        let uniqueName = "alarm_\(UUID().uuidString.prefix(8)).wav"
         let audioFilename = soundsPath.appendingPathComponent(uniqueName)
 
         let settings: [String: Any] = [

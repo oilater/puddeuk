@@ -66,10 +66,11 @@ final class AlarmSchedulerFactory {
     private func createAlarmKitScheduler() -> any AlarmScheduling {
         #if canImport(AlarmKit)
         if #available(iOS 26, *) {
-            Logger.alarm.info("✅ [Factory] AlarmKit 시스템 초기화")
+            Logger.alarm.info("✅ [Factory] AlarmKit 시스템 초기화 (iOS 26+)")
             return AlarmKitScheduler()
         }
         #endif
+        Logger.alarm.error("❌ [Factory] AlarmKit 초기화 실패 - iOS 버전 부족")
         fatalError("AlarmKit not available")
     }
 

@@ -75,8 +75,9 @@ final class AlarmNotificationManager: @unchecked Sendable {
             return
         }
 
-        try await scheduler.scheduleAlarm(alarm)
-        await scheduler.logPendingNotifications()
+        Logger.alarm.info("🔔 [Manager] 알람 예약 시작: \(alarm.timeString) - 스케줄러 타입: \(type(of: self.scheduler))")
+        try await self.scheduler.scheduleAlarm(alarm)
+        await self.scheduler.logPendingNotifications()
     }
 
     func scheduleSnooze(minutes: Int = 5, audioFileName: String? = nil) async throws {

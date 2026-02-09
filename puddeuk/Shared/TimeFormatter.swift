@@ -63,6 +63,12 @@ struct TimeFormatter {
             return nil
         }
 
-        return timeUntilAlarm(from: Date(), to: fireDate)
+        let now = Date()
+        print("🐛 [TimeFormatter] 현재 시간: \(now)")
+        print("🐛 [TimeFormatter] 알람 시간: \(alarm.hour):\(alarm.minute)")
+        print("🐛 [TimeFormatter] nextFireDate: \(fireDate)")
+        print("🐛 [TimeFormatter] repeatDays: \(alarm.repeatDays)")
+
+        return timeUntilAlarm(from: now, to: fireDate)
     }
 }
