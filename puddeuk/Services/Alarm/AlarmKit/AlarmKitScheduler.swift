@@ -153,8 +153,22 @@ final class AlarmKitScheduler: AlarmScheduling, @unchecked Sendable {
 
     private func makeSound(fileName: String?) -> AlertConfiguration.AlertSound {
         if let fileName = fileName {
-            return .named(fileName)
+            let nameWithoutExtension = (fileName as NSString).deletingPathExtension
+
+            let soundsPath = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0]
+                .appendingPathComponent("Sounds")
+                .appendingPathComponent(fileName)
+            let exists = FileManager.default.fileExists(atPath: soundsPath.path)
+
+            if exists {
+                Logger.alarm.info("[AlarmKit] ✅ 커스텀 사운드 사용: '\(nameWithoutExtension)' (경로: \(soundsPath.path))")
+                return .named(nameWithoutExtension)
+            } else {
+                Logger.alarm.warning("[AlarmKit] ⚠️ 파일 없음, 기본 사운드로 폴백: \(fileName)")
+                return .default
+            }
         } else {
+            Logger.alarm.info("[AlarmKit] 기본 사운드 사용 (파일명 없음)")
             return .default
         }
     }

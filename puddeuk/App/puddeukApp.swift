@@ -29,14 +29,22 @@ struct puddeukApp: App {
 
     init() {
         Task { @MainActor in
-            Logger.alarm.info("앱 시작")
+            Logger.alarm.info("🚀 앱 시작")
+            AlarmSystemInfo.shared.logSystemInfo()
         }
 
         setupDefaultFont()
 
         Task.detached(priority: .userInitiated) {
             await MainActor.run {
-                _ = AlarmNotificationService.shared
+                // ✨ Legacy 시스템일 때만 Audio Service 초기화
+                if AlarmSchedulerFactory.shared.isLegacySystem {
+                    Logger.alarm.info("🎵 Legacy Audio Service 초기화")
+                    _ = AlarmNotificationService.shared
+                } else {
+                    Logger.alarm.info("⏭️ AlarmKit 사용 - Audio Service 건너뜀")
+                }
+
                 AlarmNotificationManager.shared.registerNotificationCategories()
             }
 
@@ -47,7 +55,7 @@ struct puddeukApp: App {
             #endif
 
             await MainActor.run {
-                Logger.alarm.info("백그라운드 초기화 완료")
+                Logger.alarm.info("✅ 백그라운드 초기화 완료")
             }
         }
     }
@@ -115,7 +123,7 @@ struct puddeukApp: App {
                 }
 
                 Task {
-                    await initializeQueueManager()
+                    await initializeQueueManagerIfNeeded()
                 }
             }
         }
@@ -131,13 +139,25 @@ struct puddeukApp: App {
         if newPhase == .active && oldPhase != .active {
             checkAndResumeAlarm()
 
-            Task {
-                await NotificationQueueManager.shared.checkAndRefill()
+            // ✨ Legacy 시스템일 때만 queue refill
+            if AlarmSchedulerFactory.shared.isLegacySystem {
+                Task {
+                    Logger.alarm.debug("🔄 Legacy Queue refill 시작")
+                    await NotificationQueueManager.shared.checkAndRefill()
+                }
+            } else {
+                Logger.alarm.debug("⏭️ AlarmKit 사용 - Queue refill 건너뜀")
             }
         }
     }
 
     private func checkAndResumeAlarm() {
+        // ✨ Legacy 시스템일 때만 실행
+        guard AlarmSchedulerFactory.shared.isLegacySystem else {
+            Logger.alarm.debug("⏭️ AlarmKit 사용 - checkAndResumeAlarm 건너뜀")
+            return
+        }
+
         Task {
             let center = UNUserNotificationCenter.current()
             let delivered = await center.deliveredNotifications()
@@ -231,12 +251,19 @@ struct puddeukApp: App {
         }
     }
 
-    private func initializeQueueManager() async {
+    private func initializeQueueManagerIfNeeded() async {
+        guard AlarmSchedulerFactory.shared.isLegacySystem else {
+            Logger.alarm.info("⏭️ AlarmKit 사용 - Queue Manager 초기화 건너뜀")
+            return
+        }
+
+        Logger.alarm.info("🔄 Legacy Queue Manager 초기화 시작")
+
         await MainActor.run {
             NotificationQueueManager.shared.setModelContext(sharedModelContainer.mainContext)
         }
 
         await NotificationQueueManager.shared.performFullSync()
-        Logger.alarm.info("알림 큐 매니저 초기화 완료")
+        Logger.alarm.info("✅ 알림 큐 매니저 초기화 완료")
     }
 }
