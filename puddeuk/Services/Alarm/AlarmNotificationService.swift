@@ -5,6 +5,7 @@ import SwiftData
 import UIKit
 import Combine
 import OSLog
+import AudioToolbox
 
 final class AlarmNotificationService: NSObject, ObservableObject {
 
@@ -16,6 +17,10 @@ final class AlarmNotificationService: NSObject, ObservableObject {
     private var currentAlarmURL: URL?
     private var currentAudioFileName: String?
     private(set) var currentAlarmId: String?
+
+    // Vibration
+    private var vibrationTimer: Timer?
+    private var isVibrationActive = false
 
     private override init() {
         super.init()
@@ -223,6 +228,42 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
         formatter.dateFormat = "a h:mm"
         formatter.locale = Locale(identifier: "ko_KR")
         return formatter.string(from: Date())
+    }
+
+    // MARK: - Vibration
+
+    func startVibration() {
+        guard !isVibrationActive else { return }
+        isVibrationActive = true
+        vibratePattern()
+
+        vibrationTimer = Timer.scheduledTimer(
+            withTimeInterval: AlarmConfiguration.vibrationInterval,
+            repeats: true
+        ) { [weak self] timer in
+            guard let self = self, self.isVibrationActive else {
+                timer.invalidate()
+                return
+            }
+            self.vibratePattern()
+        }
+    }
+
+    func stopVibration() {
+        isVibrationActive = false
+        vibrationTimer?.invalidate()
+        vibrationTimer = nil
+    }
+
+    private func vibratePattern() {
+        for i in 0..<AlarmConfiguration.vibrationRepeatCount {
+            DispatchQueue.main.asyncAfter(
+                deadline: .now() + (AlarmConfiguration.vibrationPatternDelay * Double(i))
+            ) { [weak self] in
+                guard let self = self, self.isVibrationActive else { return }
+                AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+            }
+        }
     }
 }
 

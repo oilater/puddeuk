@@ -42,7 +42,7 @@ struct puddeukApp: App {
 
             #if DEBUG
             await MainActor.run {
-                AlarmSoundService.shared.logAllSoundFiles()
+                AlarmSoundFileManager.shared.logAllSoundFiles()
             }
             #endif
 

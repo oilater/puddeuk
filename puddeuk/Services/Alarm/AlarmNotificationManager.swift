@@ -28,7 +28,6 @@ final class AlarmNotificationManager: @unchecked Sendable {
 
     private let center = UNUserNotificationCenter.current()
     private let scheduler: any AlarmScheduling
-    private let chainCoordinator = AlarmChainCoordinator.shared
 
     private init() {
         // Use factory to get appropriate scheduler
@@ -102,7 +101,29 @@ final class AlarmNotificationManager: @unchecked Sendable {
     }
 
     func cancelAlarmChain(alarmId: String) async {
-        await chainCoordinator.cancelAlarmChain(alarmId: alarmId)
+        // 체인 알림 전체 취소 (iOS 17-25 전용)
+        let pendingRequests = await center.pendingNotificationRequests()
+        let deliveredNotifications = await center.deliveredNotifications()
+
+        // alarmId로 시작하는 모든 알림 식별자 필터링
+        let pendingIdentifiers = pendingRequests
+            .map { $0.identifier }
+            .filter { $0.hasPrefix(alarmId) }
+
+        let deliveredIdentifiers = deliveredNotifications
+            .map { $0.request.identifier }
+            .filter { $0.hasPrefix(alarmId) }
+
+        // 실제 존재하는 알림만 삭제
+        if !pendingIdentifiers.isEmpty {
+            center.removePendingNotificationRequests(withIdentifiers: pendingIdentifiers)
+            Logger.notification.info("체인 알림 취소됨 (pending): \(alarmId), 개수: \(pendingIdentifiers.count)")
+        }
+
+        if !deliveredIdentifiers.isEmpty {
+            center.removeDeliveredNotifications(withIdentifiers: deliveredIdentifiers)
+            Logger.notification.info("체인 알림 취소됨 (delivered): \(alarmId), 개수: \(deliveredIdentifiers.count)")
+        }
     }
 
 

@@ -14,7 +14,7 @@ final class NotificationQueueManager {
     private let priorityStrategy: PriorityStrategy
     private let persistence: QueuePersistence
     private let scheduler: NotificationScheduler
-    private let chainCoordinator: AlarmChainCoordinator
+    private let alarmScheduler = AlarmScheduler.shared
 
     // MARK: - Constants
 
@@ -38,21 +38,18 @@ final class NotificationQueueManager {
     private init(
         priorityStrategy: PriorityStrategy,
         persistence: QueuePersistence,
-        scheduler: NotificationScheduler,
-        chainCoordinator: AlarmChainCoordinator
+        scheduler: NotificationScheduler
     ) {
         self.priorityStrategy = priorityStrategy
         self.persistence = persistence
         self.scheduler = scheduler
-        self.chainCoordinator = chainCoordinator
     }
 
     convenience init() {
         self.init(
             priorityStrategy: TimeBasedPriorityStrategy(),
             persistence: QueuePersistence(),
-            scheduler: NotificationScheduler(),
-            chainCoordinator: AlarmChainCoordinator.shared
+            scheduler: NotificationScheduler()
         )
     }
 
@@ -60,14 +57,12 @@ final class NotificationQueueManager {
     static func create(
         priorityStrategy: PriorityStrategy,
         persistence: QueuePersistence,
-        scheduler: NotificationScheduler,
-        chainCoordinator: AlarmChainCoordinator
+        scheduler: NotificationScheduler
     ) -> NotificationQueueManager {
         return NotificationQueueManager(
             priorityStrategy: priorityStrategy,
             persistence: persistence,
-            scheduler: scheduler,
-            chainCoordinator: chainCoordinator
+            scheduler: scheduler
         )
     }
 
@@ -263,7 +258,7 @@ final class NotificationQueueManager {
 
         let priority = priorityStrategy.calculatePriority(for: baseDate, from: Date())
         let chainCount = priorityStrategy.determineChainCount(for: priority)
-        let interval = chainCoordinator.calculateChainInterval(for: alarm.audioFileName)
+        let interval = alarmScheduler.calculateChainInterval(for: alarm.audioFileName)
 
         var events: [ScheduledEvent] = []
 

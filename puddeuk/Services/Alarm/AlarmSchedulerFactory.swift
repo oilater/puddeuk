@@ -21,8 +21,8 @@ final class AlarmSchedulerFactory {
             return UNNotificationScheduler()
             #endif
         } else {
-            Logger.alarm.info("[Factory] UNNotificationScheduler 생성 (iOS 17-25)")
-            return UNNotificationScheduler()
+            Logger.alarm.info("[Factory] AlarmScheduler 생성 (iOS 17-25)")
+            return AlarmScheduler.shared
         }
     }
 

@@ -150,94 +150,8 @@ class AudioRecorder: NSObject, ObservableObject {
         }
 
         Logger.audio.info("녹음 완료: \(originalURL.lastPathComponent)")
-        AlarmSoundService.shared.logAllSoundFiles()
+        AlarmSoundFileManager.shared.logAllSoundFiles()
         onRecordingFinished?(originalURL)
-    }
-
-    private func createExtendedAudioFile(from originalURL: URL, completion: @escaping (URL?) -> Void) {
-        let baseName = originalURL.deletingPathExtension().lastPathComponent
-        let extendedFileName = "\(baseName)_ext.caf"
-        let extendedURL = getSoundsDirectory().appendingPathComponent(extendedFileName)
-
-        try? FileManager.default.removeItem(at: extendedURL)
-
-        DispatchQueue.global(qos: .userInitiated).async {
-            do {
-                let originalFile = try AVAudioFile(forReading: originalURL)
-                let originalFormat = originalFile.processingFormat
-                let originalLength = originalFile.length
-                let sampleRate = originalFormat.sampleRate
-
-                let originalDuration = Double(originalLength) / sampleRate
-
-                if originalDuration >= AlarmConfiguration.maxNotificationSoundDuration {
-                    DispatchQueue.main.async {
-                        completion(originalURL)
-                    }
-                    return
-                }
-
-                guard let originalBuffer = AVAudioPCMBuffer(pcmFormat: originalFormat, frameCapacity: AVAudioFrameCount(originalLength)) else {
-                    throw NSError(domain: "AudioRecorder", code: 1, userInfo: [NSLocalizedDescriptionKey: "버퍼 생성 실패"])
-                }
-                try originalFile.read(into: originalBuffer)
-
-                let targetDuration = AlarmConfiguration.maxNotificationSoundDuration
-                let repeatCount = Int(ceil(targetDuration / originalDuration))
-                let totalFrames = AVAudioFrameCount(originalLength) * AVAudioFrameCount(repeatCount)
-
-                guard let extendedBuffer = AVAudioPCMBuffer(pcmFormat: originalFormat, frameCapacity: totalFrames) else {
-                    throw NSError(domain: "AudioRecorder", code: 2, userInfo: [NSLocalizedDescriptionKey: "확장 버퍼 생성 실패"])
-                }
-
-                let channelCount = Int(originalFormat.channelCount)
-                for i in 0..<repeatCount {
-                    let destOffset = Int(originalLength) * i
-                    for channel in 0..<channelCount {
-                        if let srcData = originalBuffer.floatChannelData?[channel],
-                           let destData = extendedBuffer.floatChannelData?[channel] {
-                            for frame in 0..<Int(originalLength) {
-                                destData[destOffset + frame] = srcData[frame]
-                            }
-                        }
-                    }
-                }
-                extendedBuffer.frameLength = totalFrames
-
-                let outputSettings: [String: Any] = [
-                    AVFormatIDKey: Int(kAudioFormatLinearPCM),
-                    AVSampleRateKey: AlarmConfiguration.audioSampleRate,
-                    AVNumberOfChannelsKey: 1,
-                    AVLinearPCMBitDepthKey: AlarmConfiguration.audioBitDepth,
-                    AVLinearPCMIsFloatKey: false,
-                    AVLinearPCMIsBigEndianKey: false
-                ]
-
-                let outputFile = try AVAudioFile(forWriting: extendedURL, settings: outputSettings)
-                try outputFile.write(from: extendedBuffer)
-
-                Task { @MainActor in
-                    Logger.audio.info("30초 확장 파일 생성 완료: \(extendedURL.lastPathComponent)")
-                }
-
-                DispatchQueue.main.async {
-                    completion(extendedURL)
-                }
-            } catch {
-                Task { @MainActor in
-                    Logger.audio.error("오디오 확장 실패: \(error.localizedDescription)")
-                }
-                AnalyticsManager.shared.logRecordingSaveFailed(message: error.localizedDescription)
-                DispatchQueue.main.async {
-                    completion(nil)
-                }
-            }
-        }
-    }
-
-    func getExtendedAudioFileName(for originalFileName: String) -> String {
-        let baseName = (originalFileName as NSString).deletingPathExtension
-        return baseName + "_ext.caf"
     }
 
     func getAudioFilePath(fileName: String) -> URL {
@@ -253,10 +167,6 @@ class AudioRecorder: NSObject, ObservableObject {
         } catch {
             Logger.audio.error("오디오 파일 삭제 실패: \(error.localizedDescription)")
         }
-
-        let extendedFileName = getExtendedAudioFileName(for: fileName)
-        let extendedURL = getSoundsDirectory().appendingPathComponent(extendedFileName)
-        try? FileManager.default.removeItem(at: extendedURL)
     }
 }
 

@@ -1,4 +1,5 @@
 import Foundation
+import UserNotifications
 import OSLog
 
 /// Manages alarm sound file operations
@@ -7,8 +8,12 @@ final class AlarmSoundFileManager: Sendable {
     static let shared = AlarmSoundFileManager()
 
     private nonisolated(unsafe) let fileManager = FileManager.default
+    private let soundsDirectory: URL
 
-    private init() {}
+    private init() {
+        soundsDirectory = fileManager.urls(for: .libraryDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("Sounds")
+    }
 
     /// Prepare sound file for AlarmKit
     /// - Parameter fileName: Optional audio file name
@@ -60,5 +65,52 @@ final class AlarmSoundFileManager: Sendable {
     /// Get Documents directory URL
     private func getDocumentsDirectory() throws -> URL {
         return fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    }
+
+    // MARK: - Sound File Utilities
+
+    /// Create UNNotificationSound from audio file name
+    func notificationSound(for audioFileName: String?) -> UNNotificationSound {
+        guard let audioFileName, !audioFileName.isEmpty else {
+            return .default
+        }
+
+        if fileExists(audioFileName) {
+            return UNNotificationSound(named: UNNotificationSoundName(audioFileName))
+        }
+
+        return .default
+    }
+
+    /// Check if sound file exists in Library/Sounds/
+    func fileExists(_ fileName: String) -> Bool {
+        let fileURL = soundsDirectory.appendingPathComponent(fileName)
+        return fileManager.fileExists(atPath: fileURL.path)
+    }
+
+    /// Get file size in bytes
+    func fileSize(_ fileName: String) -> Int? {
+        let fileURL = soundsDirectory.appendingPathComponent(fileName)
+        guard let attrs = try? fileManager.attributesOfItem(atPath: fileURL.path),
+              let size = attrs[.size] as? Int else {
+            return nil
+        }
+        return size
+    }
+
+    /// Log all sound files (debug only)
+    func logAllSoundFiles() {
+        #if DEBUG
+        do {
+            let files = try fileManager.contentsOfDirectory(atPath: soundsDirectory.path)
+            Task { @MainActor in
+                Logger.alarm.debug("Library/Sounds: \(files.count)개 파일")
+            }
+        } catch {
+            Task { @MainActor in
+                Logger.alarm.error("디렉토리 읽기 실패")
+            }
+        }
+        #endif
     }
 }

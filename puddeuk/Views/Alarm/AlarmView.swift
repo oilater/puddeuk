@@ -6,7 +6,6 @@ struct AlarmView: View {
     var notificationAudioFileName: String?
 
     @StateObject private var audioPlayer = AudioPlayer()
-    @StateObject private var vibrationManager = VibrationManager()
     @State private var isDismissed = false
 
     private var displayTitle: String {
@@ -98,7 +97,7 @@ struct AlarmView: View {
 
     private func startAlarm() {
         guard !AlarmNotificationService.shared.isAlarmPlaying else {
-            vibrationManager.start()
+            AlarmNotificationService.shared.startVibration()
             return
         }
 
@@ -107,13 +106,13 @@ struct AlarmView: View {
         } else {
             audioPlayer.playDefaultSound()
         }
-        vibrationManager.start()
+        AlarmNotificationService.shared.startVibration()
     }
 
     private func stopAlarm() {
         isDismissed = true
         audioPlayer.stop()
-        vibrationManager.stop()
+        AlarmNotificationService.shared.stopVibration()
 
         Task {
             if let alarm = alarm {
@@ -140,7 +139,7 @@ struct AlarmView: View {
     private func snoozeAlarm(minutes: Int) {
         isDismissed = true
         audioPlayer.stop()
-        vibrationManager.stop()
+        AlarmNotificationService.shared.stopVibration()
 
         Task {
             if let alarm = alarm {
