@@ -28,7 +28,6 @@ final class AlarmNotificationManager: @unchecked Sendable {
 
     private let center = UNUserNotificationCenter.current()
     private let scheduler: any AlarmScheduling
-    private let legacyScheduler = AlarmScheduler.shared  // Legacy direct access
     private let chainCoordinator = AlarmChainCoordinator.shared
 
     private init() {

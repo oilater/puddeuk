@@ -27,7 +27,6 @@ final class AlarmKitScheduler: AlarmScheduling, @unchecked Sendable {
     // MARK: - Properties
 
     private let alarmManager = AlarmKit.AlarmManager.shared
-    private let soundService = AlarmSoundService.shared
     private let soundFileManager = AlarmSoundFileManager.shared
 
     init() {}

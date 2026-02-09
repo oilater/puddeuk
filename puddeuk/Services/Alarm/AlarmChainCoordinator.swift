@@ -13,7 +13,6 @@ final class AlarmChainCoordinator {
     private let center = UNUserNotificationCenter.current()
 
     let chainCount = AlarmConfiguration.chainCount
-    let chainInterval = AlarmConfiguration.chainInterval
 
     private init() {}
 

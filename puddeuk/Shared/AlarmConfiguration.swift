@@ -1,12 +1,8 @@
 import Foundation
 
 enum AlarmConfiguration {
-    /// @deprecated: Use PriorityStrategy.determineChainCount() instead
-    /// Legacy chain count (no longer used in queue system)
-    /// Current system uses priority-based chain count: Critical/High=15, Medium=8, Low=4
+    /// Chain count for AlarmChainCoordinator (iOS 17-25 background alarm chains)
     static let chainCount = 8
-
-    static let chainInterval: TimeInterval = 26.5
 
     static let maxNotificationSoundDuration: TimeInterval = 30.0
     static let maxRecordingDuration: TimeInterval = 25.0
