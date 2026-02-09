@@ -3,7 +3,7 @@ import UserNotifications
 import SwiftData
 import OSLog
 
-enum AlarmNotificationError: LocalizedError {
+enum AlarmNotificationError: LocalizedError, Sendable {
     case authorizationDenied
     case schedulingFailed(String)
     case invalidAlarmDate
@@ -27,23 +27,21 @@ final class AlarmNotificationManager: @unchecked Sendable {
     static let shared = AlarmNotificationManager()
 
     private let center = UNUserNotificationCenter.current()
-    private let scheduler = AlarmScheduler.shared
+    private let scheduler: any AlarmScheduling
+    private let legacyScheduler = AlarmScheduler.shared  // Legacy direct access
     private let chainCoordinator = AlarmChainCoordinator.shared
 
-    private init() {}
+    private init() {
+        // Use factory to get appropriate scheduler
+        self.scheduler = AlarmSchedulerFactory.shared.createScheduler()
+        Logger.notification.info("AlarmNotificationManager 초기화: \(AlarmSchedulerFactory.shared.schedulerDescription)")
+    }
 
 
     @discardableResult
     func requestAuthorization() async -> Bool {
-        do {
-            let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
-            Logger.notification.info("알림 권한: \(granted ? "허용됨" : "거부됨")")
-            await logAuthorizationStatus()
-            return granted
-        } catch {
-            Logger.notification.error("알림 권한 요청 실패: \(error.localizedDescription)")
-            return false
-        }
+        // Use scheduler's authorization request
+        return await scheduler.requestAuthorization()
     }
 
     func logAuthorizationStatus() async {
@@ -83,23 +81,25 @@ final class AlarmNotificationManager: @unchecked Sendable {
             return
         }
 
+        // Use new scheduler interface
         try await scheduler.scheduleAlarm(alarm)
-        await logPendingNotifications()
+        await scheduler.logPendingNotifications()
     }
 
     func scheduleSnooze(minutes: Int = 5, audioFileName: String? = nil) async throws {
+        // Use new scheduler interface
         try await scheduler.scheduleSnooze(minutes: minutes, audioFileName: audioFileName)
     }
 
 
     func cancelAlarm(_ alarm: Alarm) async {
+        // Use new scheduler interface
         await scheduler.cancelAlarm(alarm)
-        Logger.alarm.info("알람 취소됨: \(alarm.title)")
     }
 
     func cancelAllAlarms() async {
-        center.removeAllPendingNotificationRequests()
-        Logger.alarm.info("모든 알람 취소됨")
+        // Use new scheduler interface
+        await scheduler.cancelAllAlarms()
     }
 
     func cancelAlarmChain(alarmId: String) async {
@@ -136,33 +136,7 @@ final class AlarmNotificationManager: @unchecked Sendable {
     }
 
     func logPendingNotifications() async {
-        let requests = await center.pendingNotificationRequests()
-        Logger.notification.debug("현재 스케줄된 알림 개수: \(requests.count)")
-
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-
-        for request in requests {
-            let timeString = formatTrigger(request.trigger, formatter: formatter)
-            Logger.notification.debug("알림: \(request.content.title) - \(timeString)")
-        }
-    }
-
-    private func formatTrigger(_ trigger: UNNotificationTrigger?, formatter: DateFormatter) -> String {
-        switch trigger {
-        case let calendarTrigger as UNCalendarNotificationTrigger:
-            if let date = Calendar.current.date(from: calendarTrigger.dateComponents) {
-                return formatter.string(from: date)
-            }
-            let hour = calendarTrigger.dateComponents.hour ?? 0
-            let minute = calendarTrigger.dateComponents.minute ?? 0
-            return String(format: "%02d:%02d", hour, minute)
-
-        case let intervalTrigger as UNTimeIntervalNotificationTrigger:
-            return "\(Int(intervalTrigger.timeInterval))초 후"
-
-        default:
-            return "알 수 없음"
-        }
+        // Use new scheduler interface
+        await scheduler.logPendingNotifications()
     }
 }
