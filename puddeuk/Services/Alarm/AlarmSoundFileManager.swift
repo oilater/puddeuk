@@ -2,8 +2,6 @@ import Foundation
 import UserNotifications
 import OSLog
 
-/// Manages alarm sound file operations
-/// Handles copying audio files from Documents to Library/Sounds/ directory
 final class AlarmSoundFileManager: Sendable {
     static let shared = AlarmSoundFileManager()
 
@@ -15,10 +13,6 @@ final class AlarmSoundFileManager: Sendable {
             .appendingPathComponent("Sounds")
     }
 
-    /// Prepare sound file for AlarmKit
-    /// - Parameter fileName: Optional audio file name
-    /// - Returns: File name if successfully prepared, nil otherwise
-    /// - Throws: File system errors
     func prepareSoundFile(_ fileName: String?) async throws -> String? {
         guard let fileName = fileName else {
             return nil
@@ -27,12 +21,10 @@ final class AlarmSoundFileManager: Sendable {
         let soundsURL = try getSoundsDirectory()
         let destURL = soundsURL.appendingPathComponent(fileName)
 
-        // Check if file already exists in Library/Sounds/
         if fileManager.fileExists(atPath: destURL.path) {
             return fileName
         }
 
-        // Try to copy from Documents directory
         let sourceURL = try getDocumentsDirectory().appendingPathComponent(fileName)
 
         guard fileManager.fileExists(atPath: sourceURL.path) else {
@@ -50,9 +42,7 @@ final class AlarmSoundFileManager: Sendable {
         return fileName
     }
 
-    // MARK: - Private Helpers
 
-    /// Get Library/Sounds/ directory URL, creating it if needed
     private func getSoundsDirectory() throws -> URL {
         let libraryURL = fileManager.urls(for: .libraryDirectory, in: .userDomainMask)[0]
         let soundsURL = libraryURL.appendingPathComponent("Sounds")
@@ -62,14 +52,11 @@ final class AlarmSoundFileManager: Sendable {
         return soundsURL
     }
 
-    /// Get Documents directory URL
     private func getDocumentsDirectory() throws -> URL {
         return fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
     }
 
-    // MARK: - Sound File Utilities
 
-    /// Create UNNotificationSound from audio file name
     func notificationSound(for audioFileName: String?) -> UNNotificationSound {
         guard let audioFileName, !audioFileName.isEmpty else {
             return .default
@@ -82,13 +69,11 @@ final class AlarmSoundFileManager: Sendable {
         return .default
     }
 
-    /// Check if sound file exists in Library/Sounds/
     func fileExists(_ fileName: String) -> Bool {
         let fileURL = soundsDirectory.appendingPathComponent(fileName)
         return fileManager.fileExists(atPath: fileURL.path)
     }
 
-    /// Get file size in bytes
     func fileSize(_ fileName: String) -> Int? {
         let fileURL = soundsDirectory.appendingPathComponent(fileName)
         guard let attrs = try? fileManager.attributesOfItem(atPath: fileURL.path),
@@ -98,7 +83,6 @@ final class AlarmSoundFileManager: Sendable {
         return size
     }
 
-    /// Log all sound files (debug only)
     func logAllSoundFiles() {
         #if DEBUG
         do {

@@ -2,7 +2,6 @@ import Foundation
 import SwiftData
 import OSLog
 
-/// Handles persistence of queue state to SwiftData
 @MainActor
 final class QueuePersistence {
     private let logger = Logger(subsystem: "com.puddeuk.app", category: "QueuePersistence")
@@ -10,13 +9,11 @@ final class QueuePersistence {
     nonisolated init() {}
 
     func save(scheduledIdentifiers: Set<String>, version: Int, to context: ModelContext) async {
-        // Delete old state
         let descriptor = FetchDescriptor<QueueState>()
         if let oldStates = try? context.fetch(descriptor) {
             oldStates.forEach { context.delete($0) }
         }
 
-        // Save new state
         let state = QueueState()
         state.scheduledIdentifiers = Array(scheduledIdentifiers)
         state.lastSyncTimestamp = Date()

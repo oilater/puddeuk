@@ -2,15 +2,11 @@ import Foundation
 import SwiftData
 import OSLog
 
-/// Factory for creating appropriate alarm scheduler based on iOS version
 final class AlarmSchedulerFactory {
-    /// Shared singleton instance
     static let shared = AlarmSchedulerFactory()
 
     private init() {}
 
-    /// Create appropriate scheduler for current iOS version
-    /// - Returns: AlarmKitScheduler for iOS 26+, UNNotificationScheduler for iOS 17-25
     func createScheduler() -> any AlarmScheduling {
         if #available(iOS 26, *) {
             #if canImport(AlarmKit)
@@ -26,8 +22,6 @@ final class AlarmSchedulerFactory {
         }
     }
 
-    /// Check if AlarmKit is available on current device
-    /// - Returns: True if running iOS 26+ and AlarmKit is available
     var isAlarmKitAvailable: Bool {
         if #available(iOS 26, *) {
             #if canImport(AlarmKit)
@@ -40,7 +34,6 @@ final class AlarmSchedulerFactory {
         }
     }
 
-    /// Get human-readable description of current scheduler
     var schedulerDescription: String {
         if #available(iOS 26, *) {
             #if canImport(AlarmKit)

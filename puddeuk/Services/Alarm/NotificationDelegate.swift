@@ -9,14 +9,11 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     var modelContext: ModelContext?
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        Logger.notification.info("알림 수신 (포그라운드): \(notification.request.content.title)")
-
         let userInfo = notification.request.content.userInfo
         let audioFileName = userInfo["audioFileName"] as? String
         let title = userInfo["title"] as? String ?? "알람"
         let alarmId = userInfo["alarmId"] as? String ?? ""
 
-        // Live Activity 시작
         let timeString = getCurrentTimeString()
         Task { @MainActor in
             LiveActivityManager.shared.startAlarmActivity(
@@ -31,7 +28,6 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
             showAlarmView(alarmId: uuid)
         }
 
-        // 알림 배너 표시 (액션 버튼 포함)
         completionHandler([.banner, .sound, .list])
     }
 
@@ -43,14 +39,11 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        Logger.notification.info("알림 액션: \(response.actionIdentifier)")
-
         let userInfo = response.notification.request.content.userInfo
         let audioFileName = userInfo["audioFileName"] as? String
 
         switch response.actionIdentifier {
         case "SNOOZE_ACTION":
-            Logger.notification.info("스누즈 액션 실행")
             Task {
                 await AlarmNotificationService.shared.stopAlarm()
                 try? await AlarmNotificationManager.shared.scheduleSnooze(
@@ -60,7 +53,6 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
             }
 
         case "DISMISS_ACTION":
-            Logger.notification.info("끄기 액션 실행")
             Task {
                 await AlarmNotificationService.shared.stopAlarm()
                 await MainActor.run {
@@ -70,7 +62,6 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
             }
 
         case UNNotificationDefaultActionIdentifier:
-            // 알림 탭 - 알람 화면 보여주기
             if let alarmId = extractAlarmId(from: response.notification) {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     self.showAlarmView(alarmId: alarmId)

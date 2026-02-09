@@ -18,7 +18,6 @@ final class AlarmNotificationService: NSObject, ObservableObject {
     private var currentAudioFileName: String?
     private(set) var currentAlarmId: String?
 
-    // Vibration
     private var vibrationTimer: Timer?
     private var isVibrationActive = false
 
@@ -32,15 +31,12 @@ final class AlarmNotificationService: NSObject, ObservableObject {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.playback, mode: .default, options: [])
             try session.setActive(true)
-            Logger.audio.info("오디오 세션 활성화")
         } catch {
             Logger.audio.error("오디오 세션 설정 실패: \(error.localizedDescription)")
         }
     }
 
     func startAlarmWithFileName(_ fileName: String, alarmId: String? = nil) {
-        Logger.audio.info("알람 파일 재생 시도: \(fileName)")
-
         let url = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("Sounds")
             .appendingPathComponent(fileName)
@@ -78,7 +74,6 @@ final class AlarmNotificationService: NSObject, ObservableObject {
             let success = alarmPlayer?.play() ?? false
             if success {
                 isAlarmPlaying = true
-                Logger.audio.info("알람 재생 시작")
             } else {
                 Logger.audio.error("알람 재생 실패: play() returned false")
                 isAlarmPlaying = true
@@ -101,7 +96,6 @@ final class AlarmNotificationService: NSObject, ObservableObject {
         currentAudioFileName = nil
         currentAlarmId = nil
         isAlarmPlaying = false
-        Logger.audio.info("알람 중지")
     }
 
     func getCurrentAudioFileName() -> String? {
@@ -125,8 +119,6 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
         let title = userInfo["title"] as? String ?? "알람"
         let alarmId = userInfo["alarmId"] as? String ?? ""
         let chainIndex = userInfo["chainIndex"] as? Int ?? 0
-
-        Logger.notification.info("알람 도착 (포그라운드): \(title), chain: \(chainIndex)")
 
         Task {
             await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
@@ -171,7 +163,6 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
 
         switch response.actionIdentifier {
         case "SNOOZE_ACTION":
-            Logger.notification.info("스누즈 액션")
             await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
             await stopAlarm()
             await MainActor.run {
@@ -184,7 +175,6 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
             return
 
         case "DISMISS_ACTION":
-            Logger.notification.info("끄기 액션")
             await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
             await stopAlarm()
             await MainActor.run {
@@ -193,12 +183,10 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
             return
 
         case UNNotificationDismissActionIdentifier:
-            Logger.notification.info("알림 스와이프 닫기: \(title)")
             await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
             return
 
         default:
-            Logger.notification.info("알림 탭 → 앱으로 이동: \(title)")
 
             await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
 
@@ -230,7 +218,6 @@ extension AlarmNotificationService: UNUserNotificationCenterDelegate {
         return formatter.string(from: Date())
     }
 
-    // MARK: - Vibration
 
     func startVibration() {
         guard !isVibrationActive else { return }

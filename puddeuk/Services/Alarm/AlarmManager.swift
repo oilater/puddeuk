@@ -49,7 +49,6 @@ class AlarmManager: ObservableObject {
             self.activeAlarm = nil
             self.notificationTitle = nil
             self.notificationAudioFileName = nil
-            // Small delay to ensure AlarmView dismisses first
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 self.showMissionCompleteView = true
             }

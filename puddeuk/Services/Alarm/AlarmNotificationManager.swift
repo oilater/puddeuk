@@ -30,15 +30,12 @@ final class AlarmNotificationManager: @unchecked Sendable {
     private let scheduler: any AlarmScheduling
 
     private init() {
-        // Use factory to get appropriate scheduler
         self.scheduler = AlarmSchedulerFactory.shared.createScheduler()
-        Logger.notification.info("AlarmNotificationManager 초기화: \(AlarmSchedulerFactory.shared.schedulerDescription)")
     }
 
 
     @discardableResult
     func requestAuthorization() async -> Bool {
-        // Use scheduler's authorization request
         return await scheduler.requestAuthorization()
     }
 
@@ -69,7 +66,6 @@ final class AlarmNotificationManager: @unchecked Sendable {
         )
 
         center.setNotificationCategories([alarmCategory])
-        Logger.notification.info("알림 카테고리 등록 완료")
     }
 
 
@@ -79,33 +75,27 @@ final class AlarmNotificationManager: @unchecked Sendable {
             return
         }
 
-        // Use new scheduler interface
         try await scheduler.scheduleAlarm(alarm)
         await scheduler.logPendingNotifications()
     }
 
     func scheduleSnooze(minutes: Int = 5, audioFileName: String? = nil) async throws {
-        // Use new scheduler interface
         try await scheduler.scheduleSnooze(minutes: minutes, audioFileName: audioFileName)
     }
 
 
     func cancelAlarm(_ alarm: Alarm) async {
-        // Use new scheduler interface
         await scheduler.cancelAlarm(alarm)
     }
 
     func cancelAllAlarms() async {
-        // Use new scheduler interface
         await scheduler.cancelAllAlarms()
     }
 
     func cancelAlarmChain(alarmId: String) async {
-        // 체인 알림 전체 취소 (iOS 17-25 전용)
         let pendingRequests = await center.pendingNotificationRequests()
         let deliveredNotifications = await center.deliveredNotifications()
 
-        // alarmId로 시작하는 모든 알림 식별자 필터링
         let pendingIdentifiers = pendingRequests
             .map { $0.identifier }
             .filter { $0.hasPrefix(alarmId) }
@@ -114,7 +104,6 @@ final class AlarmNotificationManager: @unchecked Sendable {
             .map { $0.request.identifier }
             .filter { $0.hasPrefix(alarmId) }
 
-        // 실제 존재하는 알림만 삭제
         if !pendingIdentifiers.isEmpty {
             center.removePendingNotificationRequests(withIdentifiers: pendingIdentifiers)
             Logger.notification.info("체인 알림 취소됨 (pending): \(alarmId), 개수: \(pendingIdentifiers.count)")
@@ -156,7 +145,6 @@ final class AlarmNotificationManager: @unchecked Sendable {
     }
 
     func logPendingNotifications() async {
-        // Use new scheduler interface
         await scheduler.logPendingNotifications()
     }
 }

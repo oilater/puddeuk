@@ -3,27 +3,22 @@ import SwiftData
 import UserNotifications
 import OSLog
 
-/// Manages the queue of notification events, ensuring iOS 60-notification limit is respected
-/// while prioritizing imminent alarms with full chain coverage.
 @MainActor
 final class NotificationQueueManager {
     static let shared = NotificationQueueManager()
 
-    // MARK: - Dependencies
 
     private let priorityStrategy: PriorityStrategy
     private let persistence: QueuePersistence
     private let scheduler: NotificationScheduler
     private let alarmScheduler = AlarmScheduler.shared
 
-    // MARK: - Constants
 
     private enum Constants {
         static let maxIOSNotifications = 60
         static let quickRefillLimit = 10
     }
 
-    // MARK: - State
 
     private var allPendingEvents: [ScheduledEvent] = []
     private var scheduledIdentifiers: Set<String> = []
@@ -33,7 +28,6 @@ final class NotificationQueueManager {
 
     private var modelContext: ModelContext?
 
-    // MARK: - Initialization
 
     private init(
         priorityStrategy: PriorityStrategy,
@@ -53,7 +47,6 @@ final class NotificationQueueManager {
         )
     }
 
-    // Testable initializer with dependency injection
     static func create(
         priorityStrategy: PriorityStrategy,
         persistence: QueuePersistence,
@@ -66,28 +59,22 @@ final class NotificationQueueManager {
         )
     }
 
-    // MARK: - Public API
 
     func setModelContext(_ context: ModelContext) {
         self.modelContext = context
     }
 
-    /// Rebuild the entire queue from enabled alarms
     func rebuildQueue() async throws {
         guard let modelContext = modelContext else {
             logger.error("ModelContext not set")
             return
         }
 
-        logger.info("Rebuilding notification queue")
-
-        // Fetch all enabled alarms
         let descriptor = FetchDescriptor<Alarm>(
             predicate: #Predicate { $0.isEnabled }
         )
         let alarms = try modelContext.fetch(descriptor)
 
-        // Generate events for each alarm
         var events: [ScheduledEvent] = []
 
         for alarm in alarms {
@@ -95,20 +82,14 @@ final class NotificationQueueManager {
             events.append(contentsOf: alarmEvents)
         }
 
-        // Sort by fire date (earliest first)
         allPendingEvents = events.sorted()
 
-        logger.info("Queue rebuilt: \(events.count) total events")
-
-        // Sync with iOS to mark already scheduled events
         await syncWithIOSScheduledNotifications()
     }
 
-    /// Select next batch of events to schedule, respecting iOS 60-notification limit
     func selectNext60() -> [ScheduledEvent] {
         var selected: [ScheduledEvent] = []
 
-        // Priority order: Critical -> High -> Medium -> Low
         for priority in [ScheduledEventPriority.critical, .high, .medium, .low] {
             let remaining = Constants.maxIOSNotifications - selected.count
             guard remaining > 0 else { break }
@@ -124,7 +105,6 @@ final class NotificationQueueManager {
         return selected
     }
 
-    /// Schedule the next batch of events to iOS
     func scheduleNext60() async throws {
         guard let modelContext = modelContext else {
             logger.error("ModelContext not set")
@@ -133,36 +113,24 @@ final class NotificationQueueManager {
 
         let eventsToSchedule = selectNext60()
 
-        logger.info("Scheduling \(eventsToSchedule.count) events to iOS")
-
         for event in eventsToSchedule {
-            // Fetch alarm
             guard let alarm = scheduler.fetchAlarm(with: event.alarmId, from: modelContext) else {
                 continue
             }
 
-            // Schedule to iOS
             try await scheduler.schedule(event, alarm: alarm)
 
-            // Mark as scheduled
             if let index = allPendingEvents.firstIndex(where: { $0.id == event.id }) {
                 allPendingEvents[index].isScheduled = true
             }
             scheduledIdentifiers.insert(event.id)
         }
 
-        // Persist state
         await persistQueueState()
-
-        let totalScheduled = self.scheduledIdentifiers.count
-        logger.info("Scheduling complete: \(totalScheduled) total scheduled")
     }
 
-    /// Check for available slots and refill queue if needed
     func checkAndRefill() async {
-        logger.info("Checking for refill opportunities")
 
-        // Sync with iOS first
         await syncWithIOSScheduledNotifications()
 
         let availableSlots = Constants.maxIOSNotifications - scheduledIdentifiers.count
@@ -172,16 +140,11 @@ final class NotificationQueueManager {
             return
         }
 
-        logger.info("\(availableSlots) slots available, starting refill")
-
-        // Rebuild queue (alarms may have changed)
         try? await rebuildQueue()
 
-        // Schedule next batch
         try? await scheduleNext60()
     }
 
-    /// Quick refill: schedule up to 10 events without full rebuild
     func quickRefill() async {
         await syncWithIOSScheduledNotifications()
 
@@ -193,8 +156,6 @@ final class NotificationQueueManager {
         guard availableSlots > 0 else { return }
 
         let nextEvents = Array(selectNext60().prefix(availableSlots))
-
-        logger.info("Quick refill: scheduling \(nextEvents.count) events")
 
         guard let modelContext = modelContext else { return }
 
@@ -208,30 +169,23 @@ final class NotificationQueueManager {
         }
     }
 
-    /// Full sync: load state, sync with iOS, rebuild, and schedule
     func performFullSync() async {
-        logger.info("Performing full queue sync")
-
         await loadQueueState()
         await syncWithIOSScheduledNotifications()
 
         do {
             try await rebuildQueue()
             try await scheduleNext60()
-            logger.info("Full sync complete")
         } catch {
             logger.error("Full sync failed: \(error.localizedDescription)")
         }
     }
 
-    /// Remove all notifications for a specific alarm
     func removeAlarm(alarmId: UUID) async {
         let alarmIdString = alarmId.uuidString
 
-        // Remove from queue
         allPendingEvents.removeAll { $0.alarmId == alarmId }
 
-        // Remove from iOS
         let identifiersToRemove = scheduledIdentifiers.filter {
             $0.hasPrefix(alarmIdString)
         }
@@ -250,9 +204,7 @@ final class NotificationQueueManager {
         logger.debug("Queue version: \(self.queueVersion)")
     }
 
-    // MARK: - Private Helpers
 
-    /// Generate all chain events for a single alarm
     private func generateEvents(for alarm: Alarm) -> [ScheduledEvent] {
         guard let baseDate = alarm.nextFireDate else { return [] }
 
@@ -279,13 +231,11 @@ final class NotificationQueueManager {
         return events
     }
 
-    /// Sync local state with iOS pending notifications
     private func syncWithIOSScheduledNotifications() async {
         let iosScheduled = await scheduler.getPendingIdentifiers()
 
         scheduledIdentifiers = iosScheduled
 
-        // Update event scheduled status
         for index in allPendingEvents.indices {
             allPendingEvents[index].isScheduled = iosScheduled.contains(allPendingEvents[index].id)
         }
@@ -293,7 +243,6 @@ final class NotificationQueueManager {
         logger.debug("iOS sync: \(self.scheduledIdentifiers.count) notifications pending")
     }
 
-    /// Persist queue state to SwiftData
     private func persistQueueState() async {
         guard let modelContext = modelContext else { return }
 
@@ -304,7 +253,6 @@ final class NotificationQueueManager {
         )
     }
 
-    /// Load queue state from SwiftData
     private func loadQueueState() async {
         guard let modelContext = modelContext else { return }
 
@@ -314,7 +262,6 @@ final class NotificationQueueManager {
         }
     }
 
-    // MARK: - Debug Helpers
 
     #if DEBUG
     func dumpQueueState() {

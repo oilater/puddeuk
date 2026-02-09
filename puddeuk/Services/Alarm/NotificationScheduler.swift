@@ -3,14 +3,12 @@ import SwiftData
 import UserNotifications
 import OSLog
 
-/// Handles actual scheduling of notifications to iOS
 @MainActor
 final class NotificationScheduler {
     private let logger = Logger(subsystem: "com.puddeuk.app", category: "NotificationScheduler")
 
     nonisolated init() {}
 
-    /// Schedule a single notification event to iOS
     func schedule(_ event: ScheduledEvent, alarm: Alarm) async throws {
         let content = UNMutableNotificationContent()
         content.title = alarm.title
@@ -18,7 +16,6 @@ final class NotificationScheduler {
         content.categoryIdentifier = "ALARM"
         content.interruptionLevel = .timeSensitive
 
-        // Add custom sound if available
         if let audioFileName = alarm.audioFileName {
             let soundName = UNNotificationSoundName(audioFileName)
             content.sound = UNNotificationSound(named: soundName)
@@ -34,7 +31,6 @@ final class NotificationScheduler {
             "isChainNotification": true
         ]
 
-        // Create trigger from fire date
         let components = Calendar.current.dateComponents(
             [.year, .month, .day, .hour, .minute, .second],
             from: event.fireDate
@@ -47,7 +43,6 @@ final class NotificationScheduler {
         logger.debug("Scheduled: \(event.id) at \(event.fireDate)")
     }
 
-    /// Fetch alarm from SwiftData
     func fetchAlarm(with id: UUID, from context: ModelContext) -> Alarm? {
         let descriptor = FetchDescriptor<Alarm>()
         guard let alarms = try? context.fetch(descriptor) else {
@@ -63,13 +58,11 @@ final class NotificationScheduler {
         return alarm
     }
 
-    /// Get all pending notification identifiers from iOS
     func getPendingIdentifiers() async -> Set<String> {
         let requests = await UNUserNotificationCenter.current().pendingNotificationRequests()
         return Set(requests.map { $0.identifier })
     }
 
-    /// Remove specific notification identifiers from iOS
     func remove(identifiers: [String]) {
         guard !identifiers.isEmpty else { return }
 

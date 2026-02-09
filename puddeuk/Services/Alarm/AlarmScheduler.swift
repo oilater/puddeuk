@@ -21,8 +21,6 @@ final class AlarmScheduler: AlarmScheduling {
            Date().distance(to: nextFire) < 48 * 3600 {
             try await NotificationQueueManager.shared.scheduleNext60()
         }
-
-        Logger.alarm.info("알람 스케줄링 성공 (큐 시스템): \(alarm.title)")
     }
 
     func cancelAlarm(_ alarm: Alarm) async {
@@ -32,8 +30,6 @@ final class AlarmScheduler: AlarmScheduling {
         await cancelAllSnoozeAlarms()
 
         try? await NotificationQueueManager.shared.scheduleNext60()
-
-        Logger.alarm.info("알람 취소 완료: \(alarm.title)")
     }
 
     func cancelAllSnoozeAlarms() async {
@@ -58,8 +54,6 @@ final class AlarmScheduler: AlarmScheduling {
     }
 
     func scheduleSingleAlarm(_ alarm: Alarm) async throws {
-        Logger.alarm.info("단일 알람 스케줄링 시작: \(alarm.title)")
-
         guard let triggerDate = nextAlarmDate(for: alarm) else {
             throw AlarmNotificationError.invalidAlarmDate
         }
@@ -87,12 +81,9 @@ final class AlarmScheduler: AlarmScheduling {
 
             try await center.add(request)
         }
-
-        Logger.alarm.info("알람 스케줄링 성공: \(alarm.title) - \(alarm.timeString)")
     }
 
     func scheduleRepeatingAlarm(_ alarm: Alarm) async throws {
-        Logger.alarm.info("반복 알람 스케줄링 시작: \(alarm.title)")
 
         let dynamicInterval = self.calculateChainInterval(for: alarm.audioFileName)
 
@@ -118,7 +109,6 @@ final class AlarmScheduler: AlarmScheduling {
                 try await center.add(request)
             }
         }
-        Logger.alarm.info("반복 알람 스케줄링 성공: \(alarm.title) - \(alarm.timeString)")
     }
 
     func scheduleSnooze(minutes: Int = 5, audioFileName: String? = nil) async throws {
@@ -132,7 +122,7 @@ final class AlarmScheduler: AlarmScheduling {
             content.title = "스누즈 알람"
             content.body = "알람 시간입니다"
             content.sound = soundFileManager.notificationSound(for: audioFileName)
-            content.categoryIdentifier = "ALARM"  // Notification Actions 사용
+            content.categoryIdentifier = "ALARM"
             content.interruptionLevel = .timeSensitive
             content.userInfo = [
                 "alarmId": "snooze-\(snoozeId)",
@@ -155,8 +145,6 @@ final class AlarmScheduler: AlarmScheduling {
 
             try await center.add(request)
         }
-
-        Logger.alarm.info("스누즈 알람 예약됨: \(minutes)분 후 (체인 \(self.self.chainCount)개)")
     }
 
     func notificationContent(for alarm: Alarm, chainIndex: Int = 0) -> UNMutableNotificationContent {
@@ -164,7 +152,7 @@ final class AlarmScheduler: AlarmScheduling {
         content.title = alarm.title.isEmpty ? "알람" : alarm.title
         content.body = "알람 시간이에요. 퍼뜩 일어나세요!"
         content.sound = soundFileManager.notificationSound(for: alarm.audioFileName)
-        content.categoryIdentifier = "ALARM"  // Notification Actions 사용
+        content.categoryIdentifier = "ALARM"
         content.interruptionLevel = .timeSensitive
         content.userInfo = [
             "alarmId": alarm.id.uuidString,
@@ -201,9 +189,7 @@ final class AlarmScheduler: AlarmScheduling {
         Logger.alarm.debug("알람 예약 시간: \(triggerDate), 남은 시간: \(minutes)분")
     }
 
-    // MARK: - Chain Alarm Management (from AlarmChainCoordinator)
 
-    /// 오디오 파일의 실제 재생 시간 계산
     func calculateAudioDuration(for audioFileName: String?) -> TimeInterval {
         guard let fileName = audioFileName,
               let fileSize = soundFileManager.fileSize(fileName) else {
@@ -217,7 +203,6 @@ final class AlarmScheduler: AlarmScheduling {
         return max(duration, 1.0)
     }
 
-    /// 체인 알림 간격 계산 (오디오 길이 + 1초 텀)
     func calculateChainInterval(for audioFileName: String?) -> TimeInterval {
         let duration = calculateAudioDuration(for: audioFileName)
         let interval = duration + 1.0
@@ -226,13 +211,10 @@ final class AlarmScheduler: AlarmScheduling {
         return interval
     }
 
-    /// 체인 알림 전체 취소 (실제 존재하는 알림만 조회해서 안전하게 삭제)
     func cancelAlarmChain(alarmId: String) async {
-        // 실제 pending notifications 조회
         let pendingRequests = await center.pendingNotificationRequests()
         let deliveredNotifications = await center.deliveredNotifications()
 
-        // alarmId로 시작하는 모든 알림 식별자 필터링
         let pendingIdentifiers = pendingRequests
             .map { $0.identifier }
             .filter { $0.hasPrefix(alarmId) }
@@ -241,7 +223,6 @@ final class AlarmScheduler: AlarmScheduling {
             .map { $0.request.identifier }
             .filter { $0.hasPrefix(alarmId) }
 
-        // 실제 존재하는 알림만 삭제 (메모리 누수 방지)
         if !pendingIdentifiers.isEmpty {
             center.removePendingNotificationRequests(withIdentifiers: pendingIdentifiers)
             Logger.alarm.info("체인 알림 취소됨 (pending): \(alarmId), 개수: \(pendingIdentifiers.count)")
@@ -257,17 +238,14 @@ final class AlarmScheduler: AlarmScheduling {
         }
     }
 
-    /// 알람의 모든 체인 식별자 생성
     func buildChainIdentifiers(for alarm: Alarm) -> [String] {
         var identifiers: [String] = []
 
         if alarm.repeatDays.isEmpty {
-            // 단일 알람
             for chainIndex in 0..<chainCount {
                 identifiers.append("\(alarm.id.uuidString)-chain-\(chainIndex)")
             }
         } else {
-            // 반복 알람
             for day in alarm.repeatDays {
                 for chainIndex in 0..<chainCount {
                     identifiers.append("\(alarm.id.uuidString)-\(day)-chain-\(chainIndex)")
@@ -278,7 +256,6 @@ final class AlarmScheduler: AlarmScheduling {
         return identifiers
     }
 
-    // MARK: - AlarmScheduling Protocol (iOS 17-25)
 
     func cancelAllAlarms() async {
         center.removeAllPendingNotificationRequests()

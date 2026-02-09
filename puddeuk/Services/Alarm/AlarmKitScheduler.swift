@@ -8,12 +8,9 @@ import ActivityKit
 #if canImport(AlarmKit)
 import AlarmKit
 
-/// AlarmKit-based scheduler for iOS 26+
-/// Supports custom sounds, Live Activity, and system-level alarms that override silent mode
 @available(iOS 26, *)
 final class AlarmKitScheduler: AlarmScheduling, @unchecked Sendable {
 
-    // MARK: - Constants
 
     private enum Constants {
         static let defaultAlarmTitle = "알람"
@@ -24,7 +21,6 @@ final class AlarmKitScheduler: AlarmScheduling, @unchecked Sendable {
         static let snoozeTintColor: Color = .orange
     }
 
-    // MARK: - Properties
 
     private let alarmManager = AlarmKit.AlarmManager.shared
     private let soundFileManager = AlarmSoundFileManager.shared
@@ -34,15 +30,12 @@ final class AlarmKitScheduler: AlarmScheduling, @unchecked Sendable {
     func scheduleAlarm(_ alarm: Alarm) async throws {
         Logger.alarm.info("[AlarmKit] 알람 스케줄링 시작: \(alarm.title)")
 
-        // 1. Prepare custom sound
         let soundFileName = try await soundFileManager.prepareSoundFile(alarm.audioFileName)
 
-        // 2. Create alarm schedule
         guard let schedule = createSchedule(for: alarm) else {
             throw AlarmNotificationError.invalidAlarmDate
         }
 
-        // 3. Create configuration
         let title = alarm.title.isEmpty ? Constants.defaultAlarmTitle : alarm.title
         let configuration = makeConfiguration(
             schedule: schedule,
@@ -52,7 +45,6 @@ final class AlarmKitScheduler: AlarmScheduling, @unchecked Sendable {
             alarmID: alarm.id
         )
 
-        // 4. Schedule the alarm
         _ = try await alarmManager.schedule(id: alarm.id, configuration: configuration)
 
         Logger.alarm.info("[AlarmKit] 알람 스케줄링 성공: \(alarm.title) - \(alarm.timeString)")
@@ -82,14 +74,11 @@ final class AlarmKitScheduler: AlarmScheduling, @unchecked Sendable {
     func scheduleSnooze(minutes: Int, audioFileName: String?) async throws {
         Logger.alarm.info("[AlarmKit] 스누즈 알람 예약: \(minutes)분 후")
 
-        // 1. Calculate fire date
         let fireDate = Date().addingTimeInterval(TimeInterval(minutes * 60))
         let schedule = AlarmKit.Alarm.Schedule.fixed(fireDate)
 
-        // 2. Prepare custom sound
         let soundFileName = try await soundFileManager.prepareSoundFile(audioFileName)
 
-        // 3. Create configuration
         let snoozeId = UUID()
         let configuration = makeConfiguration(
             schedule: schedule,
@@ -99,7 +88,6 @@ final class AlarmKitScheduler: AlarmScheduling, @unchecked Sendable {
             alarmID: snoozeId
         )
 
-        // 4. Schedule snooze alarm
         _ = try await alarmManager.schedule(id: snoozeId, configuration: configuration)
 
         Logger.alarm.info("[AlarmKit] 스누즈 알람 예약 완료")
@@ -142,11 +130,8 @@ final class AlarmKitScheduler: AlarmScheduling, @unchecked Sendable {
         }
     }
 
-    // MARK: - Private Helpers
 
-    // MARK: Configuration Factory
 
-    /// Create AlarmConfiguration for scheduling
     private func makeConfiguration(
         schedule: AlarmKit.Alarm.Schedule,
         title: String,
@@ -166,7 +151,6 @@ final class AlarmKitScheduler: AlarmScheduling, @unchecked Sendable {
         )
     }
 
-    /// Create AlertSound from optional file name
     private func makeSound(fileName: String?) -> AlertConfiguration.AlertSound {
         if let fileName = fileName {
             return .named(fileName)
@@ -175,7 +159,6 @@ final class AlarmKitScheduler: AlarmScheduling, @unchecked Sendable {
         }
     }
 
-    /// Create AlarmPresentation from title
     private func makePresentation(title: String) -> AlarmPresentation {
         let localizedTitle = LocalizedStringResource(stringLiteral: title)
 
@@ -187,7 +170,6 @@ final class AlarmKitScheduler: AlarmScheduling, @unchecked Sendable {
         return AlarmPresentation(alert: alert)
     }
 
-    /// Create AlarmAttributes with metadata and tint color
     private func makeAttributes(
         presentation: AlarmPresentation,
         tintColor: Color
@@ -199,18 +181,14 @@ final class AlarmKitScheduler: AlarmScheduling, @unchecked Sendable {
         )
     }
 
-    // MARK: Schedule Helpers
 
     private func createSchedule(for alarm: puddeuk.Alarm) -> AlarmKit.Alarm.Schedule? {
         let time = AlarmKit.Alarm.Schedule.Relative.Time(hour: alarm.hour, minute: alarm.minute)
 
         if alarm.repeatDays.isEmpty {
-            // One-time alarm (relative to current date)
             return .relative(.init(time: time, repeats: .never))
         } else {
-            // Repeating alarm
             let weekdays = alarm.repeatDays.compactMap { day -> Locale.Weekday? in
-                // Convert 0-6 (Sun-Sat) to Locale.Weekday
                 switch day {
                 case 0: return .sunday
                 case 1: return .monday
@@ -257,7 +235,6 @@ final class AlarmKitScheduler: AlarmScheduling, @unchecked Sendable {
     }
 }
 
-// MARK: - AlarmMetadata
 
 struct PuddeukAlarmMetadata: AlarmKit.AlarmMetadata {
     let createdAt: Date
@@ -267,7 +244,6 @@ struct PuddeukAlarmMetadata: AlarmKit.AlarmMetadata {
     }
 }
 
-// MARK: - App Intents
 
 import AppIntents
 
@@ -296,7 +272,6 @@ struct StopAlarmIntent: LiveActivityIntent {
 }
 
 #else
-// Stub implementation for when AlarmKit is not available
 @available(iOS 26, *)
 final class AlarmKitScheduler: AlarmScheduling, @unchecked Sendable {
     init() {}
