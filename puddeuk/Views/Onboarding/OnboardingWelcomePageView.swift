@@ -15,24 +15,19 @@ struct OnboardingWelcomePageView: View {
                 .onAppear { isAnimating = true }
 
             VStack(spacing: 16) {
-                Text("퍼뜩에 오신 것을\n환영해요!")
+                Text("내 목소리로\n아침에 깨워줘요")
                     .font(.omyu(size: 32))
                     .bold()
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
 
-                Text("내 목소리로 깨우는\n특별한 알람 앱")
+                Text("여친, 남친, 부모님 목소리도 녹음할 수 있어요")
                     .font(.omyuBody)
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
             }
 
             Spacer()
-
-            Text("왼쪽으로 스와이프하기 →")
-                .font(.omyuSubheadline)
-                .foregroundColor(.teal.opacity(0.7))
-                .padding(.bottom, 60)
         }
         .padding(.horizontal, 40)
     }

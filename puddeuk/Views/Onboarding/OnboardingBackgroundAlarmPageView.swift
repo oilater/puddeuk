@@ -10,22 +10,15 @@ struct OnboardingBackgroundAlarmPageView: View {
                 .foregroundColor(.teal)
 
             VStack(spacing: 16) {
-                Text("앱을 종료해도\n시간에 맞춰 알람이 울려요")
+                Text("앱을 종료해도\n알람이 잘 울려요")
                     .font(.omyu(size: 32))
                     .bold()
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
 
-                Text("무음모드는 꼭 풀어주세요!")
+                Text("iOS 26 버전 이하는 앱을 완전히 종료하면 기본 알람이 울려요")
                     .font(.omyuBody)
-                    .foregroundColor(.orange)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(4)
-                    .padding(.top, 10)
-
-                Text("설정 > 집중 모드 > 수면 에서 퍼뜩을 허용하면\n잘 때도 방해받지 않고 알람만 들을 수 있어요")
-                    .font(.omyuBody)
-                    .foregroundColor(.orange)
+                    .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
             }

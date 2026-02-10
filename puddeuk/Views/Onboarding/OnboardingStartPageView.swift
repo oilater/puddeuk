@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct OnboardingStartPageView: View {
-    @Binding var hasCompletedOnboarding: Bool
-
     var body: some View {
         VStack(spacing: 40) {
             Spacer()
@@ -26,27 +24,12 @@ struct OnboardingStartPageView: View {
             }
 
             Spacer()
-
-            Button {
-                AnalyticsManager.shared.logOnboardingCompleted()
-                hasCompletedOnboarding = true
-            } label: {
-                Text("시작하기")
-                    .font(.omyuHeadline)
-                    .foregroundColor(.black)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 18)
-                    .background(Color.teal)
-                    .cornerRadius(16)
-            }
-            .padding(.horizontal, 40)
-            .padding(.bottom, 60)
         }
         .padding(.horizontal, 40)
     }
 }
 
 #Preview {
-    OnboardingStartPageView(hasCompletedOnboarding: .constant(false))
+    OnboardingStartPageView()
         .background(Color(red: 0.11, green: 0.11, blue: 0.13))
 }
