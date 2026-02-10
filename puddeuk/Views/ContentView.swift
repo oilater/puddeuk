@@ -70,9 +70,8 @@ struct ContentView: View {
             }
             .fullScreenCover(isPresented: $alarmManager.showAlarmView) {
                 if let context = presenter.activeAlarmContext {
-                    // Try to find the Alarm object from alarms array
                     let alarm = alarms.first { $0.id.uuidString == context.alarmId }
-                    AlarmView(context: context, alarm: alarm)
+                    AlarmView(context: context, alarm: alarm, modelContext: modelContext)
                 }
             }
             .fullScreenCover(isPresented: $alarmManager.showMissionCompleteView) {
@@ -104,7 +103,7 @@ struct ContentView: View {
             return nil
         }
 
-        return TimeFormatter.timeUntilAlarm(from: Date(), to: date)
+        return TimeFormatter.timeUntilAlarm(from: currentTime, to: date)
     }
 
     private func deleteAlarm(_ alarm: Alarm) {

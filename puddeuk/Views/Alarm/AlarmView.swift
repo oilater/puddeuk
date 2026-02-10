@@ -1,8 +1,10 @@
 import SwiftUI
+import SwiftData
 
 struct AlarmView: View {
     let context: AlarmContext
     let alarm: Alarm?
+    let modelContext: ModelContext
 
     @State private var isDismissed = false
 
@@ -97,6 +99,11 @@ struct AlarmView: View {
         isDismissed = true
         AlarmNotificationService.shared.stopVibration()
         AlarmManager.shared.stopAlarmAudio()
+
+        if let alarm = alarm, alarm.repeatDays.isEmpty {
+            alarm.isEnabled = false
+            try? modelContext.save()
+        }
 
         Task {
             await MainActor.run {
