@@ -8,8 +8,6 @@ import Combine
 
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 
-    var backgroundTask: UIBackgroundTaskIdentifier = .invalid
-
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
@@ -32,23 +30,33 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
 
-        Logger.alarm.info("🔔 [AppDelegate] willPresent 호출 - 알림 도착")
+        Logger.alarm.info("🔔 [AppDelegate] willPresent 호출")
 
         guard isAlarmNotification(notification) else {
-            Logger.alarm.info("ℹ️ [AppDelegate] 알람 아님, 기본 처리")
             return [.banner, .sound]
         }
 
         guard AlarmSchedulerFactory.shared.isLegacySystem else {
-            Logger.alarm.info("⏭️ [AppDelegate] AlarmKit 사용 - willPresent 건너뜀")
             return []
         }
 
-        Logger.alarm.info("⏰ [AppDelegate] Legacy 알람 감지 - 자동 재생 시작")
+        // 체인 노티인 경우에만 활성 알람 체크
+        if let isChain = notification.request.content.userInfo["isChainNotification"] as? Bool,
+           isChain,
+           let alarmId = notification.request.content.userInfo["alarmId"] as? String {
 
-        startBackgroundTask()
-        await setupAudioSession()
+            let isActive = await MainActor.run {
+                AlarmChainOrchestrator.shared.isAlarmActive(alarmId)
+            }
+
+            if !isActive {
+                Logger.alarm.info("🚫 [AppDelegate] 비활성 알람의 체인 차단: \(alarmId)")
+                return []  // 표시하지 않음
+            }
+        }
+
         await playAlarm(notification)
+
         return []
     }
 
@@ -57,20 +65,31 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         didReceive response: UNNotificationResponse
     ) async {
 
-        Logger.alarm.info("👆 [AppDelegate] didReceive 호출 - 사용자가 알림 탭")
+        Logger.alarm.info("👆 [AppDelegate] didReceive 호출")
 
         guard isAlarmNotification(response.notification) else {
-            Logger.alarm.info("ℹ️ [AppDelegate] 알람 아님, 기본 처리")
             return
         }
 
         guard AlarmSchedulerFactory.shared.isLegacySystem else {
-            Logger.alarm.info("⏭️ [AppDelegate] AlarmKit 사용 - didReceive 건너뜀")
             return
         }
 
-        Logger.alarm.info("⏰ [AppDelegate] Legacy 알람 탭 - 재생 시작")
-        await setupAudioSession()
+        // 체인 노티인 경우에만 활성 알람 체크
+        if let isChain = response.notification.request.content.userInfo["isChainNotification"] as? Bool,
+           isChain,
+           let alarmId = response.notification.request.content.userInfo["alarmId"] as? String {
+
+            let isActive = await MainActor.run {
+                AlarmChainOrchestrator.shared.isAlarmActive(alarmId)
+            }
+
+            if !isActive {
+                Logger.alarm.info("🚫 [AppDelegate] 비활성 알람의 체인 차단: \(alarmId)")
+                return  // 처리하지 않음
+            }
+        }
+
         await playAlarm(response.notification)
     }
 
@@ -78,49 +97,10 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         return notification.request.content.userInfo["alarmId"] != nil
     }
 
-    private func setupAudioSession() async {
-        do {
-            let session = AVAudioSession.sharedInstance()
-            try await session.setCategory(
-                .playback,
-                mode: .default,
-                options: []
-            )
-            try await session.setActive(true)
-
-            Logger.alarm.info("🔊 [AppDelegate] AVAudioSession 활성화 완료 (무음 모드 무시)")
-        } catch {
-            Logger.alarm.error("❌ [AppDelegate] AVAudioSession 설정 실패: \(error.localizedDescription)")
-        }
-    }
-
     private func playAlarm(_ notification: UNNotification) async {
         await MainActor.run {
             AlarmManager.shared.handleAlarmNotification(notification)
         }
-    }
-
-    private func startBackgroundTask() {
-        guard backgroundTask == .invalid else { return }
-
-        backgroundTask = UIApplication.shared.beginBackgroundTask { [weak self] in
-            Logger.alarm.warning("⏱️ [AppDelegate] Background Task 시간 만료")
-            self?.endBackgroundTask()
-        }
-
-        let timeRemaining = UIApplication.shared.backgroundTimeRemaining
-        if timeRemaining != .infinity {
-            Logger.alarm.info("⏱️ [AppDelegate] Background Task 시작 - 남은 시간: \(Int(timeRemaining))초")
-        }
-    }
-
-    func endBackgroundTask() {
-        guard backgroundTask != .invalid else { return }
-
-        UIApplication.shared.endBackgroundTask(backgroundTask)
-        backgroundTask = .invalid
-
-        Logger.alarm.info("✅ [AppDelegate] Background Task 종료")
     }
 }
 
@@ -139,6 +119,9 @@ struct puddeukApp: App {
         }
 
         setupDefaultFont()
+
+        // Capture container as local variable to avoid mutating self in escaping closure
+        let container = sharedModelContainer
 
         Task.detached(priority: .userInitiated) {
             await MainActor.run {
@@ -173,6 +156,7 @@ struct puddeukApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Alarm.self,
+            QueueState.self,
         ])
         let modelConfiguration = ModelConfiguration(
             schema: schema,
@@ -228,8 +212,20 @@ struct puddeukApp: App {
     private func handleScenePhaseChange(from oldPhase: ScenePhase, to newPhase: ScenePhase) {
         Logger.alarm.debug("ScenePhase 변경: \(String(describing: oldPhase)) → \(String(describing: newPhase))")
 
-        if newPhase == .active && oldPhase != .active {
+        switch newPhase {
+        case .active:
+            Task {
+                await AlarmChainOrchestrator.shared.appDidEnterForeground()
+            }
             checkAndResumeAlarm()
+        case .background:
+            Task {
+                await AlarmChainOrchestrator.shared.appDidEnterBackground()
+            }
+        case .inactive:
+            break
+        @unknown default:
+            break
         }
     }
 

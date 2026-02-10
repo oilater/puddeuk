@@ -9,9 +9,16 @@ final class AlarmScheduler: AlarmScheduling {
     private let center = UNUserNotificationCenter.current()
     private let soundFileManager = AlarmSoundFileManager.shared
 
+    // 체인 설정
+    private let chainCount = AlarmConfiguration.chainCount  // 15개 체인
+
     private init() {}
 
     func scheduleAlarm(_ alarm: Alarm) async throws {
+        // 기존 알람이 있다면 먼저 제거
+        await cancelAlarm(alarm)
+
+        // 체인을 포함한 알람 스케줄링
         if alarm.repeatDays.isEmpty {
             try await scheduleSingleAlarm(alarm)
         } else {
@@ -20,15 +27,30 @@ final class AlarmScheduler: AlarmScheduling {
     }
 
     func cancelAlarm(_ alarm: Alarm) async {
+        // 모든 관련 노티피케이션 식별자 수집
+        var identifiers: [String] = []
+
         if alarm.repeatDays.isEmpty {
-            center.removePendingNotificationRequests(withIdentifiers: [alarm.id.uuidString])
+            // 단일 알람: 기본 + 체인
+            identifiers.append(alarm.id.uuidString)
+            for i in 0..<chainCount {
+                identifiers.append("\(alarm.id.uuidString)-chain-\(i)")
+            }
         } else {
-            let identifiers = alarm.repeatDays.map { "\(alarm.id.uuidString)-\($0)" }
-            center.removePendingNotificationRequests(withIdentifiers: identifiers)
+            // 반복 알람: 각 요일별 기본 + 체인
+            for day in alarm.repeatDays {
+                identifiers.append("\(alarm.id.uuidString)-\(day)")
+                for i in 0..<chainCount {
+                    identifiers.append("\(alarm.id.uuidString)-\(day)-chain-\(i)")
+                }
+            }
         }
 
+        // 모든 관련 노티피케이션 제거
+        center.removePendingNotificationRequests(withIdentifiers: identifiers)
+
         await cancelAllSnoozeAlarms()
-        Logger.alarm.info("알람 취소됨: \(alarm.id.uuidString)")
+        Logger.alarm.info("알람 취소됨: \(alarm.id.uuidString) - 체인 포함 \(identifiers.count)개")
     }
 
     func cancelAllSnoozeAlarms() async {
@@ -50,7 +72,11 @@ final class AlarmScheduler: AlarmScheduling {
 
         logAlarmSchedule(alarm: alarm, triggerDate: triggerDate)
 
-        let content = notificationContent(for: alarm)
+        // 오디오 길이 기반 체인 간격 계산
+        let chainInterval = calculateChainInterval(for: alarm.audioFileName)
+
+        // 기본 알람 스케줄
+        let content = notificationContent(for: alarm, chainIndex: nil)
         let components = Calendar.current.dateComponents(
             [.year, .month, .day, .hour, .minute, .second],
             from: triggerDate
@@ -64,12 +90,36 @@ final class AlarmScheduler: AlarmScheduling {
         )
 
         try await center.add(request)
-        Logger.alarm.info("단일 알람 예약: \(alarm.id.uuidString) - \(triggerDate)")
+
+        // 체인 노티피케이션 스케줄 (오디오 길이 + 1초 간격)
+        for i in 0..<chainCount {
+            let chainFireDate = triggerDate.addingTimeInterval(TimeInterval(i + 1) * chainInterval)
+            let chainContent = notificationContent(for: alarm, chainIndex: i)
+            let chainComponents = Calendar.current.dateComponents(
+                [.year, .month, .day, .hour, .minute, .second],
+                from: chainFireDate
+            )
+            let chainTrigger = UNCalendarNotificationTrigger(dateMatching: chainComponents, repeats: false)
+
+            let chainRequest = UNNotificationRequest(
+                identifier: "\(alarm.id.uuidString)-chain-\(i)",
+                content: chainContent,
+                trigger: chainTrigger
+            )
+
+            try await center.add(chainRequest)
+        }
+
+        Logger.alarm.info("단일 알람 예약: \(alarm.id.uuidString) - \(triggerDate) (체인 \(self.chainCount)개, 간격 \(String(format: "%.1f", chainInterval))초)")
     }
 
     private func scheduleRepeatingAlarm(_ alarm: Alarm) async throws {
+        // 오디오 길이 기반 체인 간격 계산
+        let chainInterval = calculateChainInterval(for: alarm.audioFileName)
+
         for day in alarm.repeatDays {
-            let content = notificationContent(for: alarm)
+            // 기본 알람 스케줄
+            let content = notificationContent(for: alarm, chainIndex: nil)
 
             var components = DateComponents()
             components.weekday = day + 1
@@ -87,7 +137,48 @@ final class AlarmScheduler: AlarmScheduling {
             )
 
             try await center.add(request)
-            Logger.alarm.info("반복 알람 예약: \(identifier) - 요일 \(day)")
+
+            // 체인 노티피케이션 스케줄 (오디오 길이 + 1초 간격)
+            for i in 0..<chainCount {
+                let totalSeconds = Int((TimeInterval(i + 1) * chainInterval))
+                let additionalMinutes = totalSeconds / 60
+                let remainingSeconds = totalSeconds % 60
+
+                var chainComponents = DateComponents()
+                chainComponents.weekday = day + 1
+                chainComponents.hour = alarm.hour
+                chainComponents.minute = alarm.minute + additionalMinutes
+                chainComponents.second = remainingSeconds
+
+                // 분이 60을 넘으면 시간으로 올림
+                if chainComponents.minute! >= 60 {
+                    chainComponents.hour! += chainComponents.minute! / 60
+                    chainComponents.minute! = chainComponents.minute! % 60
+
+                    // 시간이 24를 넘으면 다음 날로
+                    if chainComponents.hour! >= 24 {
+                        chainComponents.hour! = chainComponents.hour! % 24
+                        chainComponents.weekday! += 1
+                        if chainComponents.weekday! > 7 {
+                            chainComponents.weekday! = 1
+                        }
+                    }
+                }
+
+                let chainTrigger = UNCalendarNotificationTrigger(dateMatching: chainComponents, repeats: true)
+                let chainIdentifier = "\(alarm.id.uuidString)-\(day)-chain-\(i)"
+
+                let chainContent = notificationContent(for: alarm, chainIndex: i)
+                let chainRequest = UNNotificationRequest(
+                    identifier: chainIdentifier,
+                    content: chainContent,
+                    trigger: chainTrigger
+                )
+
+                try await center.add(chainRequest)
+            }
+
+            Logger.alarm.info("반복 알람 예약: \(identifier) - 요일 \(day) (체인 \(self.chainCount)개, 간격 \(String(format: "%.1f", chainInterval))초)")
         }
     }
 
@@ -122,7 +213,7 @@ final class AlarmScheduler: AlarmScheduling {
         Logger.alarm.info("스누즈 알람 예약: \(minutes)분 후")
     }
 
-    private func notificationContent(for alarm: Alarm) -> UNMutableNotificationContent {
+    private func notificationContent(for alarm: Alarm, chainIndex: Int?) -> UNMutableNotificationContent {
         let content = UNMutableNotificationContent()
         content.title = alarm.title.isEmpty ? "알람" : alarm.title
         content.body = "알람 시간이에요. 퍼뜩 일어나세요!"
@@ -132,7 +223,9 @@ final class AlarmScheduler: AlarmScheduling {
         content.userInfo = [
             "alarmId": alarm.id.uuidString,
             "audioFileName": alarm.audioFileName ?? "",
-            "title": alarm.title.isEmpty ? "알람" : alarm.title
+            "title": alarm.title.isEmpty ? "알람" : alarm.title,
+            "isChainNotification": chainIndex != nil,
+            "chainIndex": chainIndex ?? -1
         ]
         return content
     }
@@ -161,6 +254,32 @@ final class AlarmScheduler: AlarmScheduling {
         let interval = triggerDate.timeIntervalSince(Date())
         let minutes = Int(interval / 60)
         Logger.alarm.debug("알람 예약 시간: \(triggerDate), 남은 시간: \(minutes)분")
+    }
+
+    // MARK: - Audio Duration Calculation
+
+    /// 오디오 파일의 실제 재생 시간 계산
+    private func calculateAudioDuration(for audioFileName: String?) -> TimeInterval {
+        guard let fileName = audioFileName,
+              let fileSize = soundFileManager.fileSize(fileName) else {
+            return 5.0  // 기본값: 5초
+        }
+
+        // 오디오 길이 = 파일크기 / (샘플레이트 * 비트뎁스/8)
+        let bytesPerSecond = AlarmConfiguration.audioSampleRate * Double(AlarmConfiguration.audioBitDepth / 8)
+        let duration = Double(fileSize) / bytesPerSecond
+
+        Logger.alarm.debug("오디오 길이 계산: \(fileName) = \(String(format: "%.1f", duration))초 (\(fileSize) bytes)")
+        return max(duration, AlarmConfiguration.minAudioDuration)
+    }
+
+    /// 체인 알림 간격 계산 (오디오 길이 + 1초 텀)
+    private func calculateChainInterval(for audioFileName: String?) -> TimeInterval {
+        let duration = calculateAudioDuration(for: audioFileName)
+        let interval = duration + AlarmConfiguration.chainGap
+
+        Logger.alarm.debug("체인 간격 계산: \(String(format: "%.1f", duration))초 녹음 → \(String(format: "%.1f", interval))초 간격")
+        return interval
     }
 
     func cancelAllAlarms() async {

@@ -1,22 +1,17 @@
 import SwiftUI
 
 struct AlarmView: View {
+    let context: AlarmContext
     let alarm: Alarm?
-    var notificationTitle: String?
-    var notificationAudioFileName: String?
 
-    @StateObject private var audioPlayer = AudioPlayer()
     @State private var isDismissed = false
 
     private var displayTitle: String {
-        if let alarm = alarm {
-            return alarm.title.isEmpty ? "알람" : alarm.title
-        }
-        return notificationTitle ?? "알람"
+        context.title.isEmpty ? "알람" : context.title
     }
 
     private var isSnoozeAlarm: Bool {
-        notificationTitle == "스누즈 알람"
+        context.title == "스누즈 알람"
     }
 
     private var displayTime: String {
@@ -26,11 +21,11 @@ struct AlarmView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "a h:mm"
         formatter.locale = Locale(identifier: "ko_KR")
-        return formatter.string(from: Date())
+        return formatter.string(from: context.scheduledTime)
     }
 
     private var audioFileName: String? {
-        alarm?.audioFileName ?? notificationAudioFileName
+        context.audioFileName
     }
 
     var body: some View {
@@ -88,30 +83,18 @@ struct AlarmView: View {
             }
         }
         .onAppear {
-            startAlarm()
+            // 오디오는 ForegroundAlarmStrategy에서 이미 재생 중
+            // 진동만 시작
+            AlarmNotificationService.shared.startVibration()
         }
         .onDisappear {
-            stopAlarm()
+            // 뷰가 사라질 때 정리
+            AlarmNotificationService.shared.stopVibration()
         }
-    }
-
-    private func startAlarm() {
-        guard !AlarmNotificationService.shared.isAlarmPlaying else {
-            AlarmNotificationService.shared.startVibration()
-            return
-        }
-
-        if let fileName = audioFileName {
-            audioPlayer.playAlarmSound(fileName: fileName)
-        } else {
-            audioPlayer.playDefaultSound()
-        }
-        AlarmNotificationService.shared.startVibration()
     }
 
     private func stopAlarm() {
         isDismissed = true
-        audioPlayer.stop()
         AlarmNotificationService.shared.stopVibration()
         AlarmManager.shared.stopAlarmAudio()
 
@@ -131,7 +114,6 @@ struct AlarmView: View {
 
     private func snoozeAlarm(minutes: Int) {
         isDismissed = true
-        audioPlayer.stop()
         AlarmNotificationService.shared.stopVibration()
         AlarmManager.shared.stopAlarmAudio()
 
