@@ -113,6 +113,7 @@ struct AlarmView: View {
         isDismissed = true
         audioPlayer.stop()
         AlarmNotificationService.shared.stopVibration()
+        AlarmManager.shared.stopAlarmAudio()
 
         Task {
             if let alarm = alarm {
@@ -140,6 +141,7 @@ struct AlarmView: View {
         isDismissed = true
         audioPlayer.stop()
         AlarmNotificationService.shared.stopVibration()
+        AlarmManager.shared.stopAlarmAudio()
 
         Task {
             if let alarm = alarm {

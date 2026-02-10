@@ -20,6 +20,10 @@
 	<true/>
 	<key>NSAlarmKitUsageDescription</key>
 	<string>설정한 시간에 알람을 울리기 위해 AlarmKit 권한이 필요합니다.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

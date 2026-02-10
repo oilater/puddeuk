@@ -31,6 +31,23 @@ final class AlarmNotificationManager: @unchecked Sendable {
 
     private init() {
         self.scheduler = AlarmSchedulerFactory.shared.createScheduler()
+
+        // iOS 26+ AlarmKit 사용 시 기존 Legacy 알림 모두 제거
+        if AlarmSchedulerFactory.shared.isAlarmKitAvailable {
+            Task {
+                await self.removeAllLegacyNotifications()
+            }
+        }
+    }
+
+    /// iOS 26에서 기존 UNUserNotificationCenter 알림 모두 제거
+    private func removeAllLegacyNotifications() async {
+        let pending = await center.pendingNotificationRequests()
+
+        if !pending.isEmpty {
+            center.removeAllPendingNotificationRequests()
+            Logger.alarm.info("🗑️ [Manager] iOS 26 AlarmKit 사용 - Legacy 알림 모두 제거: \(pending.count)개")
+        }
     }
 
 

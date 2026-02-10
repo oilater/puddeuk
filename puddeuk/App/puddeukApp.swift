@@ -3,8 +3,12 @@ import SwiftData
 import UserNotifications
 import OSLog
 import FirebaseCore
+import AVFoundation
 
-class AppDelegate: NSObject, UIApplicationDelegate {
+class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+
+    var backgroundTask: UIBackgroundTaskIdentifier = .invalid
+
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
@@ -15,7 +19,107 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                 Logger.alarm.info("Firebase 초기화 완료")
             }
         }
+
+        UNUserNotificationCenter.current().delegate = self
+        Logger.alarm.info("📱 [AppDelegate] Notification Delegate 설정 완료")
+
         return true
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+
+        Logger.alarm.info("🔔 [AppDelegate] willPresent 호출 - 알림 도착")
+
+        guard isAlarmNotification(notification) else {
+            Logger.alarm.info("ℹ️ [AppDelegate] 알람 아님, 기본 처리")
+            return [.banner, .sound]
+        }
+
+        guard AlarmSchedulerFactory.shared.isLegacySystem else {
+            Logger.alarm.info("⏭️ [AppDelegate] AlarmKit 사용 - willPresent 건너뜀")
+            return []
+        }
+
+        Logger.alarm.info("⏰ [AppDelegate] Legacy 알람 감지 - 자동 재생 시작")
+
+        startBackgroundTask()
+        await setupAudioSession()
+        await playAlarm(notification)
+        return []
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse
+    ) async {
+
+        Logger.alarm.info("👆 [AppDelegate] didReceive 호출 - 사용자가 알림 탭")
+
+        guard isAlarmNotification(response.notification) else {
+            Logger.alarm.info("ℹ️ [AppDelegate] 알람 아님, 기본 처리")
+            return
+        }
+
+        guard AlarmSchedulerFactory.shared.isLegacySystem else {
+            Logger.alarm.info("⏭️ [AppDelegate] AlarmKit 사용 - didReceive 건너뜀")
+            return
+        }
+
+        Logger.alarm.info("⏰ [AppDelegate] Legacy 알람 탭 - 재생 시작")
+        await setupAudioSession()
+        await playAlarm(response.notification)
+    }
+
+    private func isAlarmNotification(_ notification: UNNotification) -> Bool {
+        return notification.request.content.userInfo["alarmId"] != nil
+    }
+
+    private func setupAudioSession() async {
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try await session.setCategory(
+                .playback,
+                mode: .default,
+                options: []
+            )
+            try await session.setActive(true)
+
+            Logger.alarm.info("🔊 [AppDelegate] AVAudioSession 활성화 완료 (무음 모드 무시)")
+        } catch {
+            Logger.alarm.error("❌ [AppDelegate] AVAudioSession 설정 실패: \(error.localizedDescription)")
+        }
+    }
+
+    private func playAlarm(_ notification: UNNotification) async {
+        await MainActor.run {
+            AlarmManager.shared.handleAlarmNotification(notification)
+        }
+    }
+
+    private func startBackgroundTask() {
+        guard backgroundTask == .invalid else { return }
+
+        backgroundTask = UIApplication.shared.beginBackgroundTask { [weak self] in
+            Logger.alarm.warning("⏱️ [AppDelegate] Background Task 시간 만료")
+            self?.endBackgroundTask()
+        }
+
+        let timeRemaining = UIApplication.shared.backgroundTimeRemaining
+        if timeRemaining != .infinity {
+            Logger.alarm.info("⏱️ [AppDelegate] Background Task 시작 - 남은 시간: \(Int(timeRemaining))초")
+        }
+    }
+
+    func endBackgroundTask() {
+        guard backgroundTask != .invalid else { return }
+
+        UIApplication.shared.endBackgroundTask(backgroundTask)
+        backgroundTask = .invalid
+
+        Logger.alarm.info("✅ [AppDelegate] Background Task 종료")
     }
 }
 
@@ -37,14 +141,6 @@ struct puddeukApp: App {
 
         Task.detached(priority: .userInitiated) {
             await MainActor.run {
-                // ✨ Legacy 시스템일 때만 Audio Service 초기화
-                if AlarmSchedulerFactory.shared.isLegacySystem {
-                    Logger.alarm.info("🎵 Legacy Audio Service 초기화")
-                    _ = AlarmNotificationService.shared
-                } else {
-                    Logger.alarm.info("⏭️ AlarmKit 사용 - Audio Service 건너뜀")
-                }
-
                 AlarmNotificationManager.shared.registerNotificationCategories()
             }
 
@@ -76,7 +172,6 @@ struct puddeukApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Alarm.self,
-            QueueState.self,
         ])
         let modelConfiguration = ModelConfiguration(
             schema: schema,
@@ -121,10 +216,6 @@ struct puddeukApp: App {
                         showSplash = false
                     }
                 }
-
-                Task {
-                    await initializeQueueManagerIfNeeded()
-                }
             }
         }
         .modelContainer(sharedModelContainer)
@@ -138,21 +229,10 @@ struct puddeukApp: App {
 
         if newPhase == .active && oldPhase != .active {
             checkAndResumeAlarm()
-
-            // ✨ Legacy 시스템일 때만 queue refill
-            if AlarmSchedulerFactory.shared.isLegacySystem {
-                Task {
-                    Logger.alarm.debug("🔄 Legacy Queue refill 시작")
-                    await NotificationQueueManager.shared.checkAndRefill()
-                }
-            } else {
-                Logger.alarm.debug("⏭️ AlarmKit 사용 - Queue refill 건너뜀")
-            }
         }
     }
 
     private func checkAndResumeAlarm() {
-        // ✨ Legacy 시스템일 때만 실행
         guard AlarmSchedulerFactory.shared.isLegacySystem else {
             Logger.alarm.debug("⏭️ AlarmKit 사용 - checkAndResumeAlarm 건너뜀")
             return
@@ -163,46 +243,7 @@ struct puddeukApp: App {
             let delivered = await center.deliveredNotifications()
 
             for notification in delivered {
-                let userInfo = notification.request.content.userInfo
-
-                guard let alarmId = userInfo["alarmId"] as? String,
-                      let audioFileName = userInfo["audioFileName"] as? String,
-                      !audioFileName.isEmpty else {
-                    continue
-                }
-
-                let title = userInfo["title"] as? String ?? "알람"
-
-                Logger.alarm.info("ScenePhase - 전달된 알람 발견: \(title)")
-
-                await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
-
-                await MainActor.run {
-                    if !AlarmNotificationService.shared.isAlarmPlaying {
-                        AlarmNotificationService.shared.startAlarmWithFileName(
-                            audioFileName,
-                            alarmId: alarmId
-                        )
-
-                        let formatter = DateFormatter()
-                        formatter.dateFormat = "a h:mm"
-                        formatter.locale = Locale(identifier: "ko_KR")
-                        let timeString = formatter.string(from: Date())
-
-                        LiveActivityManager.shared.startAlarmActivity(
-                            alarmId: alarmId,
-                            title: title,
-                            scheduledTime: timeString,
-                            audioFileName: audioFileName
-                        )
-
-                        AlarmManager.shared.showAlarmFromNotification(
-                            title: title,
-                            audioFileName: audioFileName
-                        )
-                    }
-                }
-
+                AlarmManager.shared.handleAlarmNotification(notification)
                 center.removeDeliveredNotifications(withIdentifiers: [notification.request.identifier])
                 break
             }
@@ -223,47 +264,24 @@ struct puddeukApp: App {
     }
 
     private func handleSnooze() {
-        let audioFileName = AlarmNotificationService.shared.getCurrentAudioFileName()
-
         Task {
-            await AlarmNotificationService.shared.stopAlarm()
-
             await MainActor.run {
+                AlarmManager.shared.stopAlarmAudio()
                 LiveActivityManager.shared.endCurrentActivity()
                 AlarmManager.shared.dismissAlarm()
             }
 
-            try? await AlarmNotificationManager.shared.scheduleSnooze(
-                minutes: 5,
-                audioFileName: audioFileName
-            )
+            try? await AlarmNotificationManager.shared.scheduleSnooze(minutes: 5, audioFileName: nil)
         }
     }
 
     private func handleDismiss() {
         Task {
-            await AlarmNotificationService.shared.stopAlarm()
-
             await MainActor.run {
+                AlarmManager.shared.stopAlarmAudio()
                 LiveActivityManager.shared.endCurrentActivity()
                 AlarmManager.shared.dismissAlarm()
             }
         }
-    }
-
-    private func initializeQueueManagerIfNeeded() async {
-        guard AlarmSchedulerFactory.shared.isLegacySystem else {
-            Logger.alarm.info("⏭️ AlarmKit 사용 - Queue Manager 초기화 건너뜀")
-            return
-        }
-
-        Logger.alarm.info("🔄 Legacy Queue Manager 초기화 시작")
-
-        await MainActor.run {
-            NotificationQueueManager.shared.setModelContext(sharedModelContainer.mainContext)
-        }
-
-        await NotificationQueueManager.shared.performFullSync()
-        Logger.alarm.info("✅ 알림 큐 매니저 초기화 완료")
     }
 }
