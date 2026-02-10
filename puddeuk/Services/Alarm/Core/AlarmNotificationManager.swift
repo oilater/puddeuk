@@ -110,30 +110,6 @@ final class AlarmNotificationManager: @unchecked Sendable {
         await scheduler.cancelAllAlarms()
     }
 
-    func cancelAlarmChain(alarmId: String) async {
-        let pendingRequests = await center.pendingNotificationRequests()
-        let deliveredNotifications = await center.deliveredNotifications()
-
-        let pendingIdentifiers = pendingRequests
-            .map { $0.identifier }
-            .filter { $0.hasPrefix(alarmId) }
-
-        let deliveredIdentifiers = deliveredNotifications
-            .map { $0.request.identifier }
-            .filter { $0.hasPrefix(alarmId) }
-
-        if !pendingIdentifiers.isEmpty {
-            center.removePendingNotificationRequests(withIdentifiers: pendingIdentifiers)
-            Logger.notification.info("체인 알림 취소됨 (pending): \(alarmId), 개수: \(pendingIdentifiers.count)")
-        }
-
-        if !deliveredIdentifiers.isEmpty {
-            center.removeDeliveredNotifications(withIdentifiers: deliveredIdentifiers)
-            Logger.notification.info("체인 알림 취소됨 (delivered): \(alarmId), 개수: \(deliveredIdentifiers.count)")
-        }
-    }
-
-
     func checkPendingAlarm(modelContext: ModelContext) async {
         let notifications = await center.deliveredNotifications()
 

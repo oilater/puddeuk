@@ -65,7 +65,13 @@ class LiveActivityManager {
     private func updateElapsedTime() {
         guard let startTime = startTime else { return }
 
-        let elapsed = Int(Date().timeIntervalSince(startTime))
+        let timeInterval = Date().timeIntervalSince(startTime)
+        guard timeInterval.isFinite else {
+            Logger.alarm.error("❌ Invalid time interval: \(timeInterval)")
+            return
+        }
+
+        let elapsed = Int(timeInterval)
         let newState = AlarmActivityAttributes.ContentState(
             elapsedSeconds: elapsed,
             isRinging: true

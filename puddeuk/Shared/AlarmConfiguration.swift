@@ -1,9 +1,6 @@
 import Foundation
 
 enum AlarmConfiguration {
-    /// Chain count for AlarmChainCoordinator (iOS 17-25 background alarm chains)
-    static let chainCount = 8
-
     static let maxNotificationSoundDuration: TimeInterval = 30.0
     static let maxRecordingDuration: TimeInterval = 25.0
     static let recordingWarningThreshold: TimeInterval = 5.0

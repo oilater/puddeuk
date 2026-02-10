@@ -4,6 +4,7 @@ import UserNotifications
 import OSLog
 import FirebaseCore
 import AVFoundation
+import Combine
 
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 

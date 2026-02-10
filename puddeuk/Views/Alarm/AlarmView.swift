@@ -116,14 +116,6 @@ struct AlarmView: View {
         AlarmManager.shared.stopAlarmAudio()
 
         Task {
-            if let alarm = alarm {
-                await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarm.id.uuidString)
-            } else if let alarmId = AlarmNotificationService.shared.currentAlarmId {
-                await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
-            }
-
-            await AlarmNotificationService.shared.stopAlarm()
-
             await MainActor.run {
                 AnalyticsManager.shared.logAlarmDismissed()
                 LiveActivityManager.shared.endCurrentActivity()
@@ -144,14 +136,6 @@ struct AlarmView: View {
         AlarmManager.shared.stopAlarmAudio()
 
         Task {
-            if let alarm = alarm {
-                await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarm.id.uuidString)
-            } else if let alarmId = AlarmNotificationService.shared.currentAlarmId {
-                await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmId)
-            }
-
-            await AlarmNotificationService.shared.stopAlarm()
-
             await MainActor.run {
                 AnalyticsManager.shared.logAlarmSnoozed(minutes: minutes)
                 LiveActivityManager.shared.endCurrentActivity()

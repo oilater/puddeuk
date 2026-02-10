@@ -92,11 +92,6 @@ class AlarmManager: ObservableObject {
 
         // 3. Live Activity 시작
         startLiveActivity(alarmId: alarmIdString, title: title, audioFileName: audioFileName)
-
-        // 4. 체인 알림 취소 (Legacy만)
-        Task {
-            await AlarmNotificationManager.shared.cancelAlarmChain(alarmId: alarmIdString)
-        }
     }
 
     /// AVAudioPlayer로 오디오 재생 (무음 모드 무시)
