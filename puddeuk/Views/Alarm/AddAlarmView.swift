@@ -4,46 +4,14 @@ import AVFoundation
 import UIKit
 
 struct AddAlarmView: View {
-    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
+    @ObservedObject var viewModel: AddAlarmViewModel
     @StateObject private var audioRecorder = AudioRecorder()
     @StateObject private var audioPlayer = AudioPlayer()
-    @State private var title: String = ""
-    @State private var selectedTime: Date = Date()
-    @State private var repeatDays: Set<Int> = []
-    @State private var audioFileName: String?
-    @State private var snoozeInterval: Int? = nil
-    @State private var showingDeleteAlert = false
-    @State private var showingErrorAlert = false
-    @State private var errorMessage = ""
 
-    let alarm: Alarm?
-    let isEditing: Bool
-
-    init(alarm: Alarm? = nil) {
-        self.alarm = alarm
-        self.isEditing = alarm != nil
-
-        if let alarm = alarm {
-            _title = State(initialValue: alarm.title)
-            var components = DateComponents()
-            components.hour = alarm.hour
-            components.minute = alarm.minute
-            if let date = Calendar.current.date(from: components) {
-                _selectedTime = State(initialValue: date)
-            }
-            _repeatDays = State(initialValue: Set(alarm.repeatDays))
-            _audioFileName = State(initialValue: alarm.audioFileName)
-            _snoozeInterval = State(initialValue: alarm.snoozeInterval)
-        } else {
-            var components = DateComponents()
-            components.hour = 8
-            components.minute = 0
-            if let date = Calendar.current.date(from: components) {
-                _selectedTime = State(initialValue: date)
-            }
-        }
+    init(viewModel: AddAlarmViewModel) {
+        self.viewModel = viewModel
     }
 
     var body: some View {
@@ -58,15 +26,15 @@ struct AddAlarmView: View {
 
                         VStack(spacing: 24) {
                             titleSection
-                            RepeatDaySelector(repeatDays: $repeatDays)
+                            RepeatDaySelector(repeatDays: $viewModel.repeatDays)
                             snoozeSection
                             RecordingControlsView(
                                 audioRecorder: audioRecorder,
                                 audioPlayer: audioPlayer,
-                                audioFileName: $audioFileName
+                                audioFileName: $viewModel.audioFileName
                             )
 
-                            if isEditing {
+                            if viewModel.isEditing {
                                 deleteButton
                             }
                         }
@@ -80,7 +48,7 @@ struct AddAlarmView: View {
                 }
                 .scrollDismissesKeyboard(.immediately)
             }
-            .navigationTitle(isEditing ? "알람 편집" : "새 알람")
+            .navigationTitle(viewModel.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .preferredColorScheme(.dark)
             .toolbar {
@@ -97,31 +65,45 @@ struct AddAlarmView: View {
 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("저장") {
-                        saveAlarm()
+                        // Stop recording and capture filename before saving
+                        if audioRecorder.isRecording {
+                            audioRecorder.stopRecording()
+                            if let url = audioRecorder.audioURL {
+                                viewModel.audioFileName = url.lastPathComponent
+                            }
+                        }
+
+                        Task {
+                            await viewModel.saveAlarm()
+                            dismiss()
+                        }
                     }
                     .font(.omyuBody)
                     .foregroundColor(.teal)
                 }
             }
-            .alert("알람 삭제", isPresented: $showingDeleteAlert) {
+            .alert("알람 삭제", isPresented: $viewModel.showingDeleteAlert) {
                 Button("취소", role: .cancel) { }
                 Button("삭제", role: .destructive) {
-                    deleteAlarm()
+                    Task {
+                        await viewModel.deleteAlarm()
+                        dismiss()
+                    }
                 }
             } message: {
                 Text("이 알람을 삭제하시겠습니까?")
                     .font(.omyuBody)
             }
-            .alert("오류", isPresented: $showingErrorAlert) {
+            .alert("오류", isPresented: $viewModel.showingErrorAlert) {
                 Button("확인", role: .cancel) { }
             } message: {
-                Text(errorMessage)
+                Text(viewModel.errorMessage)
             }
         }
     }
 
     private var timePickerSection: some View {
-        DatePicker("", selection: $selectedTime, displayedComponents: .hourAndMinute)
+        DatePicker("", selection: $viewModel.selectedTime, displayedComponents: .hourAndMinute)
             .datePickerStyle(.wheel)
             .labelsHidden()
             .environment(\.locale, Locale(identifier: "ko_KR"))
@@ -133,7 +115,7 @@ struct AddAlarmView: View {
     private var titleSection: some View {
         VStack(alignment: .leading, spacing: 8) {
 
-            TextField("알람 이름을 입력해주세요", text: $title)
+            TextField("알람 이름을 입력해주세요", text: $viewModel.title)
                 .font(.omyuBody)
                 .textFieldStyle(.plain)
                 .padding()
@@ -159,10 +141,10 @@ struct AddAlarmView: View {
                 .foregroundColor(.white)
 
             HStack(spacing: 12) {
-                SnoozeButton(title: "사용 안 함", interval: nil, selectedInterval: $snoozeInterval)
-                SnoozeButton(title: "5분", interval: 5, selectedInterval: $snoozeInterval)
-                SnoozeButton(title: "10분", interval: 10, selectedInterval: $snoozeInterval)
-                SnoozeButton(title: "15분", interval: 15, selectedInterval: $snoozeInterval)
+                SnoozeButton(title: "사용 안 함", interval: nil, selectedInterval: $viewModel.snoozeInterval)
+                SnoozeButton(title: "5분", interval: 5, selectedInterval: $viewModel.snoozeInterval)
+                SnoozeButton(title: "10분", interval: 10, selectedInterval: $viewModel.snoozeInterval)
+                SnoozeButton(title: "15분", interval: 15, selectedInterval: $viewModel.snoozeInterval)
             }
         }
         .padding()
@@ -172,7 +154,7 @@ struct AddAlarmView: View {
 
     private var deleteButton: some View {
         Button {
-            showingDeleteAlert = true
+            viewModel.showDeleteAlert()
         } label: {
             HStack {
                 Image(systemName: "trash")
@@ -187,122 +169,6 @@ struct AddAlarmView: View {
         }
     }
 
-    private func saveAlarm() {
-        if audioRecorder.isRecording {
-            audioRecorder.stopRecording()
-            if let url = audioRecorder.audioURL {
-                audioFileName = url.lastPathComponent
-            }
-        }
-
-        let components = Calendar.current.dateComponents([.hour, .minute], from: selectedTime)
-        let hour = components.hour ?? 0
-        let minute = components.minute ?? 0
-        let currentTitle = title
-        let currentRepeatDays = Array(repeatDays)
-        let currentAudioFileName = audioFileName
-        let currentSnoozeInterval = snoozeInterval
-
-        if let existingAlarm = alarm {
-            Task {
-                await AlarmNotificationManager.shared.cancelAlarm(existingAlarm)
-
-                var updateSuccess = false
-                await MainActor.run {
-                    do {
-                        try modelContext.transaction {
-                            existingAlarm.title = currentTitle
-                            existingAlarm.hour = hour
-                            existingAlarm.minute = minute
-                            existingAlarm.repeatDays = currentRepeatDays
-                            existingAlarm.snoozeInterval = currentSnoozeInterval
-                            if let fileName = currentAudioFileName {
-                                existingAlarm.audioFileName = fileName
-                            }
-                        }
-                        updateSuccess = true
-                    } catch {
-                        errorMessage = "알람 업데이트에 실패했습니다."
-                        showingErrorAlert = true
-                        AnalyticsManager.shared.logAlarmSaveFailed(message: error.localizedDescription)
-                    }
-                }
-
-                if updateSuccess {
-                    AnalyticsManager.shared.logAlarmUpdated(hasCustomAudio: currentAudioFileName != nil)
-                    do {
-                        try await AlarmNotificationManager.shared.scheduleAlarm(existingAlarm)
-                    } catch {
-                        await MainActor.run {
-                            errorMessage = "알람 예약에 실패했습니다. 다시 시도해주세요."
-                            showingErrorAlert = true
-                            AnalyticsManager.shared.logAlarmScheduleFailed(message: error.localizedDescription)
-                        }
-                    }
-                }
-            }
-        } else {
-            let newAlarm = Alarm(
-                title: currentTitle,
-                hour: hour,
-                minute: minute,
-                isEnabled: true,
-                audioFileName: currentAudioFileName,
-                repeatDays: currentRepeatDays,
-                snoozeInterval: currentSnoozeInterval
-            )
-            modelContext.insert(newAlarm)
-
-            do {
-                try modelContext.save()
-                AnalyticsManager.shared.logAlarmCreated(
-                    hasCustomAudio: currentAudioFileName != nil,
-                    hasRepeat: !currentRepeatDays.isEmpty,
-                    hasSnooze: currentSnoozeInterval != nil
-                )
-
-                Task {
-                    do {
-                        try await AlarmNotificationManager.shared.scheduleAlarm(newAlarm)
-                    } catch {
-                        await MainActor.run {
-                            errorMessage = "알람 예약에 실패했습니다. 다시 시도해주세요."
-                            showingErrorAlert = true
-                            AnalyticsManager.shared.logAlarmScheduleFailed(message: error.localizedDescription)
-                        }
-                    }
-                }
-            } catch {
-                errorMessage = "알람 저장에 실패했습니다."
-                showingErrorAlert = true
-                AnalyticsManager.shared.logAlarmSaveFailed(message: error.localizedDescription)
-            }
-        }
-
-        dismiss()
-    }
-
-    private func deleteAlarm() {
-        guard let alarm = alarm else {
-            dismiss()
-            return
-        }
-
-        let audioFileToDelete = alarm.audioFileName
-
-        Task {
-            await AlarmNotificationManager.shared.cancelAlarm(alarm)
-
-            await MainActor.run {
-                if let audioFileName = audioFileToDelete {
-                    audioRecorder.deleteAudioFile(fileName: audioFileName)
-                }
-                modelContext.delete(alarm)
-            }
-        }
-
-        dismiss()
-    }
 }
 
 struct SnoozeButton: View {
@@ -326,6 +192,9 @@ struct SnoozeButton: View {
 }
 
 #Preview {
-    AddAlarmView()
-        .modelContainer(for: Alarm.self, inMemory: true)
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Alarm.self, configurations: config)
+    let context = container.mainContext
+
+    return AddAlarmView(viewModel: AddAlarmViewModel(modelContext: context, alarm: nil))
 }

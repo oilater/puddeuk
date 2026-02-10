@@ -5,7 +5,7 @@ import Combine
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Alarm.hour) private var alarms: [Alarm]
+    @State private var viewModel: AlarmListViewModel?
     @State private var showingAddAlarm = false
     @State private var selectedAlarm: Alarm?
     @ObservedObject private var alarmManager = AlarmManager.shared
@@ -19,18 +19,22 @@ struct ContentView: View {
             ZStack {
                 Color(red: 0.11, green: 0.11, blue: 0.13).ignoresSafeArea()
 
-                if alarms.isEmpty {
-                    EmptyAlarmView()
-                } else {
-                    AlarmListView(
-                        alarms: displayAlarms,
-                        timeUntilNextAlarm: timeUntilNextAlarm
-                    ) { alarm in
-                        selectedAlarm = alarm
-                    } onAlarmDelete: { alarm in
-                        deleteAlarm(alarm)
+                if let viewModel = viewModel {
+                    if viewModel.alarms.isEmpty {
+                        EmptyAlarmView()
+                    } else {
+                        AlarmListView(
+                            alarms: displayAlarms,
+                            timeUntilNextAlarm: viewModel.timeUntilNextAlarm()
+                        ) { alarm in
+                            selectedAlarm = alarm
+                        } onAlarmDelete: { alarm in
+                            Task {
+                                await viewModel.deleteAlarm(alarm)
+                            }
+                        }
+                        .padding(.bottom, 20)
                     }
-                    .padding(.bottom, 20)
                 }
             }
             .navigationTitle("기상 도움 많이 된다")
@@ -39,22 +43,28 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     ToolbarButtons(
-                        alarms: alarms,
+                        alarms: viewModel?.alarms ?? [],
                         onAddTap: { showingAddAlarm = true }
                     )
                 }
             }
             .sheet(isPresented: $showingAddAlarm) {
-                AddAlarmView()
+                AddAlarmView(viewModel: AddAlarmViewModel(modelContext: modelContext, alarm: nil))
             }
             .sheet(item: $selectedAlarm) { alarm in
-                AddAlarmView(alarm: alarm)
+                AddAlarmView(viewModel: AddAlarmViewModel(modelContext: modelContext, alarm: alarm))
+            }
+            .task {
+                if viewModel == nil {
+                    viewModel = AlarmListViewModel(modelContext: modelContext)
+                    viewModel?.loadAlarms()
+                    updateDisplayAlarms()
+                }
             }
             .onAppear {
                 setupAlarms()
-                updateDisplayAlarms()
             }
-            .onChange(of: alarms.count) { _, _ in
+            .onChange(of: viewModel?.alarms.count) { _, _ in
                 updateDisplayAlarms()
             }
             .onReceive(timer) { _ in
@@ -90,7 +100,8 @@ struct ContentView: View {
     }
 
     private func updateDisplayAlarms() {
-        displayAlarms = alarms.sorted { alarm1, alarm2 in
+        guard let viewModel = viewModel else { return }
+        displayAlarms = viewModel.alarms.sorted { alarm1, alarm2 in
             let date1 = alarm1.nextFireDate
             let date2 = alarm2.nextFireDate
 
@@ -107,46 +118,15 @@ struct ContentView: View {
         }
     }
 
-    private var nextAlarm: Alarm? {
-        alarms
-            .filter { $0.isEnabled }
-            .compactMap { alarm -> (Alarm, Date)? in
-                guard let fireDate = alarm.nextFireDate else { return nil }
-                return (alarm, fireDate)
-            }
-            .min(by: { $0.1 < $1.1 })?
-            .0
-    }
-
-    private var timeUntilNextAlarm: String? {
-        guard let alarm = nextAlarm else { return nil }
-        return TimeFormatter.timeUntilAlarm(for: alarm)
-    }
-
     private func setupAlarms() {
         rescheduleActiveAlarms()
     }
 
     private func rescheduleActiveAlarms() {
+        guard let viewModel = viewModel else { return }
         Task {
-            for alarm in alarms where alarm.isEnabled {
+            for alarm in viewModel.alarms where alarm.isEnabled {
                 try? await AlarmNotificationManager.shared.scheduleAlarm(alarm)
-            }
-        }
-    }
-
-    private func deleteAlarm(_ alarm: Alarm) {
-        let audioFileToDelete = alarm.audioFileName
-        AnalyticsManager.shared.logAlarmDeleted()
-
-        Task {
-            await AlarmNotificationManager.shared.cancelAlarm(alarm)
-
-            await MainActor.run {
-                if let audioFileName = audioFileToDelete {
-                    AudioRecorder().deleteAudioFile(fileName: audioFileName)
-                }
-                modelContext.delete(alarm)
             }
         }
     }

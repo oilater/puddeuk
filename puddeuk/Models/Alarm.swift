@@ -101,3 +101,6 @@ final class Alarm {
         return calendar.date(from: components)
     }
 }
+
+// MARK: - Sendable Conformance
+extension Alarm: @unchecked Sendable {}
