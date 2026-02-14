@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 import FirebaseAnalytics
 
 final class FirebaseAnalyticsLogger: AnalyticsLogging {

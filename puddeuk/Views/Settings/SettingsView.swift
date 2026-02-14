@@ -1,6 +1,9 @@
 import SwiftUI
+import AlarmKit
 
 struct SettingsView: View {
+    @State private var testAlarmScheduled = false
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -75,6 +78,28 @@ struct SettingsView: View {
                         .listRowBackground(Color(red: 0.18, green: 0.18, blue: 0.2))
                     }
 
+                    #if DEBUG
+                    Section(header: Text("🔧 디버그 (AlarmKit)").foregroundStyle(.teal)) {
+                        Button {
+                            testAlarmKitDirect()
+                        } label: {
+                            HStack {
+                                Image(systemName: "hammer.fill")
+                                    .foregroundStyle(.orange)
+                                Text("AlarmKit 직접 테스트 (1분 후)")
+                                    .font(.omyuBody)
+                                Spacer()
+                                if testAlarmScheduled {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(.green)
+                                }
+                            }
+                            .foregroundStyle(.white)
+                        }
+                        .listRowBackground(Color(red: 0.18, green: 0.18, blue: 0.2))
+                    }
+                    #endif
+
                     Section {
                         HStack {
                             Text("버전")
@@ -94,6 +119,59 @@ struct SettingsView: View {
             }
             .navigationTitle("설정")
             .navigationBarTitleDisplayMode(.large)
+        }
+    }
+
+    private func testAlarmKitDirect() {
+        Task {
+            let alarmManager = AlarmKit.AlarmManager.shared
+
+            guard alarmManager.authorizationState == .authorized else {
+                return
+            }
+
+            // 1분 후 알람 설정
+            let fireDate = Date().addingTimeInterval(60)
+            let schedule = AlarmKit.Alarm.Schedule.fixed(fireDate)
+
+            // Alert 구성
+            let alert = AlarmPresentation.Alert(
+                title: "🔧 직접 테스트",
+                stopButton: AlarmButton(
+                    text: "끄기",
+                    textColor: .white,
+                    systemImageName: "stop.circle"
+                )
+            )
+
+            let presentation = AlarmPresentation(alert: alert)
+
+            let attributes = AlarmKit.AlarmAttributes<PuddeukAlarmMetadata>(
+                presentation: presentation,
+                metadata: PuddeukAlarmMetadata(),
+                tintColor: .orange
+            )
+
+            let configuration = AlarmKit.AlarmManager.AlarmConfiguration(
+                schedule: schedule,
+                attributes: attributes
+            )
+
+            do {
+                _ = try await alarmManager.schedule(id: UUID(), configuration: configuration)
+                await MainActor.run {
+                    testAlarmScheduled = true
+                }
+
+                try? await Task.sleep(for: .seconds(3))
+                await MainActor.run {
+                    testAlarmScheduled = false
+                }
+            } catch {
+                await MainActor.run {
+                    testAlarmScheduled = false
+                }
+            }
         }
     }
 }

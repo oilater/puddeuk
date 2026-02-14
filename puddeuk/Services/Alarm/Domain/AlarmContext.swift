@@ -1,5 +1,4 @@
 import Foundation
-import UserNotifications
 
 struct AlarmContext: Sendable, Equatable {
     let alarmId: String
@@ -12,17 +11,6 @@ struct AlarmContext: Sendable, Equatable {
         self.title = alarm.title.isEmpty ? "알람" : alarm.title
         self.audioFileName = alarm.audioFileName
         self.scheduledTime = alarm.nextFireDate ?? Date()
-    }
-
-    init(notification: UNNotification) {
-        let userInfo = notification.request.content.userInfo
-        self.alarmId = userInfo["alarmId"] as? String ?? ""
-        self.title = userInfo["title"] as? String ?? "알람"
-
-        let fileName = userInfo["audioFileName"] as? String
-        self.audioFileName = (fileName?.isEmpty == true) ? nil : fileName
-
-        self.scheduledTime = Date()
     }
 
     init(

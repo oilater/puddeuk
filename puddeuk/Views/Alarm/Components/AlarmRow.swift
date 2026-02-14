@@ -39,11 +39,11 @@ struct AlarmRow: View {
                     set: { newValue in
                         alarm.isEnabled = newValue
                         AnalyticsManager.shared.logAlarmToggled(isEnabled: newValue)
-                        Task {
+                        Task { @MainActor in
                             if newValue {
-                                try? await AlarmNotificationManager.shared.scheduleAlarm(alarm)
+                                try? await AlarmKitHelper.scheduleAlarm(alarm)
                             } else {
-                                await AlarmNotificationManager.shared.cancelAlarm(alarm)
+                                try? await AlarmKitHelper.cancelAlarm(alarm)
                             }
                         }
                     }

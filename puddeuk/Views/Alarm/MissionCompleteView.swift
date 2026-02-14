@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MissionCompleteView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var isAnimating = false
 
     var body: some View {
@@ -47,7 +48,7 @@ struct MissionCompleteView: View {
         Task {
             try? await Task.sleep(nanoseconds: 2_500_000_000) // 2.5 seconds
             await MainActor.run {
-                AlarmManager.shared.dismissMissionComplete()
+                dismiss()
             }
         }
     }

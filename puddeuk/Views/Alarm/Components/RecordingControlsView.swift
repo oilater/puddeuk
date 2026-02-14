@@ -107,11 +107,12 @@ struct RecordingControlsView: View {
                 Spacer()
                 Button {
                     audioPlayer.stop()
-                    if let fileName = audioFileName,
-                       audioRecorder.audioURL?.lastPathComponent == fileName {
-                        audioRecorder.deleteAudioFile(fileName: fileName)
+                    if let fileName = audioFileName {
+                        let deleted = audioRecorder.deleteAudioFile(fileName: fileName)
+                        if deleted {
+                            audioFileName = nil
+                        }
                     }
-                    audioFileName = nil
                     AnalyticsManager.shared.logRecordingCanceled()
                 } label: {
                     Image(systemName: "xmark.circle.fill")
@@ -144,9 +145,11 @@ struct RecordingControlsView: View {
                 Button {
                     audioPlayer.stop()
                     if let fileName = audioFileName {
-                        audioRecorder.deleteAudioFile(fileName: fileName)
+                        let deleted = audioRecorder.deleteAudioFile(fileName: fileName)
+                        if deleted {
+                            audioFileName = nil
+                        }
                     }
-                    audioFileName = nil
                     _ = audioRecorder.startRecording()
                     AnalyticsManager.shared.logRecordingStarted()
                 } label: {

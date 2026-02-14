@@ -1,8 +1,8 @@
 import SwiftUI
-import UserNotifications
+import AlarmKit
 
 struct NotificationSettingsView: View {
-    @State private var notificationStatus: UNAuthorizationStatus = .notDetermined
+    @State private var authorizationState: AlarmKit.AlarmManager.AuthorizationState = .notDetermined
     @State private var isLoading = false
 
     var body: some View {
@@ -23,14 +23,14 @@ struct NotificationSettingsView: View {
         .navigationTitle("알림 설정")
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
-            checkNotificationStatus()
+            checkAlarmKitStatus()
         }
     }
 
     @ViewBuilder
     private var statusIcon: some View {
-        switch notificationStatus {
-        case .authorized, .provisional, .ephemeral:
+        switch authorizationState {
+        case .authorized:
             Image(systemName: "checkmark.circle.fill")
                 .font(.omyu(size: 80))
                 .foregroundColor(.teal)
@@ -52,8 +52,8 @@ struct NotificationSettingsView: View {
     @ViewBuilder
     private var statusMessage: some View {
         VStack(spacing: 12) {
-            switch notificationStatus {
-            case .authorized, .provisional, .ephemeral:
+            switch authorizationState {
+            case .authorized:
                 Text("알림 권한이 허용되었어요")
                     .font(.omyu(size: 28))
                     .foregroundColor(.white)
@@ -99,7 +99,7 @@ struct NotificationSettingsView: View {
 
     @ViewBuilder
     private var actionButton: some View {
-        switch notificationStatus {
+        switch authorizationState {
         case .denied:
             Button {
                 openSettings()
@@ -115,7 +115,7 @@ struct NotificationSettingsView: View {
 
         case .notDetermined:
             Button {
-                requestNotificationPermission()
+                requestAlarmKitPermission()
             } label: {
                 Text(isLoading ? "요청 중..." : "알림 권한 요청하기")
                     .font(.omyuHeadline)
@@ -127,7 +127,7 @@ struct NotificationSettingsView: View {
             }
             .disabled(isLoading)
 
-        case .authorized, .provisional, .ephemeral:
+        case .authorized:
             Button {
                 openSettings()
             } label: {
@@ -145,24 +145,18 @@ struct NotificationSettingsView: View {
         }
     }
 
-    private func checkNotificationStatus() {
-        Task {
-            let center = UNUserNotificationCenter.current()
-            let settings = await center.notificationSettings()
-            await MainActor.run {
-                notificationStatus = settings.authorizationStatus
-            }
-        }
+    private func checkAlarmKitStatus() {
+        authorizationState = AlarmKit.AlarmManager.shared.authorizationState
     }
 
-    private func requestNotificationPermission() {
+    private func requestAlarmKitPermission() {
         isLoading = true
         Task {
-            await AlarmNotificationManager.shared.requestAuthorization()
+            _ = try? await AlarmKit.AlarmManager.shared.requestAuthorization()
             await MainActor.run {
                 isLoading = false
             }
-            checkNotificationStatus()
+            checkAlarmKitStatus()
         }
     }
 

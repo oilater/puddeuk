@@ -1,4 +1,5 @@
 import SwiftUI
+import AlarmKit
 
 struct OnboardingView: View {
     @Binding var hasCompletedOnboarding: Bool
@@ -32,7 +33,7 @@ struct OnboardingView: View {
         if currentPage == 2 {
             Button {
                 Task {
-                    await AlarmNotificationManager.shared.requestAuthorization()
+                    _ = try? await AlarmKit.AlarmManager.shared.requestAuthorization()
                     withAnimation(.easeInOut(duration: 0.15)) {
                         currentPage += 1
                     }

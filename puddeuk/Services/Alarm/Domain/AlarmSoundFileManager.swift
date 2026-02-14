@@ -1,5 +1,4 @@
 import Foundation
-import UserNotifications
 import OSLog
 
 final class AlarmSoundFileManager: Sendable {
@@ -54,19 +53,6 @@ final class AlarmSoundFileManager: Sendable {
 
     private func getDocumentsDirectory() throws -> URL {
         return fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
-    }
-
-
-    func notificationSound(for audioFileName: String?) -> UNNotificationSound {
-        guard let audioFileName, !audioFileName.isEmpty else {
-            return .default
-        }
-
-        if fileExists(audioFileName) {
-            return UNNotificationSound(named: UNNotificationSoundName(audioFileName))
-        }
-
-        return .default
     }
 
     func fileExists(_ fileName: String) -> Bool {

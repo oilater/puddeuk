@@ -63,7 +63,7 @@ class AudioRecorder: NSObject, ObservableObject {
         setupAudioSession()
 
         let soundsPath = getSoundsDirectory()
-        let uniqueName = "alarm_\(UUID().uuidString.prefix(8)).wav"
+        let uniqueName = "alarm_\(UUID().uuidString.prefix(8)).caf"
         let audioFilename = soundsPath.appendingPathComponent(uniqueName)
 
         let settings: [String: Any] = [
@@ -158,14 +158,27 @@ class AudioRecorder: NSObject, ObservableObject {
         return getSoundsDirectory().appendingPathComponent(fileName)
     }
 
-    func deleteAudioFile(fileName: String) {
+    func deleteAudioFile(fileName: String) -> Bool {
         let fileURL = getSoundsDirectory().appendingPathComponent(fileName)
-        do {
-            if FileManager.default.fileExists(atPath: fileURL.path) {
-                try FileManager.default.removeItem(at: fileURL)
+
+        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+            Task { @MainActor in
+                Logger.audio.warning("파일이 존재하지 않음: \(fileName)")
             }
+            return false
+        }
+
+        do {
+            try FileManager.default.removeItem(at: fileURL)
+            Task { @MainActor in
+                Logger.audio.info("파일 삭제 성공: \(fileName)")
+            }
+            return true
         } catch {
-            Logger.audio.error("오디오 파일 삭제 실패: \(error.localizedDescription)")
+            Task { @MainActor in
+                Logger.audio.error("파일 삭제 실패: \(error.localizedDescription)")
+            }
+            return false
         }
     }
 }

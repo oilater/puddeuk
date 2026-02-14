@@ -2,17 +2,17 @@ import SwiftUI
 import SwiftData
 import UIKit
 import Combine
+import AlarmKit
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Alarm.hour) private var alarms: [Alarm]
     @State private var showingAddAlarm = false
     @State private var selectedAlarm: Alarm?
-    @ObservedObject private var alarmManager = AlarmManager.shared
-    @ObservedObject private var presenter = AlarmUIPresenter.shared
     @State private var currentTime = Date()
 
     private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+    private let alarmManager = AlarmKit.AlarmManager.shared
 
     var body: some View {
         NavigationStack {
@@ -56,32 +56,10 @@ struct ContentView: View {
             .onReceive(timer) { _ in
                 currentTime = Date()
             }
-            .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-                Task {
-                    await AlarmNotificationManager.shared.checkPendingAlarm(modelContext: modelContext)
-                }
-            }
-            .onChange(of: alarmManager.showAlarmView) { _, show in
-                if show {
-                    showingAddAlarm = false
-                    selectedAlarm = nil
-                    alarmManager.showMissionCompleteView = false
-                }
-            }
-            .fullScreenCover(isPresented: $alarmManager.showAlarmView) {
-                if let context = presenter.activeAlarmContext {
-                    let alarm = alarms.first { $0.id.uuidString == context.alarmId }
-                    AlarmView(context: context, alarm: alarm, modelContext: modelContext)
-                }
-            }
-            .fullScreenCover(isPresented: $alarmManager.showMissionCompleteView) {
-                MissionCompleteView()
-            }
         }
     }
 
     private var sortedAlarms: [Alarm] {
-        // 시간순으로만 정렬 (활성화 상태 무관)
         alarms.sorted { alarm1, alarm2 in
             if alarm1.hour != alarm2.hour {
                 return alarm1.hour < alarm2.hour
@@ -103,16 +81,18 @@ struct ContentView: View {
             return nil
         }
 
-        return TimeFormatter.timeUntilAlarm(from: currentTime, to: date)
+        return TimeFormatter.timeUntilAlarm(from: Date(), to: date)
     }
 
     private func deleteAlarm(_ alarm: Alarm) {
         Task {
-            await AlarmNotificationManager.shared.cancelAlarm(alarm)
+            // AlarmKit 취소
+            try? alarmManager.cancel(id: alarm.id)
 
+            // 오디오 파일 삭제
             if let audioFileName = alarm.audioFileName {
                 let audioRecorder = AudioRecorder()
-                audioRecorder.deleteAudioFile(fileName: audioFileName)
+                _ = audioRecorder.deleteAudioFile(fileName: audioFileName)
             }
 
             modelContext.delete(alarm)
@@ -121,9 +101,9 @@ struct ContentView: View {
     }
 
     private func setupAlarms() {
-        Task {
+        Task { @MainActor in
             for alarm in alarms where alarm.isEnabled {
-                try? await AlarmNotificationManager.shared.scheduleAlarm(alarm)
+                try? await AlarmKitHelper.scheduleAlarm(alarm)
             }
         }
     }
