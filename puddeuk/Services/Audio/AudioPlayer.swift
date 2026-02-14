@@ -1,6 +1,5 @@
 import Foundation
 import AVFoundation
-import AudioToolbox
 import Combine
 import OSLog
 
@@ -9,7 +8,13 @@ class AudioPlayer: NSObject, ObservableObject {
 
     private var player: AVAudioPlayer?
 
+    deinit {
+        stop()
+    }
+
     func playPreview(fileName: String) -> Bool {
+        if isPlaying { stop() }
+
         guard let soundsDirectory = try? FileManager.default.getSoundsDirectory() else {
             Logger.audio.error("Sounds 디렉토리 접근 실패")
             return false
@@ -27,9 +32,13 @@ class AudioPlayer: NSObject, ObservableObject {
             player?.delegate = self
             player?.numberOfLoops = 0
             player?.volume = 1.0
-            player?.play()
-            isPlaying = true
-            return true
+            player?.prepareToPlay()
+
+            if player?.play() == true {
+                isPlaying = true
+                return true
+            }
+            return false
         } catch {
             Logger.audio.error("미리듣기 재생 실패: \(error.localizedDescription)")
             AnalyticsManager.shared.logPlaybackFailed(message: error.localizedDescription)
@@ -45,22 +54,14 @@ class AudioPlayer: NSObject, ObservableObject {
     }
 
     private func setupAudioSession() throws {
-        try AVAudioSession.sharedInstance().setCategory(
-            .playback,
-            mode: .default,
-            options: [.duckOthers]
-        )
-        try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
-    }
-
-    private func configurePlayer() {
-        player?.numberOfLoops = -1
-        player?.volume = 1.0
+        let session = AVAudioSession.sharedInstance()
+        try session.setCategory(.playback, mode: .default, options: [.duckOthers])
+        try session.setActive(true)
     }
 
     private func deactivateAudioSession() {
         do {
-            try AVAudioSession.sharedInstance().setActive(false)
+            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         } catch {
             Logger.audio.warning("오디오 세션 비활성화 실패: \(error.localizedDescription)")
         }

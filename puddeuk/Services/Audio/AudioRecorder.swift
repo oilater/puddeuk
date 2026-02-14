@@ -32,6 +32,11 @@ class AudioRecorder: NSObject, ObservableObject {
         createSoundsDirectoryIfNeeded()
     }
 
+    deinit {
+        timer?.invalidate()
+        audioRecorder?.stop()
+    }
+
     private func setupAudioSession() {
         do {
             let audioSession = AVAudioSession.sharedInstance()
@@ -52,6 +57,12 @@ class AudioRecorder: NSObject, ObservableObject {
     }
 
     func startRecording() -> URL? {
+        let session = AVAudioSession.sharedInstance()
+        if session.recordPermission == .denied {
+            Logger.audio.error("마이크 권한 거부됨")
+            return nil
+        }
+
         setupAudioSession()
 
         guard let soundsPath = try? FileManager.default.getSoundsDirectory() else {
@@ -83,33 +94,38 @@ class AudioRecorder: NSObject, ObservableObject {
             remainingTime = AlarmConfiguration.maxRecordingDuration
 
             timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
-                guard let self = self, let startTime = self.startTime else { return }
+                guard let self = self, let startTime = self.startTime, self.isRecording else { return }
                 let elapsed = Date().timeIntervalSince(startTime)
-                let maxDuration = AlarmConfiguration.maxRecordingDuration
-                let warningThreshold = AlarmConfiguration.recordingWarningThreshold
-
-                self.recordingTime = elapsed
-                self.remainingTime = max(0, maxDuration - elapsed)
-
-                if elapsed >= maxDuration {
-                    self.recordingState = .limitReached
-                    self.onLimitReached?()
-                    self.stopRecording()
-                } else if self.remainingTime <= warningThreshold && !self.hasTriggeredWarning {
-                    self.recordingState = .warning
-                    self.hasTriggeredWarning = true
-                    self.onWarningReached?()
-                } else if self.remainingTime > warningThreshold {
-                    self.recordingState = .recording
-                }
+                self.updateRecordingStatus(elapsed: elapsed)
             }
 
             Logger.audio.info("녹음 시작: \(audioFilename.lastPathComponent)")
             return audioFilename
         } catch {
+
             Logger.audio.error("녹음 시작 실패: \(error.localizedDescription)")
             AnalyticsManager.shared.logRecordingStartFailed(message: error.localizedDescription)
             return nil
+        }
+    }
+
+    private func updateRecordingStatus(elapsed: TimeInterval) {
+        let maxDuration = AlarmConfiguration.maxRecordingDuration
+        let warningThreshold = AlarmConfiguration.recordingWarningThreshold
+
+        recordingTime = elapsed
+        remainingTime = max(0, maxDuration - elapsed)
+
+        if elapsed >= maxDuration {
+            recordingState = .limitReached
+            onLimitReached?()
+            stopRecording()
+        } else if remainingTime <= warningThreshold && !hasTriggeredWarning {
+            recordingState = .warning
+            hasTriggeredWarning = true
+            onWarningReached?()
+        } else if remainingTime > warningThreshold {
+            recordingState = .recording
         }
     }
 

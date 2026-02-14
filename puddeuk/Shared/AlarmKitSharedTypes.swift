@@ -2,19 +2,11 @@ import Foundation
 import AlarmKit
 import AppIntents
 
-// MARK: - Alarm Metadata
-
-/// AlarmKit metadata shared between app and widget extension
-/// IMPORTANT: This file MUST be included in BOTH targets (app + AlarmWidget)
 public struct PuddeukAlarmMetadata: AlarmKit.AlarmMetadata {
     public let createdAt: Date
     public init() { self.createdAt = Date() }
 }
 
-// MARK: - Alarm Intent
-
-/// Intent for stopping alarms
-/// IMPORTANT: This must be accessible from both app and widget extension
 public struct StopAlarmIntent: LiveActivityIntent {
     @Parameter(title: "alarmID")
     public var alarmID: String

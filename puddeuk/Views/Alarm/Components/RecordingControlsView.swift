@@ -177,7 +177,7 @@ struct RecordingControlsView: View {
                     .foregroundColor(.gray)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                Text("최대 25초까지 녹음할 수 있어요")
+                Text("최대 30초까지 녹음할 수 있어요")
                     .font(.omyuCaption)
                     .foregroundColor(.gray.opacity(0.7))
                     .frame(maxWidth: .infinity, alignment: .leading)

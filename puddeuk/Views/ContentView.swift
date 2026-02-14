@@ -6,10 +6,14 @@ import AlarmKit
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Alarm.hour) private var alarms: [Alarm]
+    @Query(sort: [
+        SortDescriptor(\Alarm.hour, order: .forward),
+        SortDescriptor(\Alarm.minute, order: .forward)
+    ]) private var alarms: [Alarm]
     @State private var showingAddAlarm = false
     @State private var selectedAlarm: Alarm?
     @State private var currentTime = Date()
+    @State private var timer: AnyCancellable?
 
     private let alarmManager = AlarmKit.AlarmManager.shared
 
@@ -22,7 +26,7 @@ struct ContentView: View {
                     EmptyAlarmView()
                 } else {
                     AlarmListView(
-                        alarms: sortedAlarms,
+                        alarms: alarms,
                         timeUntilNextAlarm: timeUntilNextAlarm
                     ) { alarm in
                         selectedAlarm = alarm
@@ -51,6 +55,10 @@ struct ContentView: View {
             }
             .onAppear {
                 setupAlarms()
+                startTimer()
+            }
+            .onDisappear {
+                timer?.cancel()
             }
             .task {
                 for await _ in alarmManager.alarmUpdates {
@@ -60,37 +68,26 @@ struct ContentView: View {
         }
     }
 
-    private var sortedAlarms: [Alarm] {
-        alarms.sorted { alarm1, alarm2 in
-            if alarm1.hour != alarm2.hour {
-                return alarm1.hour < alarm2.hour
-            }
-            return alarm1.minute < alarm2.minute
-        }
+    private var timeUntilNextAlarm: String? {
+        let nextDates = alarms
+            .filter { $0.isEnabled }
+            .compactMap { $0.nextFireDate }
+        guard let closestDate = nextDates.min() else { return nil }
+        return TimeFormatter.timeUntilAlarm(from: currentTime, to: closestDate)
     }
 
-    private var timeUntilNextAlarm: String? {
-        let nextAlarm = alarms
-            .filter { $0.isEnabled }
-            .compactMap { alarm -> (Alarm, Date)? in
-                guard let date = alarm.nextFireDate else { return nil }
-                return (alarm, date)
+    private func startTimer() {
+        timer = Timer.publish(every: 1, on: .main, in: .common)
+            .autoconnect()
+            .sink { _ in
+                currentTime = Date()
             }
-            .min { $0.1 < $1.1 }
-
-        guard let (_, date) = nextAlarm else {
-            return nil
-        }
-
-        return TimeFormatter.timeUntilAlarm(from: Date(), to: date)
     }
 
     private func deleteAlarm(_ alarm: Alarm) {
         Task {
-            // AlarmKit 취소
             try? alarmManager.cancel(id: alarm.id)
-
-            // 오디오 파일 삭제
+            
             if let audioFileName = alarm.audioFileName {
                 let audioRecorder = AudioRecorder()
                 _ = audioRecorder.deleteAudioFile(fileName: audioFileName)

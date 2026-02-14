@@ -6,7 +6,7 @@ import XCTest
 /// - 반복 알람 처리
 /// - 과거 시간 처리
 final class AlarmSchedulingTests: XCTestCase {
-
+    
     // MARK: - One-time Alarm Tests
 
     func test_nextFireDate_미래시간_반복없음_다음발화시간계산() {
@@ -55,8 +55,9 @@ final class AlarmSchedulingTests: XCTestCase {
         XCTAssertGreaterThan(nextFire!, now, "다음 발화 시간은 현재보다 미래여야 함")
 
         // 대략 23시간 후 (다음날 같은 시간)
+        // 초를 0으로 설정하므로, 현재 시간의 초에 따라 22:59 ~ 23:01 범위
         let timeDiff = nextFire!.timeIntervalSince(now)
-        XCTAssertTrue(timeDiff > 82800 && timeDiff < 83400, "다음날 같은 시간으로 예약되어야 함 (~23시간)")
+        XCTAssertTrue(timeDiff > 82740 && timeDiff < 83460, "다음날 같은 시간으로 예약되어야 함 (~23시간, ±1분)")
     }
 
     func test_nextFireDate_비활성화_알람_nil반환() {
