@@ -4,43 +4,42 @@ struct TimeFormatter {
 
     static func timeUntilAlarm(from: Date = Date(), to: Date) -> String? {
         let calendar = Calendar.current
+        guard to > from else { return nil }
 
-        guard to > from else {
-            return nil
-        }
+        let components = calendar.dateComponents([.day, .hour, .minute, .second], from: from, to: to)
 
-        let nowComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: from)
-        let fireComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: to)
+        let days = components.day ?? 0
+        let hours = components.hour ?? 0
+        let minutes = components.minute ?? 0
+        let seconds = components.second ?? 0
 
-        guard let nowDate = calendar.date(from: nowComponents),
-              let fireDate = calendar.date(from: fireComponents) else {
-            return nil
-        }
-
-        if nowDate == fireDate {
+        if days == 0 && hours == 0 && minutes == 0 && seconds > 0 {
             return "1분 안에 알람이 울려요"
         }
 
-        let components = calendar.dateComponents([.day, .hour, .minute], from: nowDate, to: fireDate)
+        var finalMinutes = (seconds > 0) ? (minutes + 1) : minutes
+        var finalHours = hours
+        var finalDays = days
 
-        guard let days = components.day,
-              let hours = components.hour,
-              let minutes = components.minute else {
-            return nil
+        if finalMinutes >= 60 {
+            finalHours += 1
+            finalMinutes -= 60
+        }
+        if finalHours >= 24 {
+            finalDays += 1
+            finalHours -= 24
         }
 
-        if days > 0 {
-            return "\(days)일 후에 알람이 울려요"
-        } else if hours > 0 {
-            if minutes > 0 {
-                return "\(hours)시간 \(minutes)분 후에 알람이 울려요"
+        if finalDays > 0 {
+            return "\(finalDays)일 후에 알람이 울려요"
+        } else if finalHours > 0 {
+            if finalMinutes > 0 {
+                return "\(finalHours)시간 \(finalMinutes)분 후에 알람이 울려요"
             } else {
-                return "\(hours)시간 후에 알람이 울려요"
+                return "\(finalHours)시간 후에 알람이 울려요"
             }
-        } else if minutes > 0 {
-            return "\(minutes)분 후에 알람이 울려요"
         } else {
-            return "1분 안에 알람이 울려요"
+            return "\(finalMinutes)분 후에 알람이 울려요"
         }
     }
 
