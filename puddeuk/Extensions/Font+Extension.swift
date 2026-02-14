@@ -17,16 +17,3 @@ extension Font {
     static let omyuFootnote = omyu(size: 13)
     static let omyuCaption = omyu(size: 12)
 }
-
-extension View {
-    func applyDefaultFont() -> some View {
-        self.font(.omyu(size: 17))
-    }
-}
-
-extension Text {
-    init(omyu text: String) {
-        self.init(text)
-        self = self.font(.omyu(size: 17))
-    }
-}

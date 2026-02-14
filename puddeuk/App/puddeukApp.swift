@@ -30,14 +30,6 @@ struct puddeukApp: App {
 
     init() {
         setupDefaultFont()
-
-        #if DEBUG
-        Task.detached(priority: .userInitiated) {
-            await MainActor.run {
-                AlarmSoundFileManager.shared.logAllSoundFiles()
-            }
-        }
-        #endif
     }
 
     private func setupDefaultFont() {

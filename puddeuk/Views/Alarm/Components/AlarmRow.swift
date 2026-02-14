@@ -1,6 +1,9 @@
 import SwiftUI
+import SwiftData
 
 struct AlarmRow: View {
+    @Environment(\.modelContext) private var modelContext
+
     let alarm: Alarm
     let onTap: () -> Void
 
@@ -45,6 +48,7 @@ struct AlarmRow: View {
                             } else {
                                 try? await AlarmKitHelper.cancelAlarm(alarm)
                             }
+                            try? modelContext.save()
                         }
                     }
                 ))

@@ -11,7 +11,6 @@ struct ContentView: View {
     @State private var selectedAlarm: Alarm?
     @State private var currentTime = Date()
 
-    private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
     private let alarmManager = AlarmKit.AlarmManager.shared
 
     var body: some View {
@@ -53,8 +52,10 @@ struct ContentView: View {
             .onAppear {
                 setupAlarms()
             }
-            .onReceive(timer) { _ in
-                currentTime = Date()
+            .task {
+                for await _ in alarmManager.alarmUpdates {
+                    currentTime = Date()
+                }
             }
         }
     }

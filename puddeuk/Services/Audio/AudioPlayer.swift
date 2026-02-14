@@ -9,30 +9,12 @@ class AudioPlayer: NSObject, ObservableObject {
 
     private var player: AVAudioPlayer?
 
-    private func getSoundsDirectory() -> URL {
-        let libraryPath = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0]
-        return libraryPath.appendingPathComponent("Sounds")
-    }
-
-    func playAlarmSound(fileName: String) {
-        let audioURL = getSoundsDirectory().appendingPathComponent(fileName)
-
-        do {
-            try setupAudioSession()
-            player = try AVAudioPlayer(contentsOf: audioURL)
-            player?.delegate = self
-            configurePlayer()
-            player?.play()
-            isPlaying = true
-        } catch {
-            Logger.audio.error("알람 소리 재생 실패: \(error.localizedDescription)")
-            AnalyticsManager.shared.logPlaybackFailed(message: error.localizedDescription)
-            playDefaultSound()
-        }
-    }
-
     func playPreview(fileName: String) -> Bool {
-        let audioURL = getSoundsDirectory().appendingPathComponent(fileName)
+        guard let soundsDirectory = try? FileManager.default.getSoundsDirectory() else {
+            Logger.audio.error("Sounds 디렉토리 접근 실패")
+            return false
+        }
+        let audioURL = soundsDirectory.appendingPathComponent(fileName)
 
         guard FileManager.default.fileExists(atPath: audioURL.path) else {
             Logger.audio.warning("미리듣기 파일 없음")
@@ -55,10 +37,6 @@ class AudioPlayer: NSObject, ObservableObject {
         }
     }
 
-    func playDefaultSound() {
-        playSystemSound()
-    }
-
     func stop() {
         player?.stop()
         player = nil
@@ -78,10 +56,6 @@ class AudioPlayer: NSObject, ObservableObject {
     private func configurePlayer() {
         player?.numberOfLoops = -1
         player?.volume = 1.0
-    }
-
-    private func playSystemSound() {
-        AudioServicesPlaySystemSound(1005)
     }
 
     private func deactivateAudioSession() {

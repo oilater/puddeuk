@@ -43,26 +43,21 @@ class AudioRecorder: NSObject, ObservableObject {
     }
 
     private func createSoundsDirectoryIfNeeded() {
-        let soundsPath = getSoundsDirectory()
-        if !FileManager.default.fileExists(atPath: soundsPath.path) {
-            do {
-                try FileManager.default.createDirectory(at: soundsPath, withIntermediateDirectories: true)
-                Logger.audio.info("Library/Sounds 폴더 생성됨")
-            } catch {
-                Logger.audio.error("Library/Sounds 폴더 생성 실패: \(error.localizedDescription)")
-            }
+        do {
+            _ = try FileManager.default.getSoundsDirectory()
+            Logger.audio.info("Library/Sounds 폴더 확인됨")
+        } catch {
+            Logger.audio.error("Library/Sounds 폴더 생성 실패: \(error.localizedDescription)")
         }
-    }
-
-    private func getSoundsDirectory() -> URL {
-        let libraryPath = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0]
-        return libraryPath.appendingPathComponent("Sounds")
     }
 
     func startRecording() -> URL? {
         setupAudioSession()
 
-        let soundsPath = getSoundsDirectory()
+        guard let soundsPath = try? FileManager.default.getSoundsDirectory() else {
+            Logger.audio.error("Sounds 디렉토리 접근 실패")
+            return nil
+        }
         let uniqueName = "alarm_\(UUID().uuidString.prefix(8)).caf"
         let audioFilename = soundsPath.appendingPathComponent(uniqueName)
 
@@ -87,7 +82,7 @@ class AudioRecorder: NSObject, ObservableObject {
             hasTriggeredWarning = false
             remainingTime = AlarmConfiguration.maxRecordingDuration
 
-            timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
                 guard let self = self, let startTime = self.startTime else { return }
                 let elapsed = Date().timeIntervalSince(startTime)
                 let maxDuration = AlarmConfiguration.maxRecordingDuration
@@ -150,16 +145,21 @@ class AudioRecorder: NSObject, ObservableObject {
         }
 
         Logger.audio.info("녹음 완료: \(originalURL.lastPathComponent)")
-        AlarmSoundFileManager.shared.logAllSoundFiles()
         onRecordingFinished?(originalURL)
     }
 
     func getAudioFilePath(fileName: String) -> URL {
-        return getSoundsDirectory().appendingPathComponent(fileName)
+        guard let soundsDirectory = try? FileManager.default.getSoundsDirectory() else {
+            return URL(fileURLWithPath: "")
+        }
+        return soundsDirectory.appendingPathComponent(fileName)
     }
 
     func deleteAudioFile(fileName: String) -> Bool {
-        let fileURL = getSoundsDirectory().appendingPathComponent(fileName)
+        guard let soundsDirectory = try? FileManager.default.getSoundsDirectory() else {
+            return false
+        }
+        let fileURL = soundsDirectory.appendingPathComponent(fileName)
 
         guard FileManager.default.fileExists(atPath: fileURL.path) else {
             Task { @MainActor in
