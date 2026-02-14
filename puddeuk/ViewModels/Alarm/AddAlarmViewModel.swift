@@ -5,7 +5,8 @@ import Combine
 import AlarmKit
 
 @MainActor
-final class AddAlarmViewModel: ObservableObject {
+final class AddAlarmViewModel: ObservableObject, Identifiable {
+    let id = UUID()
     @Published var title: String
     @Published var selectedTime: Date
     @Published var repeatDays: Set<Int>

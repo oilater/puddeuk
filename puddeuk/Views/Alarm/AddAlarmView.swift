@@ -107,7 +107,6 @@ struct AddAlarmView: View {
             .datePickerStyle(.wheel)
             .labelsHidden()
             .environment(\.locale, Locale(identifier: "ko_KR"))
-            .scaleEffect(1.0)
             .frame(height: 180)
             .frame(maxWidth: .infinity)
     }

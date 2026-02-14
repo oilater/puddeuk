@@ -10,8 +10,7 @@ struct ContentView: View {
         SortDescriptor(\Alarm.hour, order: .forward),
         SortDescriptor(\Alarm.minute, order: .forward)
     ]) private var alarms: [Alarm]
-    @State private var showingAddAlarm = false
-    @State private var selectedAlarm: Alarm?
+    @State private var activeViewModel: AddAlarmViewModel?
     @State private var currentTime = Date()
     @State private var timer: AnyCancellable?
 
@@ -29,7 +28,7 @@ struct ContentView: View {
                         alarms: alarms,
                         timeUntilNextAlarm: timeUntilNextAlarm
                     ) { alarm in
-                        selectedAlarm = alarm
+                        activeViewModel = AddAlarmViewModel(modelContext: modelContext, alarm: alarm)
                     } onAlarmDelete: { alarm in
                         deleteAlarm(alarm)
                     }
@@ -43,15 +42,14 @@ struct ContentView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     ToolbarButtons(
                         alarms: alarms,
-                        onAddTap: { showingAddAlarm = true }
+                        onAddTap: {
+                            activeViewModel = AddAlarmViewModel(modelContext: modelContext, alarm: nil)
+                        }
                     )
                 }
             }
-            .sheet(isPresented: $showingAddAlarm) {
-                AddAlarmView(viewModel: AddAlarmViewModel(modelContext: modelContext, alarm: nil))
-            }
-            .sheet(item: $selectedAlarm) { alarm in
-                AddAlarmView(viewModel: AddAlarmViewModel(modelContext: modelContext, alarm: alarm))
+            .sheet(item: $activeViewModel) { vm in
+                AddAlarmView(viewModel: vm)
             }
             .onAppear {
                 setupAlarms()
