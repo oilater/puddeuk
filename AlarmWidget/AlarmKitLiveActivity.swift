@@ -20,10 +20,7 @@ struct AlarmKitLiveActivity: Widget {
 
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: AlarmAttributes<PuddeukAlarmMetadata>.self) { context in
-            // Lock Screen 뷰
-            AlarmKitLockScreenView(context: context)
-                .activityBackgroundTint(Color.blue.opacity(0.2))
-                .activitySystemActionForegroundColor(.white)
+            EmptyView()
         } dynamicIsland: { context in
             DynamicIsland {
                 // Expanded 뷰
@@ -74,38 +71,3 @@ struct AlarmKitLiveActivity: Widget {
     }
 }
 
-@available(iOS 26.0, *)
-struct AlarmKitLockScreenView: View {
-    let context: ActivityViewContext<AlarmAttributes<PuddeukAlarmMetadata>>
-
-    var body: some View {
-        HStack(spacing: 12) {
-            // 앱 아이콘
-            Image("AppIcon")
-                .resizable()
-                .frame(width: 32, height: 32)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-
-            VStack(alignment: .leading, spacing: 4) {
-                // 알람 제목
-                Text(context.attributes.presentation.alert.title)
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .lineLimit(1)
-
-                // 알람 상태
-                Text(modeDescription(context.state.mode))
-                    .font(.caption)
-                    .foregroundColor(.gray)
-            }
-
-            Spacer()
-
-            // 알람 아이콘
-            Image(systemName: "bell.fill")
-                .font(.title2)
-                .foregroundColor(.teal)
-        }
-        .padding()
-    }
-}
