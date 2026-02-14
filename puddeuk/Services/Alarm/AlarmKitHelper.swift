@@ -2,6 +2,7 @@ import Foundation
 import SwiftData
 import SwiftUI
 import AlarmKit
+import ActivityKit
 
 /// Simple helper for AlarmKit scheduling operations
 /// Shared between AddAlarmViewModel, ContentView, and AlarmRow
@@ -64,15 +65,19 @@ struct AlarmKitHelper {
             tintColor: .blue
         )
 
-        var configuration = AlarmKit.AlarmManager.AlarmConfiguration(
+        let sound: AlertConfiguration.AlertSound
+        if let audioFileName = alarm.audioFileName {
+            sound = .named(audioFileName)
+        } else {
+            sound = .default
+        }
+
+        let configuration = AlarmKit.AlarmManager.AlarmConfiguration(
             schedule: schedule,
             attributes: attributes,
-            stopIntent: StopAlarmIntent(alarmID: alarm.id.uuidString)
+            stopIntent: StopAlarmIntent(alarmID: alarm.id.uuidString),
+            sound: sound
         )
-
-        if let audioFileName = alarm.audioFileName {
-            configuration.sound = AlertConfiguration.AlertSound.named(audioFileName)
-        }
 
         _ = try await alarmManager.schedule(id: alarm.id, configuration: configuration)
     }
