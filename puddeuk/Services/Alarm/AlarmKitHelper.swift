@@ -64,11 +64,15 @@ struct AlarmKitHelper {
             tintColor: .blue
         )
 
-        let configuration = AlarmKit.AlarmManager.AlarmConfiguration(
+        var configuration = AlarmKit.AlarmManager.AlarmConfiguration(
             schedule: schedule,
             attributes: attributes,
             stopIntent: StopAlarmIntent(alarmID: alarm.id.uuidString)
         )
+
+        if let audioFileName = alarm.audioFileName {
+            configuration.sound = AlertConfiguration.AlertSound.named(audioFileName)
+        }
 
         _ = try await alarmManager.schedule(id: alarm.id, configuration: configuration)
     }
@@ -77,8 +81,6 @@ struct AlarmKitHelper {
         try alarmManager.cancel(id: alarm.id)
     }
 }
-
-// MARK: - Error Types
 
 enum AlarmKitError: LocalizedError {
     case authorizationDenied
