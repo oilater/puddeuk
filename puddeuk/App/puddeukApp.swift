@@ -3,6 +3,7 @@ import SwiftData
 import OSLog
 import FirebaseCore
 import AlarmKit
+import AVFoundation
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(
@@ -16,7 +17,24 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             }
         }
 
+        configureAudioSession()
+
         return true
+    }
+
+    private func configureAudioSession() {
+        do {
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.setCategory(
+                .playback,
+                mode: .default,
+                options: [.interruptSpokenAudioAndMixWithOthers]
+            )
+            try audioSession.setActive(true)
+            Logger.alarm.info("Audio Session 설정 완료")
+        } catch {
+            Logger.alarm.error("Audio Session 설정 실패: \(error.localizedDescription)")
+        }
     }
 }
 
@@ -27,6 +45,20 @@ struct puddeukApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @Environment(\.scenePhase) private var scenePhase
     @State private var showSplash = true
+
+    static let sharedModelContainer: ModelContainer = {
+        let schema = Schema([Alarm.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        do {
+            return try ModelContainer(for: schema, configurations: [config])
+        } catch {
+            fatalError("Could not create ModelContainer: \(error)")
+        }
+    }()
+
+    @StateObject private var alarmMonitor = AlarmMonitor(
+        modelContext: sharedModelContainer.mainContext
+    )
 
     init() {
         setupDefaultFont()
@@ -44,25 +76,6 @@ struct puddeukApp: App {
             UITextField.appearance().font = customFont
         }
     }
-
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Alarm.self,
-        ])
-        let modelConfiguration = ModelConfiguration(
-            schema: schema,
-            isStoredInMemoryOnly: false
-        )
-
-        do {
-            return try ModelContainer(
-                for: schema,
-                configurations: [modelConfiguration]
-            )
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
 
     var body: some Scene {
         WindowGroup {
@@ -90,7 +103,24 @@ struct puddeukApp: App {
                     }
                 }
             }
+            .fullScreenCover(isPresented: Binding(
+                get: { alarmMonitor.alertingAlarmID != nil },
+                set: { if !$0 { alarmMonitor.stopAlarm() } }
+            )) {
+                AlarmAlertView(
+                    title: alarmMonitor.alertingAlarmTitle ?? "알람"
+                ) {
+                    alarmMonitor.stopAlarm()
+                }
+            }
         }
-        .modelContainer(sharedModelContainer)
+        .modelContainer(Self.sharedModelContainer)
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            if newPhase == .active {
+                alarmMonitor.startMonitoring()
+            } else if newPhase == .background {
+                alarmMonitor.stopMonitoring()
+            }
+        }
     }
 }

@@ -20,7 +20,34 @@ struct AlarmKitLiveActivity: Widget {
 
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: AlarmAttributes<PuddeukAlarmMetadata>.self) { context in
-            EmptyView()
+            // Lock Screen / 알림 센터 뷰
+            HStack(spacing: 16) {
+                Image(systemName: "alarm.fill")
+                    .font(.title)
+                    .foregroundStyle(.teal)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(context.attributes.presentation.alert.title)
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+
+                    Text(modeDescription(context.state.mode))
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+
+                Spacer()
+
+                Text(context.attributes.presentation.alert.stopButton.text)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(Color.red)
+                    .clipShape(Capsule())
+            }
+            .padding()
         } dynamicIsland: { context in
             DynamicIsland {
                 // Expanded 뷰
