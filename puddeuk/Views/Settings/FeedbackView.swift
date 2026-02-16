@@ -64,7 +64,7 @@ struct FeedbackView: View {
                         }
 
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("후기")
+                            Text("내용")
                                 .font(.omyuSubheadline)
                                 .foregroundStyle(.gray)
 
@@ -78,7 +78,7 @@ struct FeedbackView: View {
                                     .foregroundStyle(.white)
 
                                 if feedback.isEmpty {
-                                    Text("솔직한 후기를 남겨주세요")
+                                    Text("문의 사항을 남겨주세요")
                                         .font(.omyuBody)
                                         .foregroundStyle(.gray.opacity(0.6))
                                         .padding(.horizontal, 16)
@@ -99,7 +99,7 @@ struct FeedbackView: View {
                                     .progressViewStyle(CircularProgressViewStyle(tint: .black))
                                     .scaleEffect(0.8)
                             }
-                            Text(isLoading ? "전송 중..." : "전송")
+                            Text(isLoading ? "보내는 중..." : "보내기")
                                 .font(.omyuHeadline)
                         }
                         .foregroundStyle(.black)
@@ -115,7 +115,7 @@ struct FeedbackView: View {
                 .padding(.bottom, 40)
             }
         }
-        .navigationTitle("사용 후기")
+        .navigationTitle("문의하기")
         .navigationBarTitleDisplayMode(.inline)
         .alert("알림", isPresented: $showingAlert) {
             Button("확인", role: .cancel) { }
