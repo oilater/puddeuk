@@ -10,6 +10,7 @@ import OSLog
 class AlarmMonitor: ObservableObject {
     @Published var alertingAlarmID: UUID?
     @Published var alertingAlarmTitle: String?
+    @Published var alertingAlarmHasSnooze: Bool = false
 
     private var monitorTask: Task<Void, Never>?
     private let alarmManager = AlarmKit.AlarmManager.shared
@@ -34,11 +35,13 @@ class AlarmMonitor: ObservableObject {
                             currentlyPlayingID = alertingAlarm.id
                             alertingAlarmID = alertingAlarm.id
                             alertingAlarmTitle = fetchAlarmTitle(for: alertingAlarm.id)
+                            alertingAlarmHasSnooze = fetchAlarmHasSnooze(for: alertingAlarm.id)
                         }
                     } else {
                         stopAudio()
                         alertingAlarmID = nil
                         alertingAlarmTitle = nil
+                        alertingAlarmHasSnooze = false
                     }
                 }
             } catch {
@@ -64,6 +67,21 @@ class AlarmMonitor: ObservableObject {
         stopAudio()
         alertingAlarmID = nil
         alertingAlarmTitle = nil
+        alertingAlarmHasSnooze = false
+    }
+
+    func snoozeAlarm() {
+        guard let alarmID = alertingAlarmID else { return }
+        do {
+            try alarmManager.countdown(id: alarmID)
+            Logger.alarm.info("알람 스누즈: \(alarmID)")
+        } catch {
+            Logger.alarm.error("알람 스누즈 실패: \(error.localizedDescription)")
+        }
+        stopAudio()
+        alertingAlarmID = nil
+        alertingAlarmTitle = nil
+        alertingAlarmHasSnooze = false
     }
 
     private func stopAudio() {
@@ -81,6 +99,14 @@ class AlarmMonitor: ObservableObject {
         let alarm = try? modelContext.fetch(descriptor).first
         let title = alarm?.title ?? ""
         return title.isEmpty ? "알람" : title
+    }
+
+    private func fetchAlarmHasSnooze(for alarmID: UUID) -> Bool {
+        let descriptor = FetchDescriptor<Alarm>(
+            predicate: #Predicate { $0.id == alarmID }
+        )
+        let alarm = try? modelContext.fetch(descriptor).first
+        return alarm?.snoozeInterval != nil && (alarm?.snoozeInterval ?? 0) > 0
     }
 
     private func setSystemVolumeToMax() {

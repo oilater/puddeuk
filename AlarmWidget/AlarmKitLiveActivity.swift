@@ -32,9 +32,20 @@ struct AlarmKitLiveActivity: Widget {
                         .foregroundStyle(.white)
                         .lineLimit(1)
 
-                    Text(modeDescription(context.state.mode))
-                        .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.7))
+                    switch context.state.mode {
+                    case .countdown(let countdown):
+                        Text(countdown.fireDate, style: .timer)
+                            .font(.subheadline.monospacedDigit())
+                            .foregroundStyle(.teal)
+                    case .paused:
+                        Text("일시정지됨")
+                            .font(.subheadline)
+                            .foregroundStyle(.yellow)
+                    @unknown default:
+                        Text(modeDescription(context.state.mode))
+                            .font(.subheadline)
+                            .foregroundStyle(.white.opacity(0.7))
+                    }
                 }
 
                 Spacer()
@@ -59,9 +70,20 @@ struct AlarmKitLiveActivity: Widget {
                 }
 
                 DynamicIslandExpandedRegion(.trailing) {
-                    Text(modeDescription(context.state.mode))
-                        .font(.caption)
-                        .foregroundColor(.white)
+                    switch context.state.mode {
+                    case .countdown(let countdown):
+                        Text(countdown.fireDate, style: .timer)
+                            .font(.caption.monospacedDigit())
+                            .foregroundColor(.teal)
+                    case .paused:
+                        Text("일시정지")
+                            .font(.caption)
+                            .foregroundColor(.yellow)
+                    @unknown default:
+                        Text(modeDescription(context.state.mode))
+                            .font(.caption)
+                            .foregroundColor(.white)
+                    }
                 }
 
                 DynamicIslandExpandedRegion(.center) {
@@ -87,9 +109,20 @@ struct AlarmKitLiveActivity: Widget {
                 Image(systemName: "alarm.fill")
                     .foregroundColor(.teal)
             } compactTrailing: {
-                Text(modeDescription(context.state.mode))
-                    .font(.caption2.monospacedDigit())
-                    .foregroundColor(.white)
+                switch context.state.mode {
+                case .countdown(let countdown):
+                    Text(countdown.fireDate, style: .timer)
+                        .font(.caption2.monospacedDigit())
+                        .foregroundColor(.teal)
+                case .paused:
+                    Image(systemName: "pause.fill")
+                        .font(.caption2)
+                        .foregroundColor(.yellow)
+                @unknown default:
+                    Text(modeDescription(context.state.mode))
+                        .font(.caption2)
+                        .foregroundColor(.white)
+                }
             } minimal: {
                 Image(systemName: "alarm")
                     .foregroundColor(.teal)

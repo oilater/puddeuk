@@ -48,16 +48,61 @@ struct AlarmKitHelper {
         }
 
         let alarmTitle = alarm.title.isEmpty ? "알람" : alarm.title
-        let alert = AlarmPresentation.Alert(
-            title: LocalizedStringResource(stringLiteral: alarmTitle),
-            stopButton: AlarmButton(
-                text: "끄기",
-                textColor: .white,
-                systemImageName: "stop.circle"
-            )
-        )
+        let snoozeEnabled = alarm.snoozeInterval != nil && (alarm.snoozeInterval ?? 0) > 0
 
-        let presentation = AlarmPresentation(alert: alert)
+        let alert: AlarmPresentation.Alert
+        if snoozeEnabled {
+            alert = AlarmPresentation.Alert(
+                title: LocalizedStringResource(stringLiteral: alarmTitle),
+                stopButton: AlarmButton(
+                    text: "끄기",
+                    textColor: .white,
+                    systemImageName: "stop.circle"
+                ),
+                secondaryButton: AlarmButton(
+                    text: "다시 알림",
+                    textColor: .black,
+                    systemImageName: "repeat"
+                ),
+                secondaryButtonBehavior: .countdown
+            )
+        } else {
+            alert = AlarmPresentation.Alert(
+                title: LocalizedStringResource(stringLiteral: alarmTitle),
+                stopButton: AlarmButton(
+                    text: "끄기",
+                    textColor: .white,
+                    systemImageName: "stop.circle"
+                )
+            )
+        }
+
+        let presentation: AlarmPresentation
+        if snoozeEnabled {
+            let countdownContent = AlarmPresentation.Countdown(
+                title: LocalizedStringResource(stringLiteral: alarmTitle),
+                pauseButton: AlarmButton(
+                    text: "일시정지",
+                    textColor: .black,
+                    systemImageName: "pause.fill"
+                )
+            )
+            let pausedContent = AlarmPresentation.Paused(
+                title: LocalizedStringResource(stringLiteral: "일시정지됨"),
+                resumeButton: AlarmButton(
+                    text: "재개",
+                    textColor: .black,
+                    systemImageName: "play.fill"
+                )
+            )
+            presentation = AlarmPresentation(
+                alert: alert,
+                countdown: countdownContent,
+                paused: pausedContent
+            )
+        } else {
+            presentation = AlarmPresentation(alert: alert)
+        }
 
         let attributes = AlarmKit.AlarmAttributes<PuddeukAlarmMetadata>(
             presentation: presentation,
@@ -72,10 +117,23 @@ struct AlarmKitHelper {
             sound = .default
         }
 
+        let countdownDuration: AlarmKit.Alarm.CountdownDuration? = if snoozeEnabled,
+            let interval = alarm.snoozeInterval {
+            .init(preAlert: nil, postAlert: TimeInterval(interval * 60))
+        } else {
+            nil
+        }
+
+        let secondaryIntent: SnoozeAlarmIntent? = snoozeEnabled
+            ? SnoozeAlarmIntent(alarmID: alarm.id.uuidString)
+            : nil
+
         let configuration = AlarmKit.AlarmManager.AlarmConfiguration(
+            countdownDuration: countdownDuration,
             schedule: schedule,
             attributes: attributes,
             stopIntent: StopAlarmIntent(alarmID: alarm.id.uuidString),
+            secondaryIntent: secondaryIntent,
             sound: sound
         )
 

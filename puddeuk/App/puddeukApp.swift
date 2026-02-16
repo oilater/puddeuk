@@ -108,10 +108,14 @@ struct puddeukApp: App {
                 set: { if !$0 { alarmMonitor.stopAlarm() } }
             )) {
                 AlarmAlertView(
-                    title: alarmMonitor.alertingAlarmTitle ?? "알람"
-                ) {
-                    alarmMonitor.stopAlarm()
-                }
+                    title: alarmMonitor.alertingAlarmTitle ?? "알람",
+                    onStop: {
+                        alarmMonitor.stopAlarm()
+                    },
+                    onSnooze: alarmMonitor.alertingAlarmHasSnooze ? {
+                        alarmMonitor.snoozeAlarm()
+                    } : nil
+                )
             }
         }
         .modelContainer(Self.sharedModelContainer)

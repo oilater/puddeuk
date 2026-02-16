@@ -3,6 +3,7 @@ import SwiftUI
 struct AlarmAlertView: View {
     let title: String
     let onStop: () -> Void
+    let onSnooze: (() -> Void)?
 
     @State private var pulseScale: CGFloat = 1.0
 
@@ -28,13 +29,26 @@ struct AlarmAlertView: View {
 
                 Spacer()
 
-                Button(action: onStop) {
-                    Text("끄기")
-                        .font(.custom("omyu_pretty", size: 24))
-                        .foregroundStyle(.white)
-                        .frame(width: 200, height: 60)
-                        .background(Color.red)
-                        .clipShape(Capsule())
+                VStack(spacing: 16) {
+                    if let onSnooze {
+                        Button(action: onSnooze) {
+                            Text("다시 알림")
+                                .font(.custom("omyu_pretty", size: 24))
+                                .foregroundStyle(.black)
+                                .frame(width: 200, height: 60)
+                                .background(Color.teal)
+                                .clipShape(Capsule())
+                        }
+                    }
+
+                    Button(action: onStop) {
+                        Text("끄기")
+                            .font(.custom("omyu_pretty", size: 24))
+                            .foregroundStyle(.white)
+                            .frame(width: 200, height: 60)
+                            .background(Color.red)
+                            .clipShape(Capsule())
+                    }
                 }
                 .padding(.bottom, 80)
             }
