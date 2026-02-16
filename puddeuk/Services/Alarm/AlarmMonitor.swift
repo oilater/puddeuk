@@ -65,10 +65,25 @@ class AlarmMonitor: ObservableObject {
         } catch {
             Logger.alarm.error("알람 정지 실패: \(error.localizedDescription)")
         }
+
+        disableOneTimeAlarmIfNeeded(alarmID: alarmID)
+
         stopAudio()
         alertingAlarmID = nil
         alertingAlarmTitle = nil
         alertingAlarmHasSnooze = false
+    }
+
+    private func disableOneTimeAlarmIfNeeded(alarmID: UUID) {
+        let descriptor = FetchDescriptor<Alarm>(
+            predicate: #Predicate { $0.id == alarmID }
+        )
+        guard let alarm = try? modelContext.fetch(descriptor).first else { return }
+
+        if alarm.repeatDays.isEmpty {
+            alarm.isEnabled = false
+            try? modelContext.save()
+        }
     }
 
     func snoozeAlarm() {

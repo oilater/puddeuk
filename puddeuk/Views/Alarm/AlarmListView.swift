@@ -13,11 +13,10 @@ struct AlarmListView: View {
                     Image(systemName: "clock.fill")
                         .font(.system(size: 20))
                         .foregroundStyle(.teal)
-                    Text(timeUntilNextAlarm ?? " ")
+                    Text(timeUntilNextAlarm ?? "예정된 알람이 없어요")
                         .font(.omyu(size: 20))
                         .foregroundStyle(.white)
                 }
-                .opacity(timeUntilNextAlarm == nil ? 0 : 1)
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
                 .listRowInsets(EdgeInsets(top: 14, leading: 20, bottom: 14, trailing: 20))
