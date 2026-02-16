@@ -1,6 +1,9 @@
+import StoreKit
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(\.requestReview) private var requestReview
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -43,22 +46,6 @@ struct SettingsView: View {
                         .listRowBackground(Color(red: 0.18, green: 0.18, blue: 0.2))
 
                         NavigationLink {
-                            SleepModeGuideView()
-                                .onAppear {
-                                    AnalyticsManager.shared.logSleepModeGuideOpened()
-                                }
-                        } label: {
-                            HStack {
-                                Image(systemName: "moon.zzz.fill")
-                                    .foregroundStyle(.teal)
-                                Text("수면 모드 설정 방법")
-                                    .font(.omyuBody)
-                            }
-                            .foregroundStyle(.white)
-                        }
-                        .listRowBackground(Color(red: 0.18, green: 0.18, blue: 0.2))
-
-                        NavigationLink {
                             FeedbackView()
                                 .onAppear {
                                     AnalyticsManager.shared.logFeedbackOpened()
@@ -67,7 +54,20 @@ struct SettingsView: View {
                             HStack {
                                 Image(systemName: "message.fill")
                                     .foregroundStyle(.teal)
-                                Text("사용 후기 남기기")
+                                Text("문의하기")
+                                    .font(.omyuBody)
+                            }
+                            .foregroundStyle(.white)
+                        }
+                        .listRowBackground(Color(red: 0.18, green: 0.18, blue: 0.2))
+
+                        Button {
+                            requestAppStoreReview()
+                        } label: {
+                            HStack {
+                                Image(systemName: "star.fill")
+                                    .foregroundStyle(.yellow)
+                                Text("앱스토어 리뷰 남기기")
                                     .font(.omyuBody)
                             }
                             .foregroundStyle(.white)
@@ -81,7 +81,7 @@ struct SettingsView: View {
                                 .font(.omyuBody)
                                 .foregroundStyle(.white)
                             Spacer()
-                            Text("1.0.0")
+                            Text(appVersion)
                                 .font(.omyuBody)
                                 .foregroundStyle(.gray)
                         }
@@ -97,6 +97,14 @@ struct SettingsView: View {
         }
     }
 
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+    }
+
+    private func requestAppStoreReview() {
+        AnalyticsManager.shared.logAppStoreReviewRequested()
+        requestReview()
+    }
 }
 
 #Preview {

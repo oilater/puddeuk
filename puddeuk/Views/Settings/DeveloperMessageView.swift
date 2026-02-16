@@ -17,7 +17,7 @@ struct DeveloperMessageView: View {
                     .padding(.top, 32)
 
                     VStack(alignment: .leading, spacing: 20) {
-                        Text("퍼뜩과 함께해주셔서 감사합니다!")
+                        Text("아침에 무조건 깨워드릴게요!")
                             .font(.omyu(size: 22))
                             .foregroundStyle(.white)
 
@@ -31,7 +31,7 @@ struct DeveloperMessageView: View {
                             .foregroundStyle(.gray)
                             .lineSpacing(6)
 
-                        Text("사용하시면서 불편한 점이나 더하고 싶은 아이디어가 있다면 언제든 후기를 보내주세요.")
+                        Text("불편한 점이나 아이디어가 있다면 언제든 후기를 보내주세요.")
                             .font(.omyuBody)
                             .foregroundStyle(.gray)
                             .lineSpacing(6)

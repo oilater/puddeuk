@@ -94,8 +94,8 @@ final class AnalyticsManager {
         logger.logEvent("notification_settings_opened", parameters: nil)
     }
 
-    func logSleepModeGuideOpened() {
-        logger.logEvent("sleep_mode_guide_opened", parameters: nil)
+    func logAppStoreReviewRequested() {
+        logger.logEvent("app_store_review_requested", parameters: nil)
     }
 
     func logAppOpened() {

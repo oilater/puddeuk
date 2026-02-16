@@ -19,11 +19,11 @@ struct FeedbackView: View {
                             .font(.omyu(size: 50))
                             .foregroundStyle(.teal)
 
-                        Text("사용 후기 남기기")
+                        Text("문의하기")
                             .font(.omyuTitle3)
                             .foregroundStyle(.white)
 
-                        Text("퍼뜩이 마음에 드셨나요?")
+                        Text("편하게 궁금한 점이나 피드백을 남겨주세요!")
                             .font(.omyuSubheadline)
                             .foregroundStyle(.gray)
                     }
