@@ -108,9 +108,9 @@ struct puddeukApp: App {
                     onStop: {
                         alarmMonitor.stopAlarm()
                     },
-                    onSnooze: alarmMonitor.alertingAlarmHasSnooze ? {
+                    onSnooze: {
                         alarmMonitor.snoozeAlarm()
-                    } : nil
+                    }
                 )
             }
         }

@@ -4,8 +4,6 @@ import SwiftUI
 import AlarmKit
 import ActivityKit
 
-/// Simple helper for AlarmKit scheduling operations
-/// Shared between AddAlarmViewModel, ContentView, and AlarmRow
 @MainActor
 struct AlarmKitHelper {
 
@@ -117,12 +115,12 @@ struct AlarmKitHelper {
             sound = .default
         }
 
-        let countdownDuration: AlarmKit.Alarm.CountdownDuration? = if snoozeEnabled,
-            let interval = alarm.snoozeInterval {
-            .init(preAlert: nil, postAlert: TimeInterval(interval * 60))
-        } else {
-            nil
-        }
+        let defaultSnoozeMinutes = 5
+        let snoozeMinutes = alarm.snoozeInterval ?? defaultSnoozeMinutes
+        let countdownDuration = AlarmKit.Alarm.CountdownDuration(
+            preAlert: nil,
+            postAlert: TimeInterval(snoozeMinutes * 60)
+        )
 
         let secondaryIntent: SnoozeAlarmIntent? = snoozeEnabled
             ? SnoozeAlarmIntent(alarmID: alarm.id.uuidString)
