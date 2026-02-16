@@ -97,7 +97,7 @@ final class AddAlarmViewModel: ObservableObject, Identifiable {
                 existingAlarm.snoozeInterval = self.snoozeInterval
                 existingAlarm.audioFileName = self.audioFileName
 
-                if !self.repeatDays.isEmpty {
+                if !self.repeatDays.isEmpty || !existingAlarm.isEnabled {
                     existingAlarm.isEnabled = true
                 }
             }
