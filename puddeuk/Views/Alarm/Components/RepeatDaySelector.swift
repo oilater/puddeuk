@@ -5,11 +5,46 @@ struct RepeatDaySelector: View {
 
     private let dayNames = ["일", "월", "화", "수", "목", "금", "토"]
 
+    private var repeatText: String {
+        if repeatDays.isEmpty {
+            return "한번만"
+        } else if repeatDays.count == 7 {
+            return "매일"
+        } else if repeatDays == Set([1, 2, 3, 4, 5]) {
+            return "주중"
+        } else if repeatDays == Set([0, 6]) {
+            return "주말"
+        } else {
+            return repeatDays.sorted().map { dayNames[$0] }.joined(separator: ", ")
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("반복")
-                .font(.omyuHeadline)
-                .foregroundColor(.white)
+            HStack {
+                Text(repeatText)
+                    .font(.omyuHeadline)
+                    .foregroundColor(.white)
+
+                Spacer()
+
+                Button {
+                    if repeatDays.count == 7 {
+                        repeatDays.removeAll()
+                    } else {
+                        repeatDays = Set(0..<7)
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: repeatDays.count == 7 ? "checkmark.square.fill" : "square")
+                            .foregroundColor(.teal)
+                            .font(.system(size: 18))
+                        Text("매일")
+                            .font(.omyuBody)
+                            .foregroundColor(.white)
+                    }
+                }
+            }
 
             HStack(spacing: 8) {
                 ForEach(0..<7, id: \.self) { dayIndex in
