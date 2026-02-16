@@ -6,6 +6,7 @@ import AlarmKit
 import AVFoundation
 import AudioToolbox
 import OSLog
+import ActivityKit
 
 @MainActor
 class AlarmMonitor: ObservableObject {
@@ -36,7 +37,6 @@ class AlarmMonitor: ObservableObject {
                 for try await alarms in alarmManager.alarmUpdates {
                     if let alertingAlarm = alarms.first(where: { $0.state == .alerting }) {
                         if currentlyPlayingID != alertingAlarm.id {
-                            Logger.alarm.info("포그라운드 알람 감지: \(alertingAlarm.id)")
                             playAlarmSound(for: alertingAlarm.id)
                             currentlyPlayingID = alertingAlarm.id
                             alertingAlarmID = alertingAlarm.id
@@ -44,32 +44,35 @@ class AlarmMonitor: ObservableObject {
                             alertingAlarmTitle = info.title
                             alertingAlarmHasSnooze = info.hasSnooze
                             alertingAlarmSnoozeInterval = info.snoozeInterval
-                            countdownAlarmID = nil
-                            countdownAlarmTitle = nil
+                            resetCountdownState()
                         }
                     } else if let countdownAlarm = alarms.first(where: { $0.state == .countdown }) {
                         countdownAlarmID = countdownAlarm.id
                         let info = fetchAlarmInfo(for: countdownAlarm.id)
                         countdownAlarmTitle = info.title
+
+                        let activities = Activity<AlarmAttributes<PuddeukAlarmMetadata>>.activities
+                        for activity in activities {
+                            switch activity.content.state.mode {
+                            case .countdown(let countdown):
+                                let fireDate = countdown.fireDate
+                                countdownStartTime = Date()
+                                countdownDuration = Int(fireDate.timeIntervalSince(Date()))
+                            default:
+                                break
+                            }
+                        }
+
                         if countdownStartTime == nil {
                             countdownStartTime = Date()
                             countdownDuration = (info.snoozeInterval ?? 5) * 60
                         }
                         stopAudio()
-                        alertingAlarmID = nil
-                        alertingAlarmTitle = nil
-                        alertingAlarmHasSnooze = false
-                        alertingAlarmSnoozeInterval = nil
+                        resetAlertingState()
                     } else {
                         stopAudio()
-                        alertingAlarmID = nil
-                        alertingAlarmTitle = nil
-                        alertingAlarmHasSnooze = false
-                        alertingAlarmSnoozeInterval = nil
-                        countdownAlarmID = nil
-                        countdownAlarmTitle = nil
-                        countdownStartTime = nil
-                        countdownDuration = nil
+                        resetAlertingState()
+                        resetCountdownState()
                     }
                 }
             } catch {
@@ -96,10 +99,7 @@ class AlarmMonitor: ObservableObject {
         disableOneTimeAlarmIfNeeded(alarmID: alarmID)
 
         stopAudio()
-        alertingAlarmID = nil
-        alertingAlarmTitle = nil
-        alertingAlarmHasSnooze = false
-        alertingAlarmSnoozeInterval = nil
+        resetAlertingState()
     }
 
     private func disableOneTimeAlarmIfNeeded(alarmID: UUID) {
@@ -126,10 +126,7 @@ class AlarmMonitor: ObservableObject {
             Logger.alarm.error("알람 스누즈 실패: \(error.localizedDescription)")
         }
         stopAudio()
-        alertingAlarmID = nil
-        alertingAlarmTitle = nil
-        alertingAlarmHasSnooze = false
-        alertingAlarmSnoozeInterval = nil
+        resetAlertingState()
     }
 
     func cancelCountdown() {
@@ -143,6 +140,17 @@ class AlarmMonitor: ObservableObject {
 
         disableOneTimeAlarmIfNeeded(alarmID: alarmID)
 
+        resetCountdownState()
+    }
+
+    private func resetAlertingState() {
+        alertingAlarmID = nil
+        alertingAlarmTitle = nil
+        alertingAlarmHasSnooze = false
+        alertingAlarmSnoozeInterval = nil
+    }
+
+    private func resetCountdownState() {
         countdownAlarmID = nil
         countdownAlarmTitle = nil
         countdownStartTime = nil
