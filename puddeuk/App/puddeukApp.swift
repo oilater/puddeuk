@@ -12,9 +12,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
         Task.detached(priority: .background) {
             FirebaseApp.configure()
-            await MainActor.run {
-                Logger.alarm.info("Firebase 초기화 완료")
-            }
         }
 
         configureAudioSession()
@@ -31,7 +28,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                 options: [.interruptSpokenAudioAndMixWithOthers]
             )
             try audioSession.setActive(true)
-            Logger.alarm.info("Audio Session 설정 완료")
         } catch {
             Logger.alarm.error("Audio Session 설정 실패: \(error.localizedDescription)")
         }

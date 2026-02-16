@@ -50,7 +50,6 @@ class AudioRecorder: NSObject, ObservableObject {
     private func createSoundsDirectoryIfNeeded() {
         do {
             _ = try FileManager.default.getSoundsDirectory()
-            Logger.audio.info("Library/Sounds 폴더 확인됨")
         } catch {
             Logger.audio.error("Library/Sounds 폴더 생성 실패: \(error.localizedDescription)")
         }
@@ -186,9 +185,6 @@ class AudioRecorder: NSObject, ObservableObject {
 
         do {
             try FileManager.default.removeItem(at: fileURL)
-            Task { @MainActor in
-                Logger.audio.info("파일 삭제 성공: \(fileName)")
-            }
             return true
         } catch {
             Task { @MainActor in
