@@ -113,7 +113,6 @@ class AlarmMonitor: ObservableObject {
     private func setSystemVolumeToMax() {
         let session = AVAudioSession.sharedInstance()
         previousVolume = session.outputVolume
-        Logger.alarm.info("현재 볼륨 저장: \(self.previousVolume ?? 0)")
 
         let volumeView = MPVolumeView(frame: .zero)
         volumeView.alpha = 0.001
@@ -125,7 +124,6 @@ class AlarmMonitor: ObservableObject {
             if let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     slider.value = 1.0
-                    Logger.alarm.info("시스템 볼륨 최대로 설정")
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         volumeView.removeFromSuperview()
                     }
@@ -147,7 +145,6 @@ class AlarmMonitor: ObservableObject {
             if let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     slider.value = volume
-                    Logger.alarm.info("볼륨 복원: \(volume)")
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         volumeView.removeFromSuperview()
                     }
@@ -217,17 +214,23 @@ class AlarmMonitor: ObservableObject {
     }
 
     private func playDefaultSound() {
-        Logger.alarm.info("기본 시스템 알람 사운드 재생")
+        setSystemVolumeToMax()
+        setupAlarmAudioSession()
+        Logger.alarm.info("기본 알람 사운드 재생 (Reflection.caf)")
 
-        let systemSoundID: SystemSoundID = 1005
-        AudioServicesPlaySystemSound(systemSoundID)
+        guard let soundURL = Bundle.main.url(forResource: "Reflection", withExtension: "caf") else {
+            Logger.alarm.error("Reflection.caf 파일을 찾을 수 없음")
+            return
+        }
 
-        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
-            guard let self = self, self.currentlyPlayingID != nil else {
-                timer.invalidate()
-                return
-            }
-            AudioServicesPlaySystemSound(systemSoundID)
+        do {
+            audioPlayer?.stop()
+            audioPlayer = try AVAudioPlayer(contentsOf: soundURL)
+            audioPlayer?.numberOfLoops = -1
+            audioPlayer?.volume = 1.0
+            audioPlayer?.play()
+        } catch {
+            Logger.alarm.error("기본 알람 소리 재생 실패: \(error.localizedDescription)")
         }
     }
 }
