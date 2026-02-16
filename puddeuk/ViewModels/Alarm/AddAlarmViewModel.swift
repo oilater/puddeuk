@@ -69,10 +69,8 @@ final class AddAlarmViewModel: ObservableObject, Identifiable {
     func deleteAlarm() async {
         guard let alarm = alarm else { return }
 
-        // AlarmKit 취소
         try? alarmManager.cancel(id: alarm.id)
 
-        // 오디오 파일 삭제
         if let audioFileName = alarm.audioFileName {
             let audioRecorder = AudioRecorder()
             _ = audioRecorder.deleteAudioFile(fileName: audioFileName)
@@ -86,7 +84,6 @@ final class AddAlarmViewModel: ObservableObject, Identifiable {
     }
 
     private func updateExistingAlarm(_ existingAlarm: Alarm, hour: Int, minute: Int) async {
-        // 기존 알람 취소
         try? alarmManager.cancel(id: existingAlarm.id)
 
         var updateSuccess = false
@@ -99,6 +96,10 @@ final class AddAlarmViewModel: ObservableObject, Identifiable {
                 existingAlarm.repeatDays = Array(self.repeatDays)
                 existingAlarm.snoozeInterval = self.snoozeInterval
                 existingAlarm.audioFileName = self.audioFileName
+
+                if !self.repeatDays.isEmpty {
+                    existingAlarm.isEnabled = true
+                }
             }
             updateSuccess = true
         } catch {
