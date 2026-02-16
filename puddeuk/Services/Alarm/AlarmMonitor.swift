@@ -4,6 +4,7 @@ import MediaPlayer
 import SwiftData
 import AlarmKit
 import AVFoundation
+import AudioToolbox
 import OSLog
 
 @MainActor
@@ -216,6 +217,17 @@ class AlarmMonitor: ObservableObject {
     }
 
     private func playDefaultSound() {
-        Logger.alarm.info("기본 시스템 알람 사운드 사용 (.default)")
+        Logger.alarm.info("기본 시스템 알람 사운드 재생")
+
+        let systemSoundID: SystemSoundID = 1005
+        AudioServicesPlaySystemSound(systemSoundID)
+
+        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
+            guard let self = self, self.currentlyPlayingID != nil else {
+                timer.invalidate()
+                return
+            }
+            AudioServicesPlaySystemSound(systemSoundID)
+        }
     }
 }
