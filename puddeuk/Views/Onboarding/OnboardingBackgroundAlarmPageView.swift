@@ -16,7 +16,7 @@ struct OnboardingBackgroundAlarmPageView: View {
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
 
-                Text("iOS 26 버전 이하는 앱을 완전히 종료하면 기본 알람이 울려요")
+                Text("무음모드, 방해금지 모드라도 퍼뜩이 깨워드려요!")
                     .font(.omyuBody)
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)

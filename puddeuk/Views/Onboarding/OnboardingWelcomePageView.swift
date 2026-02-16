@@ -21,7 +21,7 @@ struct OnboardingWelcomePageView: View {
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
 
-                Text("여친, 남친, 부모님 목소리도 녹음할 수 있어요")
+                Text("여친, 남친, 부모님 목소리도 녹음해보세요!")
                     .font(.omyuBody)
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
