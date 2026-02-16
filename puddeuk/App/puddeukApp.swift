@@ -105,11 +105,25 @@ struct puddeukApp: App {
             )) {
                 AlarmAlertView(
                     title: alarmMonitor.alertingAlarmTitle ?? "알람",
+                    snoozeInterval: alarmMonitor.alertingAlarmSnoozeInterval,
                     onStop: {
                         alarmMonitor.stopAlarm()
                     },
                     onSnooze: {
                         alarmMonitor.snoozeAlarm()
+                    }
+                )
+            }
+            .fullScreenCover(isPresented: Binding(
+                get: { alarmMonitor.countdownAlarmID != nil },
+                set: { if !$0 { alarmMonitor.cancelCountdown() } }
+            )) {
+                AlarmCountdownView(
+                    title: alarmMonitor.countdownAlarmTitle ?? "알람",
+                    startTime: alarmMonitor.countdownStartTime,
+                    duration: alarmMonitor.countdownDuration,
+                    onCancel: {
+                        alarmMonitor.cancelCountdown()
                     }
                 )
             }

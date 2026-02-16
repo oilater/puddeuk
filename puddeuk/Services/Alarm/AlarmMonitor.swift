@@ -12,6 +12,11 @@ class AlarmMonitor: ObservableObject {
     @Published var alertingAlarmID: UUID?
     @Published var alertingAlarmTitle: String?
     @Published var alertingAlarmHasSnooze: Bool = false
+    @Published var alertingAlarmSnoozeInterval: Int?
+    @Published var countdownAlarmID: UUID?
+    @Published var countdownAlarmTitle: String?
+    @Published var countdownStartTime: Date?
+    @Published var countdownDuration: Int?
 
     private var monitorTask: Task<Void, Never>?
     private let alarmManager = AlarmKit.AlarmManager.shared
@@ -35,14 +40,36 @@ class AlarmMonitor: ObservableObject {
                             playAlarmSound(for: alertingAlarm.id)
                             currentlyPlayingID = alertingAlarm.id
                             alertingAlarmID = alertingAlarm.id
-                            alertingAlarmTitle = fetchAlarmTitle(for: alertingAlarm.id)
-                            alertingAlarmHasSnooze = fetchAlarmHasSnooze(for: alertingAlarm.id)
+                            let info = fetchAlarmInfo(for: alertingAlarm.id)
+                            alertingAlarmTitle = info.title
+                            alertingAlarmHasSnooze = info.hasSnooze
+                            alertingAlarmSnoozeInterval = info.snoozeInterval
+                            countdownAlarmID = nil
+                            countdownAlarmTitle = nil
                         }
+                    } else if let countdownAlarm = alarms.first(where: { $0.state == .countdown }) {
+                        countdownAlarmID = countdownAlarm.id
+                        let info = fetchAlarmInfo(for: countdownAlarm.id)
+                        countdownAlarmTitle = info.title
+                        if countdownStartTime == nil {
+                            countdownStartTime = Date()
+                            countdownDuration = (info.snoozeInterval ?? 5) * 60
+                        }
+                        stopAudio()
+                        alertingAlarmID = nil
+                        alertingAlarmTitle = nil
+                        alertingAlarmHasSnooze = false
+                        alertingAlarmSnoozeInterval = nil
                     } else {
                         stopAudio()
                         alertingAlarmID = nil
                         alertingAlarmTitle = nil
                         alertingAlarmHasSnooze = false
+                        alertingAlarmSnoozeInterval = nil
+                        countdownAlarmID = nil
+                        countdownAlarmTitle = nil
+                        countdownStartTime = nil
+                        countdownDuration = nil
                     }
                 }
             } catch {
@@ -72,6 +99,7 @@ class AlarmMonitor: ObservableObject {
         alertingAlarmID = nil
         alertingAlarmTitle = nil
         alertingAlarmHasSnooze = false
+        alertingAlarmSnoozeInterval = nil
     }
 
     private func disableOneTimeAlarmIfNeeded(alarmID: UUID) {
@@ -88,9 +116,12 @@ class AlarmMonitor: ObservableObject {
 
     func snoozeAlarm() {
         guard let alarmID = alertingAlarmID else { return }
+        let snoozeInterval = alertingAlarmSnoozeInterval ?? 5
         do {
             try alarmManager.countdown(id: alarmID)
             Logger.alarm.info("알람 스누즈: \(alarmID)")
+            countdownStartTime = Date()
+            countdownDuration = snoozeInterval * 60
         } catch {
             Logger.alarm.error("알람 스누즈 실패: \(error.localizedDescription)")
         }
@@ -98,9 +129,29 @@ class AlarmMonitor: ObservableObject {
         alertingAlarmID = nil
         alertingAlarmTitle = nil
         alertingAlarmHasSnooze = false
+        alertingAlarmSnoozeInterval = nil
+    }
+
+    func cancelCountdown() {
+        guard let alarmID = countdownAlarmID else { return }
+        do {
+            try alarmManager.stop(id: alarmID)
+            Logger.alarm.info("스누즈 취소: \(alarmID)")
+        } catch {
+            Logger.alarm.error("스누즈 취소 실패: \(error.localizedDescription)")
+        }
+
+        disableOneTimeAlarmIfNeeded(alarmID: alarmID)
+
+        countdownAlarmID = nil
+        countdownAlarmTitle = nil
+        countdownStartTime = nil
+        countdownDuration = nil
     }
 
     private func stopAudio() {
+        guard audioPlayer != nil || currentlyPlayingID != nil else { return }
+
         audioPlayer?.stop()
         audioPlayer = nil
         currentlyPlayingID = nil
@@ -108,21 +159,21 @@ class AlarmMonitor: ObservableObject {
         deactivateAudioSession()
     }
 
-    private func fetchAlarmTitle(for alarmID: UUID) -> String {
+    private func fetchAlarmInfo(for alarmID: UUID) -> (title: String, hasSnooze: Bool, snoozeInterval: Int?) {
         let descriptor = FetchDescriptor<Alarm>(
             predicate: #Predicate { $0.id == alarmID }
         )
-        let alarm = try? modelContext.fetch(descriptor).first
-        let title = alarm?.title ?? ""
-        return title.isEmpty ? "알람" : title
+        guard let alarm = try? modelContext.fetch(descriptor).first else {
+            return ("알람", false, nil)
+        }
+
+        let title = alarm.title.isEmpty ? "알람" : alarm.title
+        let hasSnooze = alarm.snoozeInterval != nil && (alarm.snoozeInterval ?? 0) > 0
+        return (title, hasSnooze, alarm.snoozeInterval)
     }
 
-    private func fetchAlarmHasSnooze(for alarmID: UUID) -> Bool {
-        let descriptor = FetchDescriptor<Alarm>(
-            predicate: #Predicate { $0.id == alarmID }
-        )
-        let alarm = try? modelContext.fetch(descriptor).first
-        return alarm?.snoozeInterval != nil && (alarm?.snoozeInterval ?? 0) > 0
+    private func fetchAlarmTitle(for alarmID: UUID) -> String {
+        fetchAlarmInfo(for: alarmID).title
     }
 
     private func setSystemVolumeToMax() {
@@ -172,7 +223,7 @@ class AlarmMonitor: ObservableObject {
     private func setupAlarmAudioSession() {
         let session = AVAudioSession.sharedInstance()
         do {
-            try session.setCategory(.playback, mode: .moviePlayback, options: [.duckOthers])
+            try session.setCategory(.playback, mode: .default, options: [.duckOthers])
             try session.setActive(true)
         } catch {
             Logger.alarm.error("알람 세션 설정 실패: \(error.localizedDescription)")

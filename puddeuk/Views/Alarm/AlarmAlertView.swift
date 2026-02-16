@@ -2,10 +2,18 @@ import SwiftUI
 
 struct AlarmAlertView: View {
     let title: String
+    let snoozeInterval: Int?
     let onStop: () -> Void
     let onSnooze: () -> Void
 
     @State private var pulseScale: CGFloat = 1.0
+
+    private var snoozeButtonText: String {
+        guard let interval = snoozeInterval, interval > 0 else {
+            return "5분 뒤 울림"
+        }
+        return "\(interval)분 뒤 울림"
+    }
 
     var body: some View {
         ZStack {
@@ -31,7 +39,7 @@ struct AlarmAlertView: View {
 
                 VStack(spacing: 16) {
                     Button(action: onSnooze) {
-                        Text("5분 뒤 울림")
+                        Text(snoozeButtonText)
                             .font(.custom("omyu_pretty", size: 24))
                             .foregroundStyle(.black)
                             .frame(width: 200, height: 60)
