@@ -1,11 +1,11 @@
 import Combine
 import Foundation
+import MediaPlayer
 import SwiftData
 import AlarmKit
 import AVFoundation
 import OSLog
 
-/// 포그라운드에서 알람 울림을 감지하고 소리를 재생하는 모니터
 @MainActor
 class AlarmMonitor: ObservableObject {
     @Published var alertingAlarmID: UUID?
@@ -16,6 +16,7 @@ class AlarmMonitor: ObservableObject {
     private var audioPlayer: AVAudioPlayer?
     private var currentlyPlayingID: UUID?
     private let modelContext: ModelContext
+    private var previousVolume: Float?
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -69,6 +70,8 @@ class AlarmMonitor: ObservableObject {
         audioPlayer?.stop()
         audioPlayer = nil
         currentlyPlayingID = nil
+        restoreVolume()
+        deactivateAudioSession()
     }
 
     private func fetchAlarmTitle(for alarmID: UUID) -> String {
@@ -80,7 +83,75 @@ class AlarmMonitor: ObservableObject {
         return title.isEmpty ? "알람" : title
     }
 
+    private func setSystemVolumeToMax() {
+        let session = AVAudioSession.sharedInstance()
+        previousVolume = session.outputVolume
+        Logger.alarm.info("현재 볼륨 저장: \(self.previousVolume ?? 0)")
+
+        let volumeView = MPVolumeView(frame: .zero)
+        volumeView.alpha = 0.001
+
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first {
+            window.addSubview(volumeView)
+
+            if let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    slider.value = 1.0
+                    Logger.alarm.info("시스템 볼륨 최대로 설정")
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        volumeView.removeFromSuperview()
+                    }
+                }
+            }
+        }
+    }
+
+    private func restoreVolume() {
+        guard let volume = previousVolume else { return }
+
+        let volumeView = MPVolumeView(frame: .zero)
+        volumeView.alpha = 0.001
+
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first {
+            window.addSubview(volumeView)
+
+            if let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    slider.value = volume
+                    Logger.alarm.info("볼륨 복원: \(volume)")
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        volumeView.removeFromSuperview()
+                    }
+                }
+            }
+        }
+        previousVolume = nil
+    }
+
+    private func setupAlarmAudioSession() {
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(.playback, mode: .moviePlayback, options: [.duckOthers])
+            try session.setActive(true)
+        } catch {
+            Logger.alarm.error("알람 세션 설정 실패: \(error.localizedDescription)")
+        }
+    }
+
+    private func deactivateAudioSession() {
+        do {
+            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        } catch {
+            Logger.alarm.error("오디오 세션 해제 실패: \(error.localizedDescription)")
+        }
+    }
+
     private func playAlarmSound(for alarmID: UUID) {
+        setSystemVolumeToMax()
+        setupAlarmAudioSession()
+
         let descriptor = FetchDescriptor<Alarm>(
             predicate: #Predicate { $0.id == alarmID }
         )
