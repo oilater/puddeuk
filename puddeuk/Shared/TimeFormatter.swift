@@ -20,13 +20,23 @@ struct TimeFormatter {
                 return "1분 안에 알람이 울려요"
             }
 
-            let finalMinutes = (seconds > 0) ? (minutes + 1) : minutes
+            var finalHours = hours
+            var finalMinutes = (seconds > 0) ? (minutes + 1) : minutes
 
-            if hours > 0 {
+            if finalMinutes >= 60 {
+                finalHours += 1
+                finalMinutes = 0
+            }
+
+            if finalHours >= 24 {
+                return "1일 후에 알람이 울려요"
+            }
+
+            if finalHours > 0 {
                 if finalMinutes > 0 {
-                    return "\(hours)시간 \(finalMinutes)분 후에 알람이 울려요"
+                    return "\(finalHours)시간 \(finalMinutes)분 후에 알람이 울려요"
                 } else {
-                    return "\(hours)시간 후에 알람이 울려요"
+                    return "\(finalHours)시간 후에 알람이 울려요"
                 }
             } else {
                 return "\(finalMinutes)분 후에 알람이 울려요"
