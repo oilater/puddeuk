@@ -33,11 +33,14 @@ class AlarmMonitor: ObservableObject {
     func startMonitoring() {
         monitorTask?.cancel()
         monitorTask = Task {
+            var isFirstUpdate = true
             do {
                 for try await alarms in alarmManager.alarmUpdates {
                     if let alertingAlarm = alarms.first(where: { $0.state == .alerting }) {
                         if currentlyPlayingID != alertingAlarm.id {
-                            playAlarmSound(for: alertingAlarm.id)
+                            if !isFirstUpdate {
+                                playAlarmSound(for: alertingAlarm.id)
+                            }
                             currentlyPlayingID = alertingAlarm.id
                             alertingAlarmID = alertingAlarm.id
                             let info = fetchAlarmInfo(for: alertingAlarm.id)
@@ -74,6 +77,7 @@ class AlarmMonitor: ObservableObject {
                         resetAlertingState()
                         resetCountdownState()
                     }
+                    isFirstUpdate = false
                 }
             } catch {
                 Logger.alarm.error("알람 모니터링 실패: \(error.localizedDescription)")
