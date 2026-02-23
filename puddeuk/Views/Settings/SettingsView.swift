@@ -12,6 +12,22 @@ struct SettingsView: View {
                 List {
                     Section {
                         NavigationLink {
+                            AnnouncementsView()
+                                .onAppear {
+                                    AnalyticsManager.shared.logAnnouncementsViewed()
+                                }
+                        } label: {
+                            HStack {
+                                Image(systemName: "megaphone.fill")
+                                    .foregroundStyle(.teal)
+                                Text("settings.announcements")
+                                    .font(.omyuBody)
+                            }
+                            .foregroundStyle(.white)
+                        }
+                        .listRowBackground(Color(red: 0.18, green: 0.18, blue: 0.2))
+
+                        NavigationLink {
                             DeveloperMessageView()
                                 .onAppear {
                                     AnalyticsManager.shared.logDeveloperMessageViewed()
@@ -39,6 +55,19 @@ struct SettingsView: View {
                                 Image(systemName: "bell.fill")
                                     .foregroundStyle(.teal)
                                 Text("settings.notifications")
+                                    .font(.omyuBody)
+                            }
+                            .foregroundStyle(.white)
+                        }
+                        .listRowBackground(Color(red: 0.18, green: 0.18, blue: 0.2))
+
+                        NavigationLink {
+                            LanguageSettingsView()
+                        } label: {
+                            HStack {
+                                Image(systemName: "globe")
+                                    .foregroundStyle(.teal)
+                                Text("settings.language")
                                     .font(.omyuBody)
                             }
                             .foregroundStyle(.white)

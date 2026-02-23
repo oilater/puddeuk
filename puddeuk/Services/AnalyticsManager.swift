@@ -86,12 +86,22 @@ final class AnalyticsManager {
         logger.logEvent("developer_message_viewed", parameters: nil)
     }
 
+    func logAnnouncementsViewed() {
+        logger.logEvent("announcements_viewed", parameters: nil)
+    }
+
     func logFeedbackOpened() {
         logger.logEvent("feedback_opened", parameters: nil)
     }
 
     func logNotificationSettingsOpened() {
         logger.logEvent("notification_settings_opened", parameters: nil)
+    }
+
+    func logLanguageChanged(language: String) {
+        logger.logEvent("language_changed", parameters: [
+            "language": language
+        ])
     }
 
     func logAppStoreReviewRequested() {

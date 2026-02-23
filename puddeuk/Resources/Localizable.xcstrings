@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "ko",
   "strings" : {
+    "" : {
+
+    },
     "alarm.button.pause" : {
       "localizations" : {
         "en" : {
@@ -550,6 +553,90 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "알림"
+          }
+        }
+      }
+    },
+    "announcement.alarmkit.content" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS 26 AlarmKit brings more reliable and louder alarms\n\n🔇 Works in Silent Mode and Do Not Disturb\n🔊 Plays even when system volume is muted\n🔁 Easier repeat day selection\n⏰ New snooze feature added\n🎵 Default sound if no recording is set"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS 26 AlarmKit 기반으로 더 정확하고 큰 알람을 들을 수 있어요\n\n🔇 무음 모드, 방해금지 모드에서도 울려요\n🔊 시스템 볼륨이 음소거여도 괜찮아요\n🔁 반복 날짜 선택이 더 편해졌어요\n⏰ 스누즈 기능이 추가됐어요\n🎵 녹음 안 하면 기본 시스템 알림이 울려요"
+          }
+        }
+      }
+    },
+    "announcement.alarmkit.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puddeuk has been updated!"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "퍼뜩이 업데이트 됐어요!"
+          }
+        }
+      }
+    },
+    "announcement.multilingual.content" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puddeuk now speaks your language!\n\n🌍 English & Korean supported\n📱 Automatically follows your device language\n✨ More languages coming soon"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "퍼뜩이 다국어를 지원해요!\n\n🌍 영어와 한국어 지원\n📱 디바이스 언어에 따라 자동 변경\n✨ 곧 더 많은 언어가 추가될 예정이에요"
+          }
+        }
+      }
+    },
+    "announcement.multilingual.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now available in English!"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이제 영어를 지원해요!"
+          }
+        }
+      }
+    },
+    "announcements.navigation.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Announcements"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "공지사항"
           }
         }
       }
@@ -1479,6 +1566,102 @@
         }
       }
     },
+    "language.footer.restart" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App will restart to apply language change"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "언어 변경을 위해 앱이 재시작됩니다"
+          }
+        }
+      }
+    },
+    "language.navigation.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Language"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "언어"
+          }
+        }
+      }
+    },
+    "language.restart.alert.confirm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restart Now"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지금 재시작"
+          }
+        }
+      }
+    },
+    "language.restart.alert.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The app will restart to apply your language preference."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "언어 설정을 적용하기 위해 앱이 재시작됩니다."
+          }
+        }
+      }
+    },
+    "language.restart.alert.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restart Required"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "재시작 필요"
+          }
+        }
+      }
+    },
+    "language.section.available" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Available Languages"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사용 가능한 언어"
+          }
+        }
+      }
+    },
     "notification.authorized.description" : {
       "localizations" : {
         "en" : {
@@ -2128,6 +2311,22 @@
         }
       }
     },
+    "settings.announcements" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Announcements"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "공지사항"
+          }
+        }
+      }
+    },
     "settings.contact" : {
       "localizations" : {
         "en" : {
@@ -2190,6 +2389,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "퍼뜩을 소개합니다"
+          }
+        }
+      }
+    },
+    "settings.language" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Language (언어)"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "언어 (Language)"
           }
         }
       }
