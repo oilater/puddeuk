@@ -1,0 +1,5 @@
+/* English Localization for Info.plist */
+
+"CFBundleDisplayName" = "Puddeuk";
+"NSMicrophoneUsageDescription" = "Microphone access is required to record your voice for alarm sounds.";
+"NSAlarmKitUsageDescription" = "AlarmKit permission is required to trigger alarms at scheduled times.";

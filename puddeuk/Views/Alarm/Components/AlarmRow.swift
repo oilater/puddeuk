@@ -12,7 +12,7 @@ struct AlarmRow: View {
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 4) {
-                        Text(alarm.repeatDays.isEmpty ? "반복 없음" : alarm.repeatDaysString)
+                        Text(alarm.repeatDaysString)
                             .font(.omyu(size: 18))
                             .foregroundColor(alarm.repeatDays.isEmpty ? .gray : .teal)
 

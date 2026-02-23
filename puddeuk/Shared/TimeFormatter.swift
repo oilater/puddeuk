@@ -17,7 +17,7 @@ struct TimeFormatter {
             let seconds = components.second ?? 0
 
             if hours == 0 && minutes == 0 && seconds > 0 {
-                return "1분 안에 알람이 울려요"
+                return String(localized: "time.until.alarm.under.minute")
             }
 
             var finalHours = hours
@@ -29,17 +29,17 @@ struct TimeFormatter {
             }
 
             if finalHours >= 24 {
-                return "1일 후에 알람이 울려요"
+                return String(localized: "time.until.alarm.one.day")
             }
 
             if finalHours > 0 {
                 if finalMinutes > 0 {
-                    return "\(finalHours)시간 \(finalMinutes)분 후에 알람이 울려요"
+                    return String(format: String(localized: "time.until.alarm.hours.minutes"), finalHours, finalMinutes)
                 } else {
-                    return "\(finalHours)시간 후에 알람이 울려요"
+                    return String(format: String(localized: "time.until.alarm.hours"), finalHours)
                 }
             } else {
-                return "\(finalMinutes)분 후에 알람이 울려요"
+                return String(format: String(localized: "time.until.alarm.minutes"), finalMinutes)
             }
         }
 
@@ -48,7 +48,7 @@ struct TimeFormatter {
         let dayComponents = calendar.dateComponents([.day], from: fromDate, to: toDate)
         let dayDifference = dayComponents.day ?? 0
 
-        return "\(dayDifference)일 후에 알람이 울려요"
+        return String(format: String(localized: "time.until.alarm.days"), dayDifference)
     }
 
     static func timeUntilAlarm(for alarm: Alarm) -> String? {

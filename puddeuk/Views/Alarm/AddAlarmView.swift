@@ -53,7 +53,7 @@ struct AddAlarmView: View {
             .preferredColorScheme(.dark)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("취소") {
+                    Button("button.cancel") {
                         if audioRecorder.isRecording {
                             audioRecorder.stopRecording()
                         }
@@ -64,7 +64,7 @@ struct AddAlarmView: View {
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("저장") {
+                    Button("button.save") {
                         // Stop recording and capture filename before saving
                         if audioRecorder.isRecording {
                             audioRecorder.stopRecording()
@@ -82,20 +82,20 @@ struct AddAlarmView: View {
                     .foregroundColor(.teal)
                 }
             }
-            .alert("알람 삭제", isPresented: $viewModel.showingDeleteAlert) {
-                Button("취소", role: .cancel) { }
-                Button("삭제", role: .destructive) {
+            .alert("alarm.delete.confirm.title", isPresented: $viewModel.showingDeleteAlert) {
+                Button("button.cancel", role: .cancel) { }
+                Button("button.delete", role: .destructive) {
                     Task {
                         await viewModel.deleteAlarm()
                         dismiss()
                     }
                 }
             } message: {
-                Text("이 알람을 삭제하시겠습니까?")
+                Text("alarm.delete.confirm.message")
                     .font(.omyuBody)
             }
-            .alert("오류", isPresented: $viewModel.showingErrorAlert) {
-                Button("확인", role: .cancel) { }
+            .alert("error.generic", isPresented: $viewModel.showingErrorAlert) {
+                Button("button.ok", role: .cancel) { }
             } message: {
                 Text(viewModel.errorMessage)
             }
@@ -114,7 +114,7 @@ struct AddAlarmView: View {
     private var titleSection: some View {
         VStack(alignment: .leading, spacing: 8) {
 
-            TextField("알람 이름을 입력해주세요", text: $viewModel.title)
+            TextField("alarm.title.placeholder", text: $viewModel.title)
                 .font(.omyuBody)
                 .textFieldStyle(.plain)
                 .padding()
@@ -125,7 +125,7 @@ struct AddAlarmView: View {
                 .toolbar {
                     ToolbarItemGroup(placement: .keyboard) {
                         Spacer()
-                        Button("완료") {
+                        Button("button.done") {
                             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                         }
                     }
@@ -135,15 +135,15 @@ struct AddAlarmView: View {
 
     private var snoozeSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("다시 알림")
+            Text("alarm.snooze.label")
                 .font(.omyuHeadline)
                 .foregroundColor(.white)
 
             HStack(spacing: 12) {
-                SnoozeButton(title: "사용 안 함", interval: nil, selectedInterval: $viewModel.snoozeInterval)
-                SnoozeButton(title: "5분", interval: 5, selectedInterval: $viewModel.snoozeInterval)
-                SnoozeButton(title: "10분", interval: 10, selectedInterval: $viewModel.snoozeInterval)
-                SnoozeButton(title: "15분", interval: 15, selectedInterval: $viewModel.snoozeInterval)
+                SnoozeButton(title: String(localized: "alarm.snooze.disabled"), interval: nil, selectedInterval: $viewModel.snoozeInterval)
+                SnoozeButton(title: String(localized: "alarm.snooze.5min"), interval: 5, selectedInterval: $viewModel.snoozeInterval)
+                SnoozeButton(title: String(localized: "alarm.snooze.10min"), interval: 10, selectedInterval: $viewModel.snoozeInterval)
+                SnoozeButton(title: String(localized: "alarm.snooze.15min"), interval: 15, selectedInterval: $viewModel.snoozeInterval)
             }
         }
         .padding()
@@ -157,7 +157,7 @@ struct AddAlarmView: View {
         } label: {
             HStack {
                 Image(systemName: "trash")
-                Text("알람 삭제")
+                Text("alarm.delete")
                     .font(.omyuBody)
             }
             .foregroundColor(.red)

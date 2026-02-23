@@ -7,11 +7,11 @@ struct EmptyAlarmView: View {
                 .font(.omyu(size: 64))
                 .foregroundColor(.teal.opacity(0.6))
 
-            Text("알람이 없어요")
+            Text("alarm.empty.title")
                 .font(.omyuTitle2)
                 .foregroundColor(.white)
 
-            Text("+ 버튼을 눌러 알람을 추가해보세요")
+            Text("alarm.empty.subtitle")
                 .font(.omyuSubheadline)
                 .foregroundColor(.gray)
         }

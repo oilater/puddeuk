@@ -37,18 +37,28 @@ final class Alarm {
 
     var timeString: String {
         let hour12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour)
-        let period = hour < 12 ? "오전" : "오후"
+        let period = hour < 12
+            ? String(localized: "time.period.am")
+            : String(localized: "time.period.pm")
         return String(format: "%@ %d:%02d", period, hour12, minute)
     }
 
     var repeatDaysString: String {
         if repeatDays.isEmpty {
-            return "반복 없음"
+            return String(localized: "alarm.repeat.none")
         }
         if repeatDays.count == 7 {
-            return "매일"
+            return String(localized: "alarm.repeat.daily")
         }
-        let dayNames = ["일", "월", "화", "수", "목", "금", "토"]
+        let dayNames = [
+            String(localized: "day.sunday.short"),
+            String(localized: "day.monday.short"),
+            String(localized: "day.tuesday.short"),
+            String(localized: "day.wednesday.short"),
+            String(localized: "day.thursday.short"),
+            String(localized: "day.friday.short"),
+            String(localized: "day.saturday.short")
+        ]
         return repeatDays.sorted().map { dayNames[$0] }.joined(separator: " ")
     }
 

@@ -3,17 +3,27 @@ import SwiftUI
 struct RepeatDaySelector: View {
     @Binding var repeatDays: Set<Int>
 
-    private let dayNames = ["일", "월", "화", "수", "목", "금", "토"]
+    private var dayNames: [String] {
+        [
+            String(localized: "day.sunday.short"),
+            String(localized: "day.monday.short"),
+            String(localized: "day.tuesday.short"),
+            String(localized: "day.wednesday.short"),
+            String(localized: "day.thursday.short"),
+            String(localized: "day.friday.short"),
+            String(localized: "day.saturday.short")
+        ]
+    }
 
     private var repeatText: String {
         if repeatDays.isEmpty {
-            return "한번만"
+            return String(localized: "alarm.repeat.once")
         } else if repeatDays.count == 7 {
-            return "매일"
+            return String(localized: "alarm.repeat.daily")
         } else if repeatDays == Set([1, 2, 3, 4, 5]) {
-            return "주중"
+            return String(localized: "alarm.repeat.weekdays")
         } else if repeatDays == Set([0, 6]) {
-            return "주말"
+            return String(localized: "alarm.repeat.weekends")
         } else {
             return repeatDays.sorted().map { dayNames[$0] }.joined(separator: ", ")
         }
@@ -39,7 +49,7 @@ struct RepeatDaySelector: View {
                         Image(systemName: repeatDays.count == 7 ? "checkmark.square.fill" : "square")
                             .foregroundColor(.teal)
                             .font(.system(size: 18))
-                        Text("매일")
+                        Text("alarm.repeat.daily")
                             .font(.omyuBody)
                             .foregroundColor(.white)
                     }

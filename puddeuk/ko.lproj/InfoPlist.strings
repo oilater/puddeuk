@@ -1,0 +1,5 @@
+/* Korean Localization for Info.plist */
+
+"CFBundleDisplayName" = "퍼뜩";
+"NSMicrophoneUsageDescription" = "알람 소리로 사용할 음성을 녹음하기 위해 마이크 접근이 필요합니다.";
+"NSAlarmKitUsageDescription" = "설정한 시간에 알람을 울리기 위해 AlarmKit 권한이 필요합니다.";

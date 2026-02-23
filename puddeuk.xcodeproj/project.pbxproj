@@ -260,11 +260,12 @@
 				};
 			};
 			buildConfigurationList = DF5A028D2F2F1FD700B45649 /* Build configuration list for PBXProject "puddeuk" */;
-			developmentRegion = en;
+			developmentRegion = ko;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
+				ko,
 			);
 			mainGroup = DF5A02892F2F1FD700B45649;
 			minimizedProjectReferenceProxies = 1;
@@ -580,6 +581,7 @@
 				INFOPLIST_FILE = AlarmWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = AlarmWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -618,6 +620,7 @@
 				INFOPLIST_FILE = AlarmWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = AlarmWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

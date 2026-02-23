@@ -35,7 +35,7 @@ struct ContentView: View {
                     .padding(.bottom, 20)
                 }
             }
-            .navigationTitle("기상 도움 많이 된다")
+            .navigationTitle("app.navigation.title")
             .navigationBarTitleDisplayMode(.large)
             .preferredColorScheme(.dark)
             .toolbar {

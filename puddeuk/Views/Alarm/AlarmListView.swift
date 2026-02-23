@@ -13,7 +13,7 @@ struct AlarmListView: View {
                     Image(systemName: "clock.fill")
                         .font(.system(size: 20))
                         .foregroundStyle(.teal)
-                    Text(timeUntilNextAlarm ?? "예정된 알람이 없어요")
+                    Text(timeUntilNextAlarm ?? String(localized: "alarm.next.none"))
                         .font(.omyu(size: 20))
                         .foregroundStyle(.white)
                 }
@@ -33,7 +33,7 @@ struct AlarmListView: View {
                     Button(role: .destructive) {
                         onAlarmDelete(alarm)
                     } label: {
-                        Label("삭제", systemImage: "trash")
+                        Label("button.delete", systemImage: "trash")
                     }
                     .tint(.red)
                 }
@@ -41,7 +41,7 @@ struct AlarmListView: View {
                     Button(role: .destructive) {
                         onAlarmDelete(alarm)
                     } label: {
-                        Label("삭제", systemImage: "trash")
+                        Label("button.delete", systemImage: "trash")
                     }
                 }
             }
