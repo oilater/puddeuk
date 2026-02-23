@@ -45,7 +45,7 @@ struct AlarmKitHelper {
             schedule = .relative(.init(time: time, repeats: .weekly(weekdays)))
         }
 
-        let alarmTitle = alarm.title.isEmpty ? "알람" : alarm.title
+        let alarmTitle = alarm.title.isEmpty ? String(localized: "alarm.default.title") : alarm.title
         let snoozeEnabled = alarm.snoozeInterval != nil && (alarm.snoozeInterval ?? 0) > 0
 
         let alert: AlarmPresentation.Alert
@@ -53,12 +53,12 @@ struct AlarmKitHelper {
             alert = AlarmPresentation.Alert(
                 title: LocalizedStringResource(stringLiteral: alarmTitle),
                 stopButton: AlarmButton(
-                    text: "끄기",
+                    text: LocalizedStringResource("alarm.button.stop"),
                     textColor: .white,
                     systemImageName: "stop.circle"
                 ),
                 secondaryButton: AlarmButton(
-                    text: "다시 알림",
+                    text: LocalizedStringResource("alarm.snooze.label"),
                     textColor: .black,
                     systemImageName: "repeat"
                 ),
@@ -68,7 +68,7 @@ struct AlarmKitHelper {
             alert = AlarmPresentation.Alert(
                 title: LocalizedStringResource(stringLiteral: alarmTitle),
                 stopButton: AlarmButton(
-                    text: "끄기",
+                    text: LocalizedStringResource("alarm.button.stop"),
                     textColor: .white,
                     systemImageName: "stop.circle"
                 )
@@ -80,15 +80,15 @@ struct AlarmKitHelper {
             let countdownContent = AlarmPresentation.Countdown(
                 title: LocalizedStringResource(stringLiteral: alarmTitle),
                 pauseButton: AlarmButton(
-                    text: "일시정지",
+                    text: LocalizedStringResource("alarm.button.pause"),
                     textColor: .black,
                     systemImageName: "pause.fill"
                 )
             )
             let pausedContent = AlarmPresentation.Paused(
-                title: LocalizedStringResource(stringLiteral: "일시정지됨"),
+                title: LocalizedStringResource("alarm.status.paused"),
                 resumeButton: AlarmButton(
-                    text: "재개",
+                    text: LocalizedStringResource("alarm.button.resume"),
                     textColor: .black,
                     systemImageName: "play.fill"
                 )
@@ -150,9 +150,9 @@ enum AlarmKitError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .authorizationDenied:
-            return "AlarmKit 권한이 필요합니다. 설정에서 활성화해 주세요."
+            return String(localized: "error.alarmkit.authorization.denied")
         case .unknown:
-            return "알 수 없는 오류가 발생했습니다."
+            return String(localized: "error.generic")
         }
     }
 }

@@ -12,6 +12,22 @@ struct SettingsView: View {
                 List {
                     Section {
                         NavigationLink {
+                            AnnouncementsView()
+                                .onAppear {
+                                    AnalyticsManager.shared.logAnnouncementsViewed()
+                                }
+                        } label: {
+                            HStack {
+                                Image(systemName: "megaphone.fill")
+                                    .foregroundStyle(.teal)
+                                Text("settings.announcements")
+                                    .font(.omyuBody)
+                            }
+                            .foregroundStyle(.white)
+                        }
+                        .listRowBackground(Color(red: 0.18, green: 0.18, blue: 0.2))
+
+                        NavigationLink {
                             DeveloperMessageView()
                                 .onAppear {
                                     AnalyticsManager.shared.logDeveloperMessageViewed()
@@ -20,7 +36,7 @@ struct SettingsView: View {
                             HStack {
                                 Image(systemName: "heart.fill")
                                     .foregroundStyle(.teal)
-                                Text("퍼뜩을 소개합니다")
+                                Text("settings.introduce")
                                     .font(.omyuBody)
                             }
                             .foregroundStyle(.white)
@@ -38,7 +54,20 @@ struct SettingsView: View {
                             HStack {
                                 Image(systemName: "bell.fill")
                                     .foregroundStyle(.teal)
-                                Text("알림 설정")
+                                Text("settings.notifications")
+                                    .font(.omyuBody)
+                            }
+                            .foregroundStyle(.white)
+                        }
+                        .listRowBackground(Color(red: 0.18, green: 0.18, blue: 0.2))
+
+                        NavigationLink {
+                            LanguageSettingsView()
+                        } label: {
+                            HStack {
+                                Image(systemName: "globe")
+                                    .foregroundStyle(.teal)
+                                Text("settings.language")
                                     .font(.omyuBody)
                             }
                             .foregroundStyle(.white)
@@ -54,7 +83,7 @@ struct SettingsView: View {
                             HStack {
                                 Image(systemName: "message.fill")
                                     .foregroundStyle(.teal)
-                                Text("문의하기")
+                                Text("settings.contact")
                                     .font(.omyuBody)
                             }
                             .foregroundStyle(.white)
@@ -67,7 +96,7 @@ struct SettingsView: View {
                             HStack {
                                 Image(systemName: "star.fill")
                                     .foregroundStyle(.yellow)
-                                Text("앱스토어 리뷰 남기기")
+                                Text("settings.review.appstore")
                                     .font(.omyuBody)
                             }
                             .foregroundStyle(.white)
@@ -77,7 +106,7 @@ struct SettingsView: View {
 
                     Section {
                         HStack {
-                            Text("버전")
+                            Text("settings.version.label")
                                 .font(.omyuBody)
                                 .foregroundStyle(.white)
                             Spacer()
@@ -92,7 +121,7 @@ struct SettingsView: View {
                 .padding(.top, 16)
                 .padding(.bottom, 20)
             }
-            .navigationTitle("설정")
+            .navigationTitle("settings.navigation.title")
             .navigationBarTitleDisplayMode(.large)
         }
     }

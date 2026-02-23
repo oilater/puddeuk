@@ -19,18 +19,18 @@ struct FeedbackView: View {
                             .font(.omyu(size: 50))
                             .foregroundStyle(.teal)
 
-                        Text("문의하기")
+                        Text("feedback.navigation.title")
                             .font(.omyuTitle3)
                             .foregroundStyle(.white)
 
-                        Text("편하게 궁금한 점이나 피드백을 남겨주세요!")
+                        Text("feedback.subtitle")
                             .font(.omyuSubheadline)
                             .foregroundStyle(.gray)
                     }
                     .padding(.top, 40)
 
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("평점")
+                        Text("feedback.rating.label")
                             .font(.omyuSubheadline)
                             .foregroundStyle(.gray)
 
@@ -51,11 +51,11 @@ struct FeedbackView: View {
 
                     VStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("이메일")
+                            Text("feedback.email.label")
                                 .font(.omyuSubheadline)
                                 .foregroundStyle(.gray)
 
-                            TextField("답변 받을 이메일 주소", text: $fromEmail)
+                            TextField("feedback.email.placeholder", text: $fromEmail)
                                 .font(.omyuBody)
                                 .textFieldStyle(CustomTextFieldStyle())
                                 .keyboardType(.emailAddress)
@@ -64,7 +64,7 @@ struct FeedbackView: View {
                         }
 
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("내용")
+                            Text("feedback.content.label")
                                 .font(.omyuSubheadline)
                                 .foregroundStyle(.gray)
 
@@ -78,7 +78,7 @@ struct FeedbackView: View {
                                     .foregroundStyle(.white)
 
                                 if feedback.isEmpty {
-                                    Text("문의 사항을 남겨주세요")
+                                    Text("feedback.message.placeholder")
                                         .font(.omyuBody)
                                         .foregroundStyle(.gray.opacity(0.6))
                                         .padding(.horizontal, 16)
@@ -99,7 +99,7 @@ struct FeedbackView: View {
                                     .progressViewStyle(CircularProgressViewStyle(tint: .black))
                                     .scaleEffect(0.8)
                             }
-                            Text(isLoading ? "보내는 중..." : "보내기")
+                            Text(isLoading ? "feedback.button.sending" : "button.send")
                                 .font(.omyuHeadline)
                         }
                         .foregroundStyle(.black)
@@ -115,10 +115,10 @@ struct FeedbackView: View {
                 .padding(.bottom, 40)
             }
         }
-        .navigationTitle("문의하기")
+        .navigationTitle("feedback.navigation.title")
         .navigationBarTitleDisplayMode(.inline)
-        .alert("알림", isPresented: $showingAlert) {
-            Button("확인", role: .cancel) { }
+        .alert("alert.title", isPresented: $showingAlert) {
+            Button("button.ok", role: .cancel) { }
         } message: {
             Text(alertMessage)
         }
@@ -137,7 +137,7 @@ struct FeedbackView: View {
         Task {
             do {
                 let stars = String(repeating: "⭐️", count: rating)
-                let subject = "퍼뜩 사용 후기 \(stars)"
+                let subject = String(format: String(localized: "feedback.email.subject"), stars)
 
                 guard let url = URL(string: "https://formspree.io/f/xqelwgva") else {
                     throw URLError(.badURL)
@@ -147,15 +147,19 @@ struct FeedbackView: View {
                 request.httpMethod = "POST"
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
+                let ratingLabel = String(localized: "feedback.rating.label")
+                let emailLabel = String(localized: "feedback.email.label")
+                let contentLabel = String(localized: "feedback.content.label")
+
                 let body: [String: Any] = [
                     "email": fromEmail,
                     "subject": subject,
                     "message": """
-                    평점: \(rating)/5
+                    \(ratingLabel): \(rating)/5
 
-                    작성자 이메일: \(fromEmail)
+                    \(emailLabel): \(fromEmail)
 
-                    후기:
+                    \(contentLabel):
                     \(feedback)
                     """
                 ]
@@ -171,14 +175,14 @@ struct FeedbackView: View {
                 if httpResponse.statusCode == 200 {
                     await MainActor.run {
                         isLoading = false
-                        alertMessage = "소중한 후기 감사합니다! 💙"
+                        alertMessage = String(localized: "feedback.success.message")
                         showingAlert = true
                         clearForm()
                     }
                 } else {
                     await MainActor.run {
                         isLoading = false
-                        alertMessage = "전송에 실패했습니다.\n잠시 후 다시 시도해주세요."
+                        alertMessage = String(localized: "feedback.error.failed")
                         showingAlert = true
                     }
                 }
@@ -186,7 +190,7 @@ struct FeedbackView: View {
             } catch {
                 await MainActor.run {
                     isLoading = false
-                    alertMessage = "전송에 실패했습니다.\n네트워크 연결을 확인해주세요."
+                    alertMessage = String(localized: "feedback.error.network")
                     showingAlert = true
                 }
             }

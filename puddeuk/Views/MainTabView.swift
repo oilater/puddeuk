@@ -6,12 +6,12 @@ struct MainTabView: View {
         TabView {
             ContentView()
                 .tabItem {
-                    Label("알람", systemImage: "alarm.fill")
+                    Label("tab.alarms", systemImage: "alarm.fill")
                 }
 
             SettingsView()
                 .tabItem {
-                    Label("설정", systemImage: "gearshape.fill")
+                    Label("tab.settings", systemImage: "gearshape.fill")
                 }
         }
         .tint(.teal)

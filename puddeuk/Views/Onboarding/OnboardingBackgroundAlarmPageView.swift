@@ -10,13 +10,13 @@ struct OnboardingBackgroundAlarmPageView: View {
                 .foregroundColor(.teal)
 
             VStack(spacing: 16) {
-                Text("앱을 종료해도\n알람이 잘 울려요")
+                Text("onboarding.background.title")
                     .font(.omyu(size: 32))
                     .bold()
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
 
-                Text("무음모드, 방해금지 모드라도 퍼뜩이 깨워드려요!")
+                Text("onboarding.background.subtitle")
                     .font(.omyuBody)
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)

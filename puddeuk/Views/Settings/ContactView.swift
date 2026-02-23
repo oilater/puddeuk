@@ -20,11 +20,11 @@ struct ContactView: View {
                             .font(.omyu(size: 50))
                             .foregroundStyle(.teal)
 
-                        Text("개발자에게 문의하기")
+                        Text("contact.title")
                             .font(.omyuTitle3)
                             .foregroundStyle(.white)
 
-                        Text("의견이나 문의사항을 보내주세요")
+                        Text("contact.subtitle")
                             .font(.omyuSubheadline)
                             .foregroundStyle(.gray)
                     }
@@ -32,21 +32,21 @@ struct ContactView: View {
 
                     VStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("제목")
+                            Text("contact.subject.label")
                                 .font(.omyuSubheadline)
                                 .foregroundStyle(.gray)
 
-                            TextField("제목을 입력해주세요", text: $subject)
+                            TextField("contact.subject.placeholder", text: $subject)
                                 .font(.omyuBody)
                                 .textFieldStyle(CustomTextFieldStyle())
                         }
 
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("이메일")
+                            Text("feedback.email.label")
                                 .font(.omyuSubheadline)
                                 .foregroundStyle(.gray)
 
-                            TextField("답변받을 이메일 주소", text: $fromEmail)
+                            TextField("feedback.email.placeholder", text: $fromEmail)
                                 .font(.omyuBody)
                                 .textFieldStyle(CustomTextFieldStyle())
                                 .keyboardType(.emailAddress)
@@ -55,7 +55,7 @@ struct ContactView: View {
                         }
 
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("내용")
+                            Text("feedback.content.label")
                                 .font(.omyuSubheadline)
                                 .foregroundStyle(.gray)
 
@@ -73,7 +73,7 @@ struct ContactView: View {
                     Button {
                         sendMail()
                     } label: {
-                        Text("전송")
+                        Text("button.send")
                             .font(.omyuHeadline)
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
@@ -88,7 +88,7 @@ struct ContactView: View {
                 .padding(.bottom, 40)
             }
         }
-        .navigationTitle("문의하기")
+        .navigationTitle("contact.navigation.title")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingMailView) {
             MailComposeView(
@@ -100,8 +100,8 @@ struct ContactView: View {
                 handleMailResult(result)
             }
         }
-        .alert("알림", isPresented: $showingAlert) {
-            Button("확인", role: .cancel) { }
+        .alert("alert.title", isPresented: $showingAlert) {
+            Button("button.ok", role: .cancel) { }
         } message: {
             Text(alertMessage)
         }
@@ -118,7 +118,7 @@ struct ContactView: View {
         if MFMailComposeViewController.canSendMail() {
             showingMailView = true
         } else {
-            alertMessage = "이 기기에서 메일을 보낼 수 없습니다.\n메일 앱을 설정해주세요."
+            alertMessage = String(localized: "contact.error.mailUnavailable")
             showingAlert = true
         }
     }
@@ -128,14 +128,14 @@ struct ContactView: View {
         case .success(let mailResult):
             switch mailResult {
             case .sent:
-                alertMessage = "메일이 성공적으로 전송되었습니다."
+                alertMessage = String(localized: "contact.success.sent")
                 clearForm()
             case .saved:
-                alertMessage = "메일이 임시 보관함에 저장되었습니다."
+                alertMessage = String(localized: "contact.success.saved")
             case .cancelled:
                 break
             case .failed:
-                alertMessage = "메일 전송에 실패했습니다."
+                alertMessage = String(localized: "contact.error.failed")
             @unknown default:
                 break
             }
@@ -145,7 +145,7 @@ struct ContactView: View {
             }
 
         case .failure:
-            alertMessage = "메일 전송 중 오류가 발생했습니다."
+            alertMessage = String(localized: "contact.error.failure")
             showingAlert = true
         }
     }

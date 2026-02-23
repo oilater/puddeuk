@@ -10,9 +10,9 @@ struct AlarmAlertView: View {
 
     private var snoozeButtonText: String {
         guard let interval = snoozeInterval, interval > 0 else {
-            return "5분 뒤 울림"
+            return String(localized: "alarm.snooze.ring.after.default")
         }
-        return "\(interval)분 뒤 울림"
+        return String(format: String(localized: "alarm.snooze.ring.after"), interval)
     }
 
     var body: some View {
@@ -48,7 +48,7 @@ struct AlarmAlertView: View {
                     }
 
                     Button(action: onStop) {
-                        Text("끄기")
+                        Text("alarm.button.stop")
                             .font(.custom("omyu_pretty", size: 24))
                             .foregroundStyle(.white)
                             .frame(width: 200, height: 60)

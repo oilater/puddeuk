@@ -26,7 +26,7 @@ final class AddAlarmViewModel: ObservableObject, Identifiable {
     }
 
     var navigationTitle: String {
-        isEditing ? "알람 편집" : "새 알람"
+        isEditing ? String(localized: "alarm.edit.title") : String(localized: "alarm.new.title")
     }
 
     init(modelContext: ModelContext, alarm: Alarm? = nil) {

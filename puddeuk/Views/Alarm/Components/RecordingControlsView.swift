@@ -8,7 +8,7 @@ struct RecordingControlsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("알람 소리")
+            Text("recording.label")
                 .font(.omyuHeadline)
                 .foregroundColor(.white)
 
@@ -60,12 +60,12 @@ struct RecordingControlsView: View {
                         Circle()
                             .fill(audioRecorder.recordingState == .warning ? Color.orange : Color.teal)
                             .frame(width: 8, height: 8)
-                        Text("녹음 중")
+                        Text("recording.status.recording")
                             .font(.omyuCaption)
                             .foregroundColor(.gray)
                     }
 
-                    Text("\(Int(audioRecorder.remainingTime))초 남음")
+                    Text(String(format: String(localized: "recording.time.remaining"), Int(audioRecorder.remainingTime)))
                         .font(.omyuBody)
                         .foregroundColor(audioRecorder.recordingState == .warning ? .orange : .white)
                 }
@@ -84,7 +84,7 @@ struct RecordingControlsView: View {
                 HStack {
                     Image(systemName: "stop.circle.fill")
                         .font(.omyu(size: 24))
-                    Text("녹음 중지")
+                    Text("recording.button.stop")
                         .font(.omyu(size: 16))
                 }
                 .foregroundColor(.black)
@@ -101,7 +101,7 @@ struct RecordingControlsView: View {
             HStack {
                 Image(systemName: "waveform")
                     .foregroundColor(.teal)
-                Text("녹음 완료")
+                Text("recording.status.completed")
                     .font(.omyuBody)
                     .foregroundColor(.white)
                 Spacer()
@@ -132,7 +132,7 @@ struct RecordingControlsView: View {
                     HStack {
                         Image(systemName: audioPlayer.isPlaying ? "stop.fill" : "play.fill")
                             .font(.omyu(size: 16))
-                        Text(audioPlayer.isPlaying ? "정지" : "미리듣기")
+                        Text(audioPlayer.isPlaying ? "button.stop" : "recording.button.preview")
                             .font(.omyu(size: 14))
                     }
                     .foregroundColor(.black)
@@ -156,7 +156,7 @@ struct RecordingControlsView: View {
                     HStack {
                         Image(systemName: "mic.fill")
                             .font(.omyu(size: 16))
-                        Text("다시 녹음")
+                        Text("recording.button.reRecord")
                             .font(.omyu(size: 14))
                     }
                     .foregroundColor(.white)
@@ -172,12 +172,12 @@ struct RecordingControlsView: View {
     private var noRecordingView: some View {
         VStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("녹음된 소리가 없습니다")
+                Text("recording.status.empty")
                     .font(.omyuBody)
                     .foregroundColor(.gray)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                Text("최대 30초까지 녹음할 수 있어요")
+                Text("recording.maxDuration.info")
                     .font(.omyuCaption)
                     .foregroundColor(.gray.opacity(0.7))
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -190,7 +190,7 @@ struct RecordingControlsView: View {
                 HStack {
                     Image(systemName: "mic.circle.fill")
                         .font(.omyu(size: 24))
-                    Text("녹음 시작")
+                    Text("recording.button.start")
                         .font(.omyu(size: 16))
                 }
                 .foregroundColor(.black)

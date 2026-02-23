@@ -15,13 +15,13 @@ struct OnboardingWelcomePageView: View {
                 .onAppear { isAnimating = true }
 
             VStack(spacing: 16) {
-                Text("내 목소리로\n아침에 깨워줘요")
+                Text("onboarding.welcome.title")
                     .font(.omyu(size: 32))
                     .bold()
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
 
-                Text("여친, 남친, 부모님 목소리도 녹음해보세요!")
+                Text("onboarding.welcome.subtitle")
                     .font(.omyuBody)
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)

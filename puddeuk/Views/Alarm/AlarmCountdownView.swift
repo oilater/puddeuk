@@ -28,7 +28,7 @@ struct AlarmCountdownView: View {
                     .foregroundStyle(.teal)
 
                 VStack(spacing: 12) {
-                    Text("스누즈 중")
+                    Text("alarm.snooze.active")
                         .font(.custom("omyu_pretty", size: 36))
                         .foregroundStyle(.white)
 
@@ -45,7 +45,7 @@ struct AlarmCountdownView: View {
                 Spacer()
 
                 Button(action: onCancel) {
-                    Text("스누즈 취소")
+                    Text("alarm.snooze.cancel")
                         .font(.custom("omyu_pretty", size: 24))
                         .foregroundStyle(.white)
                         .frame(width: 200, height: 60)

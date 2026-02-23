@@ -10,13 +10,13 @@ struct OnboardingPermissionPageView: View {
                 .foregroundColor(.teal)
 
             VStack(spacing: 16) {
-                Text("알람 권한을\n허용해주세요")
+                Text("onboarding.permission.title")
                     .font(.omyu(size: 32))
                     .bold()
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
 
-                Text("아침에 무조건 깨워드릴게요")
+                Text("onboarding.permission.subtitle")
                     .font(.omyuBody)
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)

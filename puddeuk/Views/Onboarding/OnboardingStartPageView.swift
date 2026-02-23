@@ -10,13 +10,13 @@ struct OnboardingStartPageView: View {
                 .foregroundColor(.teal)
 
             VStack(spacing: 16) {
-                Text("이제\n시작해볼까요?")
+                Text("onboarding.start.title")
                     .font(.omyu(size: 32))
                     .bold()
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
 
-                Text("퍼뜩과 함께\n상쾌한 아침을 시작하세요")
+                Text("onboarding.start.subtitle")
                     .font(.omyuBody)
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)

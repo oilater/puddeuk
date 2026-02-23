@@ -39,14 +39,14 @@ struct OnboardingView: View {
                     }
                 }
             } label: {
-                buttonLabel("알림 허용하기")
+                buttonLabel(String(localized: "onboarding.button.allowNotifications"))
             }
         } else if currentPage == 3 {
             Button {
                 AnalyticsManager.shared.logOnboardingCompleted()
                 hasCompletedOnboarding = true
             } label: {
-                buttonLabel("퍼뜩 시작하기")
+                buttonLabel(String(localized: "onboarding.button.getStarted"))
             }
         } else {
             Button {
@@ -54,7 +54,7 @@ struct OnboardingView: View {
                     currentPage += 1
                 }
             } label: {
-                buttonLabel("다음")
+                buttonLabel(String(localized: "button.next"))
             }
         }
     }
